@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '1.13.3'
+}
+
+group = "com.zhanglinwei"
+version = "1.0-RELEASE"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/central/'}
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+    maven { url 'https://maven.aliyun.com/repository/google/' }
+    maven { url 'https://maven.aliyun.com/repository/jcenter/'}
+    maven { url 'https://maven.aliyun.com/repository/gradle-plugin'}
+    //    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(dir:'lib', include: ['*.jar'])
+//    implementation 'org.apache.poi:poi-ooxml:5.2.2'
+}
+
+intellij {
+    plugins = ['com.intellij.java']
+    //https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html#intellij-extension-version
+    //选择基于2022.1.1版本进行插件调试验证
+    version = '2022.1.1'
+    intellij.updateSinceUntilBuild = false
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation', '-parameters']
+}
+
+patchPluginXml {
+    // 这个版本号不能高于上面intellij的version, 否则runIde会报错
+    sinceBuild = '221' // 最低版本
+//    untilBuild = '*.*.*' // 上不封顶
+}

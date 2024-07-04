@@ -1,0 +1,70 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.zhanglinwei.zTools</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>zTools</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="3498729975@qq.com" url="https://zhanglinweigithub.github.io/notes-pages/">Zhang Linwei</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description>
+        <![CDATA[
+            <h1>Minimum supported IDEA version: 2022.1.1</h1>
+            Document:
+            <ul>
+                <li><a href="">Gitee</a></li>
+                <li><a href="">GitHub</a></li>
+            </ul>
+            Feature:
+                <ul>
+                    <li>Generate interface documents, supporting three formats: Html, MarkDown, and Word</li>
+                    <li>Class to JSON, support arbitrary nesting, inheritance, generics, and annotation parsing</li>
+                    <li>JSON to Class</li>
+                </ul>
+        ]]>
+    </description>
+
+    <idea-version since-build="221.0"/>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <!--    <depends>com.intellij.database</depends>-->
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="com.zhanglinwei.zTools.NotificationGroup"
+                           displayType="BALLOON"
+                           key="com.zhanglinwei.zTools.util.NotificationGroup"/>
+        <projectConfigurable instance="com.zhanglinwei.zTools.config.ZToolsConfigSettings"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.config.ZToolsConfig"/>
+    </extensions>
+
+    <actions>
+        <!-- 拷贝JSON -->
+        <action id="copy-json.ID" icon="/icons/json.svg" class="com.zhanglinwei.zTools.CopyJsonAction"
+                text="Copy Json">
+            <add-to-group group-id="EditorLangPopupMenu" anchor="first"/>
+        </action>
+
+        <!-- 生成API文档 -->
+        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.GenerateApiDoc"
+                text="Generate Api Doc">
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
+        </action>
+
+        <!-- JSON 转 Java -->
+        <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.JavaClassByJson" text="Java Class By Json">
+            <add-to-group group-id="NewGroup1" anchor="after" relative-to-action="NewClass"/>
+        </action>
+    </actions>
+
+</idea-plugin>
