@@ -75,6 +75,33 @@
 
 1. 默认会忽略 `static`、`final` 字段
 2. 默认会忽略 `serialVersionUID` 字段
+3. 自引用的嵌套类型会标注 **同外层** 
+
+~~~java
+@Data
+public class Student {
+
+    private String studentName;
+
+    private Long age;
+
+    private String address;
+
+    private Student studnetInfo; // 自引用
+
+}
+~~~
+
+生成 `JSON` 如下
+
+~~~json
+{
+  "studentName": "stringValue",
+  "age": 0,
+  "address": "stringValue",
+  "studnetInfo": {} // 同外层
+}
+~~~
 
 ### 3、JSON 转 Java类
 
@@ -104,7 +131,7 @@
     "studentName": "stringValue",
     "age": 0,
     "address": "stringValue",
-    "teacherInfo": {}
+    "studnetInfo": {}
   }
 }
 ~~~
@@ -134,7 +161,7 @@ public class Student {
   "studentName": "stringValue",
   "age": 0,
   "address": "stringValue",
-  "teacherInfo": {}
+  "studnetInfo": {}
 }
 ~~~
 
@@ -150,7 +177,7 @@ public class Student {
 
     private String address;
 
-    private Map<String, Object> teacherInfo; // 注意这里
+    private Map<String, Object> studnetInfo; // 注意这里
 
 }
 ~~~
