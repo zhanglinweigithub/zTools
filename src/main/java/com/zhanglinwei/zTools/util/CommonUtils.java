@@ -1,6 +1,5 @@
 package com.zhanglinwei.zTools.util;
 
-import org.apache.commons.lang.StringUtils;
 
 /**
  * 通用工具类
@@ -29,7 +28,7 @@ public class CommonUtils {
      * 追加斜杠
      */
     public static String appendSlash(String path) {
-        if (StringUtils.isEmpty(path)) {
+        if (AssertUtils.isBlank(path)) {
             return "";
         }
         String p = path.replaceAll("/{2,}", "/");

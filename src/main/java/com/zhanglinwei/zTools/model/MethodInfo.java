@@ -8,8 +8,10 @@ import com.zhanglinwei.zTools.constant.RequestMethodEnum;
 import com.zhanglinwei.zTools.constant.RestConstant;
 import com.zhanglinwei.zTools.constant.WebAnnotation;
 import com.zhanglinwei.zTools.normal.FieldFactory;
-import com.zhanglinwei.zTools.util.*;
-import org.apache.commons.lang.StringUtils;
+import com.zhanglinwei.zTools.util.AnnotationUtil;
+import com.zhanglinwei.zTools.util.AssertUtils;
+import com.zhanglinwei.zTools.util.DesUtil;
+import com.zhanglinwei.zTools.util.JsonUtil;
 
 import java.io.Serializable;
 import java.util.*;
@@ -272,7 +274,7 @@ public class MethodInfo implements Serializable {
         }
         for (PsiDocTag docTag : docComment.getTags()) {
             String tagValue = docTag.getValueElement() == null ? "" : docTag.getValueElement().getText();
-            if ("param".equals(docTag.getName()) && StringUtils.isNotEmpty(tagValue)) {
+            if ("param".equals(docTag.getName()) && AssertUtils.isNotBlank(tagValue)) {
                 paramDescMap.put(tagValue, getParamDesc(docTag.getText()));
             }
         }

@@ -10,7 +10,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.constant.TypeEnum;
 import com.zhanglinwei.zTools.model.FieldInfo;
-import org.apache.commons.lang.StringUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -96,7 +95,7 @@ public class JsonUtil {
             return descList;
         }
         if (TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
-            if (StringUtils.isEmpty(fieldInfo.getDesc())) {
+            if (AssertUtils.isBlank(fieldInfo.getDesc())) {
                 return descList;
             }
             descList.add(buildDesc(fieldInfo));

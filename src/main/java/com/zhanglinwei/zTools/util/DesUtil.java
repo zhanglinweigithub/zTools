@@ -7,7 +7,6 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.zhanglinwei.zTools.constant.SwaggerAnnotation;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Objects;
 
@@ -60,7 +59,7 @@ public class DesUtil {
 
     public static String getDescription(PsiDocComment docComment, PsiAnnotation[] annotations) {
         String desc = getDescription(docComment);
-        if(StringUtils.isBlank(desc)) {
+        if(AssertUtils.isBlank(desc)) {
             for (PsiAnnotation annotation : annotations) {
                 String annotationText = annotation.getText();
                 if(

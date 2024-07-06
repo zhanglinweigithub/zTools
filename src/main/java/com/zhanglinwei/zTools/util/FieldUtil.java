@@ -8,7 +8,6 @@ import com.zhanglinwei.zTools.constant.TypeEnum;
 import com.zhanglinwei.zTools.constant.WebAnnotation;
 import com.zhanglinwei.zTools.model.FieldInfo;
 import com.zhanglinwei.zTools.normal.RequireAndRange;
-import org.apache.commons.lang.StringUtils;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -128,7 +127,7 @@ public class FieldUtil {
                 }
             }
         }
-        if (StringUtils.isNotEmpty(min) || StringUtils.isNotEmpty(max)) {
+        if (AssertUtils.isNotBlank(min) || AssertUtils.isNotBlank(max)) {
             range = "[" + min + "," + max + "]";
         }
         return new RequireAndRange(require, range);

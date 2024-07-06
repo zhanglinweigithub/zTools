@@ -3,7 +3,6 @@ package com.zhanglinwei.zTools.util;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.model.ClassInfo;
 import com.zhanglinwei.zTools.model.MethodInfo;
-import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
@@ -19,7 +18,7 @@ public class FileUtils {
 
     public static String getFileName(MethodInfo methodInfo) {
         String fileName = methodInfo.getName();
-        if (StringUtils.isNotBlank(methodInfo.getDesc())) {
+        if (AssertUtils.isNotBlank(methodInfo.getDesc())) {
             fileName = methodInfo.getDesc().contains(" ") ? methodInfo.getDesc().split(" ")[0] : methodInfo.getDesc();
         }
 

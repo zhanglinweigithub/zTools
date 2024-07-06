@@ -5,7 +5,6 @@ import com.zhanglinwei.zTools.constant.RequestMethodEnum;
 import com.zhanglinwei.zTools.constant.WebAnnotation;
 import com.zhanglinwei.zTools.model.FieldInfo;
 import com.zhanglinwei.zTools.model.RequestHeader;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
@@ -149,7 +148,7 @@ public class AnnotationUtil {
             for (PsiNameValuePair psiNameValuePair : psiNameValuePairs) {
                 if (psiNameValuePair.getName().equals("value") || psiNameValuePair.getName().equals("path")) {
                     String text = psiNameValuePair.getValue().getText();
-                    if (StringUtils.isEmpty(text)) {
+                    if (AssertUtils.isNotBlank(text)) {
                         return "";
                     }
                     text = text.replace("{\"", "").replace("\"}", "").replace("\"", "");
