@@ -40,7 +40,7 @@ public class ZToolsConfigSettings implements Configurable {
 
     @Override
     public String getDisplayName() {
-        return "Easy Doc";
+        return "z-tools";
     }
 
     @Override
