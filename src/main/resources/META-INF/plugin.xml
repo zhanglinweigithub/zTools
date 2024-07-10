@@ -15,7 +15,8 @@
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description>
         <![CDATA[
-            <h1>Minimum supported IDEA version: 2022.1.1</h1>
+            This is a Java development tool that can generate interface documents, convert classes to JSON, and generate classes from JSON
+            <b>Minimum supported IDEA version: 2022.1.1</b>
             Document:
             <ul>
                 <li><a href="https://gitee.com/linwei-zhang/z-tools/blob/master/README.md">Gitee</a></li>
