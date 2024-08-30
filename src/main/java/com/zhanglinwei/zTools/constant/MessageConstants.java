@@ -20,6 +20,9 @@ public interface MessageConstants {
     /** 拷贝JSON成功 */
     String JSON_SUCCESS = "Copy Json successfully!";
 
+    /** 拷贝DDL成功 */
+    String DDL_SUCCESS = "Copy DDL successfully!";
+
     /** 该文件无字段 */
     String NO_FIELDS = "This class file has no fields!";
     String READ_WORD_TEMPLATE_FAIL = "Failed to read word template!";

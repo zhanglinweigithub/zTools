@@ -7,6 +7,7 @@ import com.zhanglinwei.zTools.model.FieldInfo;
 import com.zhanglinwei.zTools.model.RequestHeader;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 注解工具类
@@ -162,6 +163,33 @@ public class AnnotationUtil {
         return "";
     }
 
+    public static String getOrDefaultAttrValueByAnnotation(PsiAnnotation annotation, String attributeName, String defaultValue) {
+        if (annotation != null) {
+            if (AssertUtils.isBlank(attributeName)) {
+                attributeName = "value";
+            }
+            PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
+            if (attributes.length == 1 && attributes[0].getName() == null) {
+                return attributes[0].getLiteralValue();
+            }
+            for (PsiNameValuePair pair : attributes) {
+                if (attributeName.equals(pair.getName())) {
+                    String literalValue = pair.getLiteralValue();
+                    if (AssertUtils.isNotBlank(literalValue)) {
+                        return literalValue;
+                    }
+                    String text = pair.getValue().getText();
+                    if (AssertUtils.isNotBlank(text)) {
+                        return text;
+                    }
+                    return literalValue;
+                }
+            }
+        }
+
+        return defaultValue;
+    }
+
     public static List<RequestHeader> buildRequestHeaderByMappingAnnotation(PsiAnnotation methodRequestMappingAnnotation, PsiAnnotation classRequestMappingAnnotation) {
         List<RequestHeader> headerList = new ArrayList<>();
 
@@ -270,6 +298,15 @@ public class AnnotationUtil {
     }
 
     /**
+     * 根据注解名称查找全部注解
+     */
+    public static List<PsiAnnotation> getAnnotationListByName(PsiAnnotation[] annotations, String annotationName) {
+        return Arrays.stream(annotations)
+                .filter(annotation -> annotation.getText().contains(annotationName))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 获取xxxMapping注解
      */
     public static PsiAnnotation getXxxMappingAnnotation(PsiAnnotation[] annotations) {
@@ -302,4 +339,5 @@ public class AnnotationUtil {
     public static PsiAnnotation getRequestPartAnnotation(PsiAnnotation[] annotations) {
         return getAnnotationByName(annotations, WebAnnotation.RequestPart);
     }
+
 }

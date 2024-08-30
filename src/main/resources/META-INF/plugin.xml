@@ -56,16 +56,22 @@
             <add-to-group group-id="EditorLangPopupMenu" anchor="first"/>
         </action>
 
-        <!-- 生成API文档 -->
-        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.GenerateApiDoc"
-                text="Generate Api Doc">
+        <!-- 拷贝DDL -->
+        <action id="copy-ddl.ID" class="com.zhanglinwei.zTools.CopyDDLAction" text="Copy DDL">
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
         </action>
 
+        <!-- 生成API文档 -->
+        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.GenerateApiDocAction"
+                text="Generate Api Doc">
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-ddl.ID"/>
+        </action>
+
         <!-- JSON 转 Java -->
-        <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.JavaClassByJson" text="Java Class By Json">
+        <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.JavaClassByJsonAction" text="Java Class By Json">
             <add-to-group group-id="NewGroup1" anchor="after" relative-to-action="NewClass"/>
         </action>
+
     </actions>
 
 </idea-plugin>

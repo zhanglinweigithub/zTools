@@ -27,7 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class JavaClassByJson extends AnAction {
+public class JavaClassByJsonAction extends AnAction {
 
     private Project currentProject = null;
 

@@ -24,6 +24,11 @@ public class CommonUtils {
     private static final String[] UNITS = {"", "十", "百", "千"};
     private static final String[] NUMBERS = {"", "一", "二", "三", "四", "五", "六", "七", "八", "九"};
 
+    public static String convertCamelToSnake(String camelCase) {
+        String snakeCase = camelCase.replaceAll("([a-z])([A-Z])", "$1_$2");
+        return snakeCase.toLowerCase();
+    }
+
     /**
      * 追加斜杠
      */

@@ -23,6 +23,7 @@ public class ZToolsConfig implements PersistentStateComponent<ZToolsConfig> {
     private boolean overwriteDoc = true;
     private String saveDir = "";
     private String docType = "MarkDown";
+    private String dataBaseType = "MySql";
 
     @Nullable
     @Override
@@ -91,4 +92,11 @@ public class ZToolsConfig implements PersistentStateComponent<ZToolsConfig> {
         this.docType = docType;
     }
 
+    public String getDataBaseType() {
+        return dataBaseType;
+    }
+
+    public void setDataBaseType(String dataBaseType) {
+        this.dataBaseType = dataBaseType;
+    }
 }

@@ -30,7 +30,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
-public class GenerateApiDoc extends AnAction {
+public class GenerateApiDocAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {

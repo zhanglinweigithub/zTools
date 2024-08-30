@@ -33,4 +33,9 @@ public class ConfigUtils {
         return config.getDocType();
     }
 
+    public static String getDataBaseType() {
+//        return config.getDataBaseType();
+        return "MySql";
+    }
+
 }

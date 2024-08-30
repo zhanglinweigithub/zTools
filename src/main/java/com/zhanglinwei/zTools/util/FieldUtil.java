@@ -300,6 +300,27 @@ public class FieldUtil {
         return false;
     }
 
+    /** 是否final字段 */
+    public static boolean isFinalField(PsiField psiField) {
+        PsiModifierList modifierList = psiField.getModifierList();
+        if(modifierList == null) {
+            return false;
+        }
+        for (PsiElement child : modifierList.getChildren()) {
+            if(child instanceof PsiKeyword) {
+                if(child.getText().equals("final")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** 是否static、final字段 */
+    public static boolean isStaticOrFinalField(PsiField psiField) {
+        return isFinalField(psiField) || isStaticField(psiField);
+    }
+
     /** 是否忽略字段 */
     public static boolean isIgnoredField(PsiField psiField) {
         PsiAnnotation[] annotations = psiField.getAnnotations();
