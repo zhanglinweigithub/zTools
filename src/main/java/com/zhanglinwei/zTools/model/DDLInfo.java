@@ -134,7 +134,7 @@ public class DDLInfo {
                 this.name = AnnotationUtil.getOrDefaultAttrValueByAnnotation(tableFieldAnnotation, null, CommonUtils.convertCamelToSnake(psiField.getName()));
             }
             this.type = convertToDbType(psiField.getType().getPresentableText());
-            this.desc = DesUtil.getDescription(psiField);
+            this.desc = DesUtil.getDescription(psiField.getDocComment());
             this.onUpdate = false;
             this.primaryKey = isTableId;
         }

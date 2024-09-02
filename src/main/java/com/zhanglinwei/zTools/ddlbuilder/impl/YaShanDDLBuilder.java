@@ -19,10 +19,29 @@ public class YaShanDDLBuilder extends AbstractDDLBuilder {
         String dropTableDDL = generateDropTableDDL(ddlInfo.getTableName()).toUpperCase();
         String incrSequenceDDL = generateIncrSequenceDDL(ddlInfo).toUpperCase();
         String createTableDDL = generateCreateTableDDL(ddlInfo).toUpperCase();
+        String commentDDL = generateCommentDDL(ddlInfo).toUpperCase();
         String tableIndexDDL = generateTableIndexDDL(ddlInfo).toUpperCase();
         String triggerDDL = generateTriggerDDL(ddlInfo).toUpperCase();
 
-        return dropTableDDL + incrSequenceDDL + createTableDDL + tableIndexDDL + triggerDDL;
+        return dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL;
+    }
+
+    private String generateCommentDDL(DDLInfo ddlInfo) {
+        String prefix = "COMMENT ON COLUMN " + ddlInfo.getSchema() + "." + ddlInfo.getTableName() + ".";
+        StringBuilder commentBuilder = new StringBuilder();
+        commentBuilder.append("-- CREATE COMMENT\n");
+        ddlInfo.getFieldInfo().stream()
+                .filter(fieldInfo -> AssertUtils.isNotBlank(fieldInfo.getDesc()))
+                .forEach(fieldInfo -> {
+                    commentBuilder
+                            .append(prefix)
+                            .append(fieldInfo.getName())
+                            .append(" IS '")
+                            .append(fieldInfo.getDesc())
+                            .append("';\n");
+                });
+
+        return commentBuilder.toString();
     }
 
     private String generateTriggerDDL(DDLInfo ddlInfo) {
