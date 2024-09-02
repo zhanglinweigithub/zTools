@@ -6,6 +6,12 @@ public interface DDLBuilder {
 
     boolean support(String dbType);
 
-    String generateDDLString(DDLInfo ddlInfo);
+    String generateDDL(DDLInfo ddlInfo);
+
+    String generateDropTableDDL(String tableName);
+
+    String generateCreateTableDDL(DDLInfo ddlInfo);
+
+    String generateTableIndexDDL(DDLInfo ddlInfo);
 
 }

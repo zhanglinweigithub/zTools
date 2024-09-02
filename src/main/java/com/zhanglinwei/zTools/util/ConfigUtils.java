@@ -35,7 +35,15 @@ public class ConfigUtils {
 
     public static String getDataBaseType() {
 //        return config.getDataBaseType();
-        return "MySql";
+        return "YaShan";
+    }
+
+    public static String getCreateTimeField() {
+        return "create_time";
+    }
+
+    public static String getUpdateTimeField() {
+        return "update_time";
     }
 
 }

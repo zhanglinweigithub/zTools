@@ -62,7 +62,7 @@ public class CopyDDLAction extends AnAction {
             }
 
             DDLInfo ddlInfo = new DDLInfo(allFields, selectedClass);
-            String ddlString = ddLbuilder.generateDDLString(ddlInfo);
+            String ddlString = ddLbuilder.generateDDL(ddlInfo);
             ClipboardUtils.copyToClipboard(ddlString);
             return true;
         } catch (Exception e) {

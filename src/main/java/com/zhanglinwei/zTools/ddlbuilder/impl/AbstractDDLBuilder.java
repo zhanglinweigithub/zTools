@@ -4,8 +4,8 @@ import com.zhanglinwei.zTools.ddlbuilder.DDLBuilder;
 
 public abstract class AbstractDDLBuilder implements DDLBuilder {
 
-    String generateDropTable(String tableName) {
-        return "Drop table IF EXISTS " + tableName + ";\n";
+    public String generateDropTableDDL(String tableName) {
+        return "-- DROP TABLE\nDROP TABLE IF EXISTS " + tableName + ";\n";
     }
 
 }

@@ -165,13 +165,14 @@ public class AnnotationUtil {
 
     public static String getOrDefaultAttrValueByAnnotation(PsiAnnotation annotation, String attributeName, String defaultValue) {
         if (annotation != null) {
-            if (AssertUtils.isBlank(attributeName)) {
-                attributeName = "value";
-            }
             PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
-            if (attributes.length == 1 && attributes[0].getName() == null) {
-                return attributes[0].getLiteralValue();
+            if (AssertUtils.isBlank(attributeName) || "value".equals(attributeName)) {
+                attributeName = "value";
+                if (attributes.length == 1 && attributes[0].getName() == null) {
+                    return attributes[0].getLiteralValue();
+                }
             }
+
             for (PsiNameValuePair pair : attributes) {
                 if (attributeName.equals(pair.getName())) {
                     String literalValue = pair.getLiteralValue();

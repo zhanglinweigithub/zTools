@@ -23,6 +23,11 @@ public class DDLInfo {
     private String tableName;
 
     /**
+     * schema
+     */
+    private String schema;
+
+    /**
      * 表字段
      */
     private List<DBFieldInfo> fieldInfo = new ArrayList<>();
@@ -32,8 +37,10 @@ public class DDLInfo {
      */
     private List<DBIndexInfo> indexList = new ArrayList<>();
 
-    public DDLInfo(){}
-    public DDLInfo(PsiField[] psiFields, PsiClass psiClass){
+    public DDLInfo() {
+    }
+
+    public DDLInfo(PsiField[] psiFields, PsiClass psiClass) {
         PsiAnnotation annotation = AnnotationUtil.getAnnotationByName(psiClass.getAnnotations(), MyBatisPlusAnnotation.TableName);
         this.tableName = AnnotationUtil.getOrDefaultAttrValueByAnnotation(annotation, "value", CommonUtils.convertCamelToSnake(psiClass.getName()));
 
@@ -65,7 +72,7 @@ public class DDLInfo {
             return true;
         }
         String attrValue = AnnotationUtil.getOrDefaultAttrValueByAnnotation(tableFieldAnnotation, "exist", "true");
-        return "true".equals(attrValue);
+        return !"false".equals(attrValue);
     }
 
     /**
@@ -112,17 +119,24 @@ public class DDLInfo {
          */
         private boolean primaryKey;
 
-        public DBFieldInfo(){}
+        public DBFieldInfo() {
+        }
 
-        public DBFieldInfo(PsiField psiField){
-            PsiAnnotation tableFieldAnnotation = AnnotationUtil.getAnnotationByName(psiField.getAnnotations(), MyBatisPlusAnnotation.TableField);
-            this.name = AnnotationUtil.getOrDefaultAttrValueByAnnotation(tableFieldAnnotation, null, CommonUtils.convertCamelToSnake(psiField.getName()));
-            this.type = convertToDbType(psiField.getType().getPresentableText());
+        public DBFieldInfo(PsiField psiField) {
             PsiAnnotation tableIdAnnotation = AnnotationUtil.getAnnotationByName(psiField.getAnnotations(), MyBatisPlusAnnotation.TableId);
-            this.autoIncr = isAutoIncrField(tableIdAnnotation);
-            this.primaryKey = tableIdAnnotation != null;
+            boolean isTableId = tableIdAnnotation != null;
+            if (isTableId) {
+                this.defaultValue = null;
+                this.autoIncr = isAutoIncrField(tableIdAnnotation);
+                this.name = AnnotationUtil.getOrDefaultAttrValueByAnnotation(tableIdAnnotation, null, CommonUtils.convertCamelToSnake(psiField.getName()));
+            } else {
+                PsiAnnotation tableFieldAnnotation = AnnotationUtil.getAnnotationByName(psiField.getAnnotations(), MyBatisPlusAnnotation.TableField);
+                this.name = AnnotationUtil.getOrDefaultAttrValueByAnnotation(tableFieldAnnotation, null, CommonUtils.convertCamelToSnake(psiField.getName()));
+            }
+            this.type = convertToDbType(psiField.getType().getPresentableText());
             this.desc = DesUtil.getDescription(psiField);
             this.onUpdate = false;
+            this.primaryKey = isTableId;
         }
 
         private boolean isAutoIncrField(PsiAnnotation tableIdAnnotation) {
@@ -141,26 +155,31 @@ public class DDLInfo {
             switch (javaType) {
                 case "String":
                 case "Character":
-                case "char": return "varchar(255)";
+                case "char":
+                    return "varchar(255)";
 
                 case "Integer":
-                case "int": return "int";
+                case "int":
+                    return "int";
 
                 case "Long":
-                case "long": return "bigint";
+                case "long":
+                    return "bigint";
 
                 case "BigDecimal":
                 case "Double":
                 case "double":
                 case "Float":
-                case "float": return "decimal(10,2)";
+                case "float":
+                    return "decimal(10,2)";
 
                 case "Boolean":
                 case "boolean":
                 case "Short":
                 case "short":
                 case "Byte":
-                case "byte": return "tinyint";
+                case "byte":
+                    return "tinyint";
 
                 case "Date":
                 case "DateTime":
@@ -169,8 +188,10 @@ public class DDLInfo {
                 case "Locale":
                 case "LocalDateTime":
                 case "LocalDate":
-                case "LocalTime": return "datetime";
-                default: return "varchar(1000)";
+                case "LocalTime":
+                    return "datetime";
+                default:
+                    return "varchar(1000)";
             }
         }
 
@@ -258,19 +279,23 @@ public class DDLInfo {
          */
         private List<String> fieldNameList = new ArrayList<>();
 
-        public DBIndexInfo(){}
-        public DBIndexInfo(PsiAnnotation psiAnnotation){
+        public DBIndexInfo() {
+        }
+
+        public DBIndexInfo(PsiAnnotation psiAnnotation) {
             String typeValue = AnnotationUtil.getOrDefaultAttrValueByAnnotation(psiAnnotation, "type", "normal");
             String nameValue = AnnotationUtil.getOrDefaultAttrValueByAnnotation(psiAnnotation, "name", "");
             String fieldsValue = AnnotationUtil.getOrDefaultAttrValueByAnnotation(psiAnnotation, "fields", "");
             this.index = IndexType.findByCode(typeValue);
             this.indexName = nameValue;
-            this.fieldNameList = Arrays.asList(
-                    fieldsValue
-                            .replaceAll("\"", "")
-                            .replace("{", "")
-                            .replaceAll("}", "")
-                            .split(","));
+            this.fieldNameList = Arrays.stream(
+                            fieldsValue
+                                    .replaceAll("\"", "")
+                                    .replace("{", "")
+                                    .replaceAll("}", "")
+                                    .split(","))
+                    .map(CommonUtils::convertCamelToSnake)
+                    .collect(Collectors.toList());
         }
 
         public IndexType getIndex() {
@@ -304,6 +329,14 @@ public class DDLInfo {
 
     public void setTableName(String tableNae) {
         this.tableName = tableNae;
+    }
+
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
     }
 
     public List<DBFieldInfo> getFieldInfo() {
