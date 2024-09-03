@@ -33,17 +33,21 @@ public class ConfigUtils {
         return config.getDocType();
     }
 
-    public static String getDataBaseType() {
+    public static String getDDLDataBaseType() {
 //        return config.getDataBaseType();
         return "YaShan";
     }
 
-    public static String getCreateTimeField() {
+    public static String getDDLCreateTimeField() {
         return "create_time";
     }
 
-    public static String getUpdateTimeField() {
+    public static String getDDLUpdateTimeField() {
         return "update_time";
+    }
+
+    public static String getDDLSchema() {
+        return "Schema";
     }
 
 }

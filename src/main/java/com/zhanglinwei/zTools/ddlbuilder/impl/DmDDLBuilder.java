@@ -97,8 +97,8 @@ public class DmDDLBuilder extends AbstractDDLBuilder{
     }
 
     private String generateTriggerDDL(DDLInfo ddlInfo) {
-        String createTimeField = ConfigUtils.getCreateTimeField();
-        String updateTimeField = ConfigUtils.getUpdateTimeField();
+        String createTimeField = ConfigUtils.getDDLCreateTimeField();
+        String updateTimeField = ConfigUtils.getDDLUpdateTimeField();
 
         StringBuilder triggerBuilder = new StringBuilder();
         triggerBuilder.append("-- CREATE TRIGGER\n");

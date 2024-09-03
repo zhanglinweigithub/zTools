@@ -189,7 +189,7 @@ public class DDLInfo {
                 case "LocalDateTime":
                 case "LocalDate":
                 case "LocalTime":
-                    return "datetime";
+                    return "timestamp";
                 default:
                     return "varchar(1000)";
             }
