@@ -55,7 +55,7 @@ public class CopyDDLAction extends AnAction {
                 return false;
             }
 
-            DDLBuilder ddLbuilder = DDLBuilderFactory.getDDLbuilder(ConfigUtils.getDataBaseType());
+            DDLBuilder ddLbuilder = DDLBuilderFactory.getDDLbuilder(ConfigUtils.getDDLDataBaseType());
             if (ddLbuilder == null) {
                 NotificationUtil.errorNotify("This database is not supported!!!", project);
                 return false;
