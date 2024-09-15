@@ -1,21 +1,24 @@
-package com.zhanglinwei.zTools.ddlbuilder.impl;
+package com.zhanglinwei.zTools.builder.impl;
 
 import com.zhanglinwei.zTools.constant.DBType;
 import com.zhanglinwei.zTools.constant.IndexType;
-import com.zhanglinwei.zTools.model.DDLInfo;
+import com.zhanglinwei.zTools.model.DbTableInfo;
 import com.zhanglinwei.zTools.util.AssertUtils;
 import com.zhanglinwei.zTools.util.CommonUtils;
 
 import java.util.Optional;
 
-public class MySqlDDLBuilder extends AbstractDDLBuilder{
+/**
+ * MySQL
+ */
+public class MySqlSQLBuilder extends AbstractSQLBuilder {
     @Override
     public boolean support(String dbType) {
         return dbType.equals(DBType.MYSQL.getCode());
     }
 
     @Override
-    public String generateDDL(DDLInfo ddlInfo) {
+    public String generateDDL(DbTableInfo ddlInfo) {
         String dropTableDDL = generateDropTableDDL(ddlInfo.getTableName());
         String createTableDDL = generateCreateTableDDL(ddlInfo);
         String tableIndexDDL = generateTableIndexDDL(ddlInfo);
@@ -25,7 +28,7 @@ public class MySqlDDLBuilder extends AbstractDDLBuilder{
 
 
     @Override
-    public String generateCreateTableDDL(DDLInfo ddlInfo) {
+    public String generateCreateTableDDL(DbTableInfo ddlInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE TABLE\n");
         builder.append("CREATE TABLE ").append("`").append(ddlInfo.getTableName()).append("` (\n");
@@ -56,7 +59,7 @@ public class MySqlDDLBuilder extends AbstractDDLBuilder{
     }
 
     @Override
-    public String generateTableIndexDDL(DDLInfo ddlInfo) {
+    public String generateTableIndexDDL(DbTableInfo ddlInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE INDEX\n");
         ddlInfo.getIndexList().stream().forEach(dbIndexInfo -> {
@@ -82,10 +85,10 @@ public class MySqlDDLBuilder extends AbstractDDLBuilder{
     }
 
 
-    public String fillPrimaryKey(DDLInfo ddlInfo) {
-        Optional<DDLInfo.DBFieldInfo> primaryKeyOptional = ddlInfo.getFieldInfo().stream().filter(DDLInfo.DBFieldInfo::isPrimaryKey).findFirst();
+    public String fillPrimaryKey(DbTableInfo ddlInfo) {
+        Optional<DbTableInfo.DBFieldInfo> primaryKeyOptional = ddlInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isPrimaryKey).findFirst();
         if (primaryKeyOptional.isPresent()) {
-            DDLInfo.DBFieldInfo primaryKey = primaryKeyOptional.get();
+            DbTableInfo.DBFieldInfo primaryKey = primaryKeyOptional.get();
             return "    PRIMARY KEY (`" + CommonUtils.convertCamelToSnake(primaryKey.getName()) + "`)\n";
         }
 
@@ -96,5 +99,10 @@ public class MySqlDDLBuilder extends AbstractDDLBuilder{
     @Override
     public String generateDropTableDDL(String tableName) {
         return "-- DROP TABLE\nDROP TABLE IF EXISTS `" + tableName + "`;\n";
+    }
+
+    @Override
+    public String getSymbol() {
+        return "`";
     }
 }

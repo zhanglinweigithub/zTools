@@ -18,10 +18,14 @@ public interface MessageConstants {
     String API_DOC_SUCCESS = "Generate Api document successfully!";
 
     /** 拷贝JSON成功 */
-    String JSON_SUCCESS = "Copy Json successfully!";
+    String COPY_JSON_SUCCESS = "Copy Json successfully!";
 
     /** 拷贝DDL成功 */
-    String DDL_SUCCESS = "Copy DDL successfully!";
+    String COPY_DDL_SUCCESS = "Copy DDL successfully!";
+    String COPY_INSERT_SUCCESS = "Copy Insert successfully!";
+    String COPY_SELECT_SUCCESS = "Copy Select successfully!";
+    String COPY_DELETE_SUCCESS = "Copy DELETE successfully!";
+    String COPY_UPDATE_SUCCESS = "Copy UPDATE successfully!";
 
     /** 该文件无字段 */
     String NO_FIELDS = "This class file has no fields!";

@@ -13,9 +13,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * DDL对象
+ * 数据库表对象
  */
-public class DDLInfo {
+public class DbTableInfo {
 
     /**
      * 表名
@@ -37,10 +37,10 @@ public class DDLInfo {
      */
     private List<DBIndexInfo> indexList = new ArrayList<>();
 
-    public DDLInfo() {
+    public DbTableInfo() {
     }
 
-    public DDLInfo(PsiField[] psiFields, PsiClass psiClass) {
+    public DbTableInfo(PsiField[] psiFields, PsiClass psiClass) {
         PsiAnnotation annotation = AnnotationUtil.getAnnotationByName(psiClass.getAnnotations(), MyBatisPlusAnnotation.TableName);
         this.tableName = AnnotationUtil.getOrDefaultAttrValueByAnnotation(annotation, "value", CommonUtils.convertCamelToSnake(psiClass.getName()));
 
@@ -321,6 +321,13 @@ public class DDLInfo {
         public void setFieldNameList(List<String> fieldNameList) {
             this.fieldNameList = fieldNameList;
         }
+    }
+
+    public String getFullTableName() {
+        if (AssertUtils.isNotBlank(this.schema)) {
+            return this.schema + "." + this.tableName;
+        }
+        return tableName;
     }
 
     public String getTableName() {

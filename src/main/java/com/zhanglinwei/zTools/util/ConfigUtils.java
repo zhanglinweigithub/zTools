@@ -33,7 +33,7 @@ public class ConfigUtils {
         return config.getDocType();
     }
 
-    public static String getDDLDataBaseType() {
+    public static String getSQLDataBaseType() {
 //        return config.getDataBaseType();
         return "YaShan";
     }

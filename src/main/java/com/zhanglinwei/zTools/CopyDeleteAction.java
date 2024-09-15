@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools;
 
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.zhanglinwei.zTools.actiongroup.AbstractGenerateSQLGroup;
 import com.zhanglinwei.zTools.constant.MessageConstants;
@@ -8,7 +9,7 @@ import com.zhanglinwei.zTools.util.ClipboardUtils;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class CopyDDLAction extends AbstractGenerateSQLGroup {
+public class CopyDeleteAction extends AbstractGenerateSQLGroup {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent actionEvent) {
@@ -16,12 +17,11 @@ public class CopyDDLAction extends AbstractGenerateSQLGroup {
             return;
         }
 
-        String insertSql = generateSQL(SQLTypeEnum.DDL);
+        String insertSql = generateSQL(SQLTypeEnum.DELETE);
 
         if (AssertUtils.isNotBlank(insertSql)) {
             ClipboardUtils.copyToClipboard(insertSql);
-            NotificationUtil.infoNotify(MessageConstants.COPY_DDL_SUCCESS, getProject());
+            NotificationUtil.infoNotify(MessageConstants.COPY_DELETE_SUCCESS, getProject());
         }
     }
-
 }

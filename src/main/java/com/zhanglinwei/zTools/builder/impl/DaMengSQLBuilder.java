@@ -1,21 +1,24 @@
-package com.zhanglinwei.zTools.ddlbuilder.impl;
+package com.zhanglinwei.zTools.builder.impl;
 
 import com.zhanglinwei.zTools.constant.DBType;
 import com.zhanglinwei.zTools.constant.IndexType;
-import com.zhanglinwei.zTools.model.DDLInfo;
+import com.zhanglinwei.zTools.model.DbTableInfo;
 import com.zhanglinwei.zTools.util.AssertUtils;
 import com.zhanglinwei.zTools.util.ConfigUtils;
 
 import java.util.Optional;
 
-public class DmDDLBuilder extends AbstractDDLBuilder{
+/**
+ * 达梦
+ */
+public class DaMengSQLBuilder extends AbstractSQLBuilder {
     @Override
     public boolean support(String dbType) {
         return dbType.equals(DBType.DA_MENG.getCode());
     }
 
     @Override
-    public String generateDDL(DDLInfo ddlInfo) {
+    public String generateDDL(DbTableInfo ddlInfo) {
         String dropTableDDL = generateDropTableDDL(ddlInfo.getTableName());
         String incrSequenceDDL = generateIncrSequenceDDL(ddlInfo);
         String createTableDDL = generateCreateTableDDL(ddlInfo);
@@ -27,7 +30,7 @@ public class DmDDLBuilder extends AbstractDDLBuilder{
     }
 
     @Override
-    public String generateCreateTableDDL(DDLInfo ddlInfo) {
+    public String generateCreateTableDDL(DbTableInfo ddlInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE TABLE\n");
         builder.append("CREATE TABLE ").append(ddlInfo.getTableName()).append(" (\n");
@@ -53,7 +56,7 @@ public class DmDDLBuilder extends AbstractDDLBuilder{
     }
 
     @Override
-    public String generateTableIndexDDL(DDLInfo ddlInfo) {
+    public String generateTableIndexDDL(DbTableInfo ddlInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE INDEX\n");
         ddlInfo.getIndexList().stream().forEach(dbIndexInfo -> {
@@ -78,7 +81,7 @@ public class DmDDLBuilder extends AbstractDDLBuilder{
         return builder.toString();
     }
 
-    private String generateCommentDDL(DDLInfo ddlInfo) {
+    private String generateCommentDDL(DbTableInfo ddlInfo) {
         String prefix = "COMMENT ON COLUMN " + ddlInfo.getSchema() + "." + ddlInfo.getTableName() + ".";
         StringBuilder commentBuilder = new StringBuilder();
         commentBuilder.append("-- CREATE COMMENT\n");
@@ -96,7 +99,7 @@ public class DmDDLBuilder extends AbstractDDLBuilder{
         return commentBuilder.toString();
     }
 
-    private String generateTriggerDDL(DDLInfo ddlInfo) {
+    private String generateTriggerDDL(DbTableInfo ddlInfo) {
         String createTimeField = ConfigUtils.getDDLCreateTimeField();
         String updateTimeField = ConfigUtils.getDDLUpdateTimeField();
 
@@ -119,28 +122,32 @@ public class DmDDLBuilder extends AbstractDDLBuilder{
         return triggerBuilder.toString();
     }
 
-    private String generateIncrSequenceDDL(DDLInfo ddlInfo) {
-        Optional<DDLInfo.DBFieldInfo> autoIncrFieldOptional = ddlInfo.getFieldInfo().stream().filter(DDLInfo.DBFieldInfo::isAutoIncr).findFirst();
+    private String generateIncrSequenceDDL(DbTableInfo ddlInfo) {
+        Optional<DbTableInfo.DBFieldInfo> autoIncrFieldOptional = ddlInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isAutoIncr).findFirst();
         if (autoIncrFieldOptional.isPresent()) {
-            DDLInfo.DBFieldInfo autoIncrField = autoIncrFieldOptional.get();
+            DbTableInfo.DBFieldInfo autoIncrField = autoIncrFieldOptional.get();
             return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + ddlInfo.getSchema() + "." + ddlInfo.getTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
         }
         return "";
     }
 
-    private String buildIncrSeq(DDLInfo.DBFieldInfo dbFieldInfo, DDLInfo ddlInfo) {
+    private String buildIncrSeq(DbTableInfo.DBFieldInfo dbFieldInfo, DbTableInfo ddlInfo) {
 
         return "DEFAULT \"" + ddlInfo.getSchema() + "\".\"" + ddlInfo.getTableName() + "_" + dbFieldInfo.getName() + "_SEQ\".NEXTVAL ";
     }
 
-    private String fillPrimaryKey(DDLInfo ddlInfo) {
-        Optional<DDLInfo.DBFieldInfo> primaryKeyOptional = ddlInfo.getFieldInfo().stream().filter(DDLInfo.DBFieldInfo::isPrimaryKey).findFirst();
+    private String fillPrimaryKey(DbTableInfo ddlInfo) {
+        Optional<DbTableInfo.DBFieldInfo> primaryKeyOptional = ddlInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isPrimaryKey).findFirst();
         if (primaryKeyOptional.isPresent()) {
-            DDLInfo.DBFieldInfo primaryKey = primaryKeyOptional.get();
+            DbTableInfo.DBFieldInfo primaryKey = primaryKeyOptional.get();
             return "    CONSTRAINT C_" + ddlInfo.getTableName() + "_PRIMARY PRIMARY KEY" + "(\"" + primaryKey.getName() + "\")\n";
         }
 
         return "";
     }
 
+    @Override
+    public String getSymbol() {
+        return "\"";
+    }
 }
