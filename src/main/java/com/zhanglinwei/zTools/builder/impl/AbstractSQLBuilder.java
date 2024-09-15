@@ -18,25 +18,25 @@ public abstract class AbstractSQLBuilder implements SQLBuilder {
     }
 
     @Override
-    public String generateSelect(DbTableInfo ddlInfo) {
-        List<DbTableInfo.DBFieldInfo> fieldList = ddlInfo.getFieldInfo();
+    public String generateSelect(DbTableInfo dbTableInfo) {
+        List<DbTableInfo.DBFieldInfo> fieldList = dbTableInfo.getFieldInfo();
         String keyName = getPrimaryKeyNameOrDefault(fieldList, fieldList.get(0).getName());
-        return "SELECT * FROM " + ddlInfo.getFullTableName() + " WHERE " + keyName + " = '';";
+        return "SELECT * FROM " + dbTableInfo.getFullTableName() + " WHERE " + keyName + " = '';";
     }
 
     @Override
-    public String generateInsert(DbTableInfo ddlInfo) {
-        List<DbTableInfo.DBFieldInfo> fieldList = ddlInfo.getFieldInfo();
+    public String generateInsert(DbTableInfo dbTableInfo) {
+        List<DbTableInfo.DBFieldInfo> fieldList = dbTableInfo.getFieldInfo();
         List<String> fieldNameList = fieldList.stream().map(field -> packageSymbol(field.getName())).collect(Collectors.toList());
         String joinNameStr = String.join(DELIMITER, fieldNameList);
         String joinValueStr = buildFieldValueStr(DELIMITER, fieldList);
 
-        return "INSERT INTO " + ddlInfo.getFullTableName() + " (" + joinNameStr + ") VALUES (" + joinValueStr + ");";
+        return "INSERT INTO " + dbTableInfo.getFullTableName() + " (" + joinNameStr + ") VALUES (" + joinValueStr + ");";
     }
 
     @Override
-    public String generateUpdate(DbTableInfo ddlInfo) {
-        List<DbTableInfo.DBFieldInfo> fieldList = ddlInfo.getFieldInfo();
+    public String generateUpdate(DbTableInfo dbTableInfo) {
+        List<DbTableInfo.DBFieldInfo> fieldList = dbTableInfo.getFieldInfo();
         List<String> nameValueList = fieldList.stream().map(field -> {
             String value = buildFieldValueStr(field);
             return field.getName() + " = " + value;
@@ -44,15 +44,15 @@ public abstract class AbstractSQLBuilder implements SQLBuilder {
         String joinStr = String.join(DELIMITER, nameValueList);
         String keyName = getPrimaryKeyNameOrDefault(fieldList, fieldList.get(0).getName());
 
-        return "UPDATE " + ddlInfo.getFullTableName() + " SET " + joinStr + " WHERE " + keyName + " = '';";
+        return "UPDATE " + dbTableInfo.getFullTableName() + " SET " + joinStr + " WHERE " + keyName + " = '';";
     }
 
     @Override
-    public String generateDelete(DbTableInfo ddlInfo) {
-        List<DbTableInfo.DBFieldInfo> fieldList = ddlInfo.getFieldInfo();
+    public String generateDelete(DbTableInfo dbTableInfo) {
+        List<DbTableInfo.DBFieldInfo> fieldList = dbTableInfo.getFieldInfo();
         String keyName = getPrimaryKeyNameOrDefault(fieldList, fieldList.get(0).getName());
 
-        return "DELETE FROM " + ddlInfo.getFullTableName() + " WHERE " + keyName + " = '';";
+        return "DELETE FROM " + dbTableInfo.getFullTableName() + " WHERE " + keyName + " = '';";
     }
 
     private String packageSymbol(String name) {

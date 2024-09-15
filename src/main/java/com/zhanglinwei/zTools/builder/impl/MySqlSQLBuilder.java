@@ -18,21 +18,21 @@ public class MySqlSQLBuilder extends AbstractSQLBuilder {
     }
 
     @Override
-    public String generateDDL(DbTableInfo ddlInfo) {
-        String dropTableDDL = generateDropTableDDL(ddlInfo.getTableName());
-        String createTableDDL = generateCreateTableDDL(ddlInfo);
-        String tableIndexDDL = generateTableIndexDDL(ddlInfo);
+    public String generateDDL(DbTableInfo dbTableInfo) {
+        String dropTableDDL = generateDropTableDDL(dbTableInfo.getTableName());
+        String createTableDDL = generateCreateTableDDL(dbTableInfo);
+        String tableIndexDDL = generateTableIndexDDL(dbTableInfo);
 
         return dropTableDDL + createTableDDL + tableIndexDDL;
     }
 
 
     @Override
-    public String generateCreateTableDDL(DbTableInfo ddlInfo) {
+    public String generateCreateTableDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE TABLE\n");
-        builder.append("CREATE TABLE ").append("`").append(ddlInfo.getTableName()).append("` (\n");
-        ddlInfo.getFieldInfo().stream().forEach(dbFieldInfo -> {
+        builder.append("CREATE TABLE ").append("`").append(dbTableInfo.getTableName()).append("` (\n");
+        dbTableInfo.getFieldInfo().stream().forEach(dbFieldInfo -> {
             builder.append("    `").append(dbFieldInfo.getName()).append("` ").append(dbFieldInfo.getType()).append(" ");
             if (dbFieldInfo.isAutoIncr() || dbFieldInfo.isRequired() || dbFieldInfo.isPrimaryKey()) {
                 builder.append("NOT NULL ");
@@ -52,17 +52,17 @@ public class MySqlSQLBuilder extends AbstractSQLBuilder {
             builder.append(",\n");
         });
 
-        builder.append(fillPrimaryKey(ddlInfo));
+        builder.append(fillPrimaryKey(dbTableInfo));
         builder.append(");\n");
 
         return builder.toString();
     }
 
     @Override
-    public String generateTableIndexDDL(DbTableInfo ddlInfo) {
+    public String generateTableIndexDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE INDEX\n");
-        ddlInfo.getIndexList().stream().forEach(dbIndexInfo -> {
+        dbTableInfo.getIndexList().stream().forEach(dbIndexInfo -> {
             if (dbIndexInfo.getIndex().getCode().equals(IndexType.UNIQUE.getCode())) {
                 builder.append("CREATE UNIQUE INDEX ");
             }
@@ -70,7 +70,7 @@ public class MySqlSQLBuilder extends AbstractSQLBuilder {
                 builder.append("CREATE INDEX ");
             }
 
-            builder.append(dbIndexInfo.getIndexName().trim()).append(" ON ").append(ddlInfo.getTableName()).append("(");
+            builder.append(dbIndexInfo.getIndexName().trim()).append(" ON ").append(dbTableInfo.getTableName()).append("(");
 
             dbIndexInfo.getFieldNameList().stream().forEach(fieldName -> {
                 builder.append("`").append(fieldName.trim()).append("`").append(",");
@@ -85,8 +85,8 @@ public class MySqlSQLBuilder extends AbstractSQLBuilder {
     }
 
 
-    public String fillPrimaryKey(DbTableInfo ddlInfo) {
-        Optional<DbTableInfo.DBFieldInfo> primaryKeyOptional = ddlInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isPrimaryKey).findFirst();
+    public String fillPrimaryKey(DbTableInfo dbTableInfo) {
+        Optional<DbTableInfo.DBFieldInfo> primaryKeyOptional = dbTableInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isPrimaryKey).findFirst();
         if (primaryKeyOptional.isPresent()) {
             DbTableInfo.DBFieldInfo primaryKey = primaryKeyOptional.get();
             return "    PRIMARY KEY (`" + CommonUtils.convertCamelToSnake(primaryKey.getName()) + "`)\n";

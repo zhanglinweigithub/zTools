@@ -6,16 +6,16 @@ public interface SQLBuilder {
 
     boolean support(String dbType);
 
-    String generateDDL(DbTableInfo ddlInfo);
-    String generateSelect(DbTableInfo ddlInfo);
-    String generateInsert(DbTableInfo ddlInfo);
-    String generateUpdate(DbTableInfo ddlInfo);
-    String generateDelete(DbTableInfo ddlInfo);
+    String generateDDL(DbTableInfo dbTableInfo);
+    String generateSelect(DbTableInfo dbTableInfo);
+    String generateInsert(DbTableInfo dbTableInfo);
+    String generateUpdate(DbTableInfo dbTableInfo);
+    String generateDelete(DbTableInfo dbTableInfo);
 
     String generateDropTableDDL(String tableName);
 
-    String generateCreateTableDDL(DbTableInfo ddlInfo);
+    String generateCreateTableDDL(DbTableInfo dbTableInfo);
 
-    String generateTableIndexDDL(DbTableInfo ddlInfo);
+    String generateTableIndexDDL(DbTableInfo dbTableInfo);
 
 }
