@@ -14,35 +14,34 @@ import java.util.Optional;
 public class DaMengSQLBuilder extends AbstractSQLBuilder {
     @Override
     public boolean support(String dbType) {
-        return dbType.equals(DBType.DA_MENG.getCode());
+        return DBType.DA_MENG.getCode().equals(dbType);
     }
 
     @Override
     public String generateDDL(DbTableInfo dbTableInfo) {
-        String dropTableDDL = generateDropTableDDL(dbTableInfo.getTableName());
+        String dropTableDDL = generateDropTableDDL(dbTableInfo.getFullTableName());
         String incrSequenceDDL = generateIncrSequenceDDL(dbTableInfo);
         String createTableDDL = generateCreateTableDDL(dbTableInfo);
         String commentDDL = generateCommentDDL(dbTableInfo);
         String tableIndexDDL = generateTableIndexDDL(dbTableInfo);
         String triggerDDL = generateTriggerDDL(dbTableInfo);
 
-        return dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL;
+        return (dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL).toUpperCase();
     }
 
     @Override
-    public String generateCreateTableDDL(DbTableInfo dbTableInfo) {
+    protected String generateCreateTableDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE TABLE\n");
-        builder.append("CREATE TABLE ").append(dbTableInfo.getTableName()).append(" (\n");
+        builder.append("CREATE TABLE ").append(dbTableInfo.getFullTableName()).append(" (\n");
         dbTableInfo.getFieldInfo().stream().forEach(dbFieldInfo -> {
-            builder.append("    \"").append(dbFieldInfo.getName()).append("\" ").append(dbFieldInfo.getType()).append(" ");
+            builder.append("    ").append(packageSymbol(dbFieldInfo.getName())).append(" ").append(dbFieldInfo.getType()).append(" ");
             if (dbFieldInfo.isAutoIncr() || dbFieldInfo.isRequired() || dbFieldInfo.isPrimaryKey()) {
                 builder.append("NOT NULL ");
             }
             if (dbFieldInfo.isAutoIncr()) {
                 builder.append(buildIncrSeq(dbFieldInfo, dbTableInfo));
             }
-
             if (AssertUtils.isNotBlank(dbFieldInfo.getDefaultValue())) {
                 builder.append("DEFAULT ").append(dbFieldInfo.getDefaultValue()).append(" ");
             }
@@ -56,7 +55,7 @@ public class DaMengSQLBuilder extends AbstractSQLBuilder {
     }
 
     @Override
-    public String generateTableIndexDDL(DbTableInfo dbTableInfo) {
+    protected String generateTableIndexDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE INDEX\n");
         dbTableInfo.getIndexList().stream().forEach(dbIndexInfo -> {
@@ -81,8 +80,9 @@ public class DaMengSQLBuilder extends AbstractSQLBuilder {
         return builder.toString();
     }
 
-    private String generateCommentDDL(DbTableInfo dbTableInfo) {
-        String prefix = "COMMENT ON COLUMN " + dbTableInfo.getSchema() + "." + dbTableInfo.getTableName() + ".";
+    @Override
+    protected String generateCommentDDL(DbTableInfo dbTableInfo) {
+        String prefix = "COMMENT ON COLUMN " + packageSymbol(dbTableInfo.getFullTableName()) + ".";
         StringBuilder commentBuilder = new StringBuilder();
         commentBuilder.append("-- CREATE COMMENT\n");
         dbTableInfo.getFieldInfo().stream()
@@ -99,7 +99,8 @@ public class DaMengSQLBuilder extends AbstractSQLBuilder {
         return commentBuilder.toString();
     }
 
-    private String generateTriggerDDL(DbTableInfo dbTableInfo) {
+    @Override
+    protected String generateTriggerDDL(DbTableInfo dbTableInfo) {
         String createTimeField = ConfigUtils.getDDLCreateTimeField();
         String updateTimeField = ConfigUtils.getDDLUpdateTimeField();
 
@@ -122,18 +123,24 @@ public class DaMengSQLBuilder extends AbstractSQLBuilder {
         return triggerBuilder.toString();
     }
 
-    private String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
+    @Override
+    protected String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
         Optional<DbTableInfo.DBFieldInfo> autoIncrFieldOptional = dbTableInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isAutoIncr).findFirst();
         if (autoIncrFieldOptional.isPresent()) {
             DbTableInfo.DBFieldInfo autoIncrField = autoIncrFieldOptional.get();
-            return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + dbTableInfo.getSchema() + "." + dbTableInfo.getTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
+            return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + dbTableInfo.getFullTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
         }
         return "";
     }
 
+    @Override
+    public String getSymbol() {
+        return "\"";
+    }
+
     private String buildIncrSeq(DbTableInfo.DBFieldInfo dbFieldInfo, DbTableInfo dbTableInfo) {
 
-        return "DEFAULT \"" + dbTableInfo.getSchema() + "\".\"" + dbTableInfo.getTableName() + "_" + dbFieldInfo.getName() + "_SEQ\".NEXTVAL ";
+        return "DEFAULT " + packageSymbol(dbTableInfo.getFullTableName()) + "_" + dbFieldInfo.getName() + "_SEQ\".NEXTVAL ";
     }
 
     private String fillPrimaryKey(DbTableInfo dbTableInfo) {
@@ -144,10 +151,5 @@ public class DaMengSQLBuilder extends AbstractSQLBuilder {
         }
 
         return "";
-    }
-
-    @Override
-    public String getSymbol() {
-        return "\"";
     }
 }

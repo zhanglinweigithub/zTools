@@ -14,7 +14,7 @@ import java.util.Optional;
 public class MySqlSQLBuilder extends AbstractSQLBuilder {
     @Override
     public boolean support(String dbType) {
-        return dbType.equals(DBType.MYSQL.getCode());
+        return DBType.MYSQL.getCode().equals(dbType);
     }
 
     @Override
@@ -82,6 +82,21 @@ public class MySqlSQLBuilder extends AbstractSQLBuilder {
         });
 
         return builder.toString();
+    }
+
+    @Override
+    protected String generateCommentDDL(DbTableInfo dbTableInfo) {
+        return "";
+    }
+
+    @Override
+    protected String generateTriggerDDL(DbTableInfo dbTableInfo) {
+        return "";
+    }
+
+    @Override
+    protected String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
+        return "";
     }
 
 

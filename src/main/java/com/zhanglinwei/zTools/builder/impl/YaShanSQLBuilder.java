@@ -14,7 +14,7 @@ import java.util.Optional;
 public class YaShanSQLBuilder extends AbstractSQLBuilder {
     @Override
     public boolean support(String dbType) {
-        return dbType.equals(DBType.YA_SHAN.getCode());
+        return DBType.YA_SHAN.getCode().equals(dbType);
     }
 
     @Override
@@ -26,11 +26,12 @@ public class YaShanSQLBuilder extends AbstractSQLBuilder {
         String tableIndexDDL = generateTableIndexDDL(dbTableInfo).toUpperCase();
         String triggerDDL = generateTriggerDDL(dbTableInfo).toUpperCase();
 
-        return dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL;
+        return (dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL).toUpperCase();
     }
 
-    private String generateCommentDDL(DbTableInfo dbTableInfo) {
-        String prefix = "COMMENT ON COLUMN " + dbTableInfo.getSchema() + "." + dbTableInfo.getTableName() + ".";
+    @Override
+    protected String generateCommentDDL(DbTableInfo dbTableInfo) {
+        String prefix = "COMMENT ON COLUMN " + dbTableInfo.getFullTableName() + ".";
         StringBuilder commentBuilder = new StringBuilder();
         commentBuilder.append("-- CREATE COMMENT\n");
         dbTableInfo.getFieldInfo().stream()
@@ -47,21 +48,22 @@ public class YaShanSQLBuilder extends AbstractSQLBuilder {
         return commentBuilder.toString();
     }
 
-    private String generateTriggerDDL(DbTableInfo dbTableInfo) {
+    @Override
+    protected String generateTriggerDDL(DbTableInfo dbTableInfo) {
         String createTimeField = ConfigUtils.getDDLCreateTimeField();
         String updateTimeField = ConfigUtils.getDDLUpdateTimeField();
 
         StringBuilder triggerBuilder = new StringBuilder();
         triggerBuilder.append("-- CREATE TRIGGER\n");
-        triggerBuilder.append("CREATE OR REPLACE TRIGGER ").append(dbTableInfo.getSchema()).append(".").append(dbTableInfo.getTableName()).append("_BEFORE_INSERT_TRIGGER\n")
-                .append("BEFORE INSERT ON ").append("\"").append(dbTableInfo.getSchema()).append("\".\"").append(dbTableInfo.getTableName()).append("\"\n")
+        triggerBuilder.append("CREATE OR REPLACE TRIGGER ").append(dbTableInfo.getFullTableName()).append("_BEFORE_INSERT_TRIGGER\n")
+                .append("BEFORE INSERT ON ").append(packageSymbol(dbTableInfo.getFullTableName())).append("\n")
                 .append("FOR EACH ROW\n")
                 .append("BEGIN\n")
                 .append("    :new.").append("\"").append(createTimeField).append("\" := NOW();\n")
                 .append("    :new.").append("\"").append(updateTimeField).append("\" := NOW();\n")
                 .append("END;\n");
-        triggerBuilder.append("CREATE OR REPLACE TRIGGER ").append(dbTableInfo.getSchema()).append(".").append(dbTableInfo.getTableName()).append("_BEFORE_UPDATE_TRIGGER\n")
-                .append("BEFORE UPDATE ON ").append("\"").append(dbTableInfo.getSchema()).append("\".\"").append(dbTableInfo.getTableName()).append("\"\n")
+        triggerBuilder.append("CREATE OR REPLACE TRIGGER ").append(dbTableInfo.getFullTableName()).append("_BEFORE_UPDATE_TRIGGER\n")
+                .append("BEFORE UPDATE ON ").append(packageSymbol(dbTableInfo.getFullTableName())).append("\n")
                 .append("FOR EACH ROW\n")
                 .append("BEGIN\n")
                 .append("    :new.").append("\"").append(updateTimeField).append("\" := NOW();\n")
@@ -70,17 +72,18 @@ public class YaShanSQLBuilder extends AbstractSQLBuilder {
         return triggerBuilder.toString();
     }
 
-    private String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
+    @Override
+    protected String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
         Optional<DbTableInfo.DBFieldInfo> autoIncrFieldOptional = dbTableInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isAutoIncr).findFirst();
         if (autoIncrFieldOptional.isPresent()) {
             DbTableInfo.DBFieldInfo autoIncrField = autoIncrFieldOptional.get();
-            return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + dbTableInfo.getSchema() + "." + dbTableInfo.getTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
+            return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + dbTableInfo.getFullTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
         }
         return "";
     }
 
     @Override
-    public String generateCreateTableDDL(DbTableInfo dbTableInfo) {
+    protected String generateCreateTableDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE TABLE\n");
         builder.append("CREATE TABLE ").append(dbTableInfo.getTableName()).append(" (\n");
@@ -121,7 +124,7 @@ public class YaShanSQLBuilder extends AbstractSQLBuilder {
     }
 
     @Override
-    public String generateTableIndexDDL(DbTableInfo dbTableInfo) {
+    protected String generateTableIndexDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE INDEX\n");
         dbTableInfo.getIndexList().stream().forEach(dbIndexInfo -> {

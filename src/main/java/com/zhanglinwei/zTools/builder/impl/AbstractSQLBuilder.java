@@ -12,10 +12,11 @@ public abstract class AbstractSQLBuilder implements SQLBuilder {
     private final String DELIMITER = ", ";
 
     public abstract String getSymbol();
-
-    public String generateDropTableDDL(String tableName) {
-        return "-- DROP TABLE\nDROP TABLE IF EXISTS " + tableName + ";\n";
-    }
+    protected abstract String generateCreateTableDDL(DbTableInfo dbTableInfo);
+    protected abstract String generateTableIndexDDL(DbTableInfo dbTableInfo);
+    protected abstract String generateCommentDDL(DbTableInfo dbTableInfo);
+    protected abstract String generateTriggerDDL(DbTableInfo dbTableInfo);
+    protected abstract String generateIncrSequenceDDL(DbTableInfo dbTableInfo);
 
     @Override
     public String generateSelect(DbTableInfo dbTableInfo) {
@@ -55,7 +56,7 @@ public abstract class AbstractSQLBuilder implements SQLBuilder {
         return "DELETE FROM " + dbTableInfo.getFullTableName() + " WHERE " + keyName + " = '';";
     }
 
-    private String packageSymbol(String name) {
+    protected String packageSymbol(String name) {
         String symbol = getSymbol();
         return symbol + name + symbol;
     }
@@ -77,6 +78,10 @@ public abstract class AbstractSQLBuilder implements SQLBuilder {
         }
 
         return "NULL";
+    }
+
+    protected String generateDropTableDDL(String tableName) {
+        return "-- DROP TABLE\nDROP TABLE IF EXISTS " + tableName + ";\n";
     }
 
 }

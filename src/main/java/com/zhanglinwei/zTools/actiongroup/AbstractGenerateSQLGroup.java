@@ -27,8 +27,6 @@ public abstract class AbstractGenerateSQLGroup extends AnAction {
 
     private PsiClass selectedClass;
 
-    private final String DEFAULT_MESSAGE = "";
-
 
     protected boolean init(AnActionEvent actionEvent) {
         Editor editor = actionEvent.getDataContext().getData(CommonDataKeys.EDITOR);

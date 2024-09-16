@@ -14,7 +14,7 @@ import java.util.Optional;
 public class KingBaseSQLBuilder extends AbstractSQLBuilder {
     @Override
     public boolean support(String dbType) {
-        return dbType.equals(DBType.KING_BASE.getCode());
+        return DBType.KING_BASE.getCode().equals(dbType);
     }
 
     @Override
@@ -26,17 +26,18 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
         String tableIndexDDL = generateTableIndexDDL(dbTableInfo);
         String triggerDDL = generateTriggerDDL(dbTableInfo);
 
-        return dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL;
+        return (dropTableDDL + incrSequenceDDL + createTableDDL + commentDDL + tableIndexDDL + triggerDDL).toUpperCase();
     }
 
-    private String generateTriggerDDL(DbTableInfo dbTableInfo) {
+    @Override
+    protected String generateTriggerDDL(DbTableInfo dbTableInfo) {
         String createTimeField = ConfigUtils.getDDLCreateTimeField();
         String updateTimeField = ConfigUtils.getDDLUpdateTimeField();
 
         StringBuilder triggerBuilder = new StringBuilder();
         triggerBuilder.append("-- CREATE TRIGGER\n");
         triggerBuilder.append("CREATE OR REPLACE TRIGGER ").append(dbTableInfo.getTableName()).append("_BEFORE_INSERT_TRIGGER\n")
-                .append("BEFORE INSERT ON ").append("\"").append(dbTableInfo.getSchema()).append("\".\"").append(dbTableInfo.getTableName()).append("\"\n")
+                .append("BEFORE INSERT ON ").append(packageSymbol(dbTableInfo.getFullTableName())).append("\n")
                 .append("FOR EACH ROW\n")
                 .append("BEGIN\n")
                 .append("    :new.").append("\"").append(createTimeField).append("\" := NOW();\n")
@@ -44,7 +45,7 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
                 .append("END;\n");
 
         triggerBuilder.append("CREATE OR REPLACE TRIGGER ").append(dbTableInfo.getTableName()).append("_BEFORE_UPDATE_TRIGGER\n")
-                .append("BEFORE UPDATE ON ").append("\"").append(dbTableInfo.getSchema()).append("\".\"").append(dbTableInfo.getTableName()).append("\"\n")
+                .append("BEFORE UPDATE ON ").append(packageSymbol(dbTableInfo.getFullTableName())).append("\n")
                 .append("FOR EACH ROW\n")
                 .append("BEGIN\n")
                 .append("    :new.").append("\"").append(updateTimeField).append("\" := NOW();\n")
@@ -53,8 +54,9 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
         return triggerBuilder.toString();
     }
 
-    private String generateCommentDDL(DbTableInfo dbTableInfo) {
-        String prefix = "COMMENT ON COLUMN " + dbTableInfo.getSchema() + "." + dbTableInfo.getTableName() + ".";
+    @Override
+    protected String generateCommentDDL(DbTableInfo dbTableInfo) {
+        String prefix = "COMMENT ON COLUMN " + dbTableInfo.getFullTableName() + ".";
         StringBuilder commentBuilder = new StringBuilder();
         commentBuilder.append("-- CREATE COMMENT\n");
         dbTableInfo.getFieldInfo().stream()
@@ -72,12 +74,12 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
     }
 
     @Override
-    public String generateCreateTableDDL(DbTableInfo dbTableInfo) {
+    protected String generateCreateTableDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE TABLE\n");
         builder.append("CREATE TABLE ").append(dbTableInfo.getTableName()).append(" (\n");
         dbTableInfo.getFieldInfo().stream().forEach(dbFieldInfo -> {
-            builder.append("    \"").append(dbFieldInfo.getName()).append("\" ").append(dbFieldInfo.getType()).append(" ");
+            builder.append("    ").append(packageSymbol(dbFieldInfo.getName())).append(" ").append(dbFieldInfo.getType()).append(" ");
             if (dbFieldInfo.isAutoIncr() || dbFieldInfo.isRequired() || dbFieldInfo.isPrimaryKey()) {
                 builder.append("NOT NULL ");
             }
@@ -98,7 +100,7 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
     }
 
     @Override
-    public String generateTableIndexDDL(DbTableInfo dbTableInfo) {
+    protected String generateTableIndexDDL(DbTableInfo dbTableInfo) {
         StringBuilder builder = new StringBuilder();
         builder.append("-- CREATE INDEX\n");
         dbTableInfo.getIndexList().stream().forEach(dbIndexInfo -> {
@@ -123,11 +125,12 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
         return builder.toString();
     }
 
-    private String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
+    @Override
+    protected String generateIncrSequenceDDL(DbTableInfo dbTableInfo) {
         Optional<DbTableInfo.DBFieldInfo> autoIncrFieldOptional = dbTableInfo.getFieldInfo().stream().filter(DbTableInfo.DBFieldInfo::isAutoIncr).findFirst();
         if (autoIncrFieldOptional.isPresent()) {
             DbTableInfo.DBFieldInfo autoIncrField = autoIncrFieldOptional.get();
-            return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + dbTableInfo.getSchema() + "." + dbTableInfo.getTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
+            return "-- CREATE SEQUENCE\nCREATE SEQUENCE " + dbTableInfo.getFullTableName() + "_" + autoIncrField.getName() + "_SEQ;" + "\n";
         }
         return "";
     }
@@ -143,7 +146,7 @@ public class KingBaseSQLBuilder extends AbstractSQLBuilder {
     }
 
     private String buildIncrSeq(DbTableInfo.DBFieldInfo dbFieldInfo, DbTableInfo dbTableInfo) {
-        return "DEFAULT \"" + dbTableInfo.getSchema() + "\".\"" + dbTableInfo.getTableName() + "_" + dbFieldInfo.getName() + "_SEQ\".NEXTVAL ";
+        return "DEFAULT \"" + dbTableInfo.getFullTableName() + "_" + dbFieldInfo.getName() + "_SEQ\".NEXTVAL ";
     }
 
     @Override
