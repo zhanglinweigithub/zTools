@@ -25,7 +25,7 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
             if (method.isEmpty()) {
                 continue;
             }
-            builder.append("## ").append(method.getTitle()).append("\n")
+            builder.append("## ").append(i + 1).append("、").append(method.getTitle()).append("\n")
                     .append("### 基本信息\n")
                     .append("- 接口描述: ").append(method.getDesc()).append("\n")
                     .append("- 请求方式: `").append(method.getRequestType()).append("`\n")
@@ -65,10 +65,10 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
             FieldInfo requestBody = method.getRequestBody();
             if (requestBody != null && requestBody.hasChildren()) {
                 builder.append("#### ").append(DocConstants.REQUEST_BODY).append("\n");
-                builder.append("##### 描述\n");
+                builder.append("**描述**\n");
                 builder.append(super.buildTable(DocConstants.REQUEST_BODY_TABLE_HEADER, requestBody.getChildren(), true));
 
-                builder.append("##### 示例\n");
+                builder.append("**示例**\n");
                 builder.append("``` json\n");
                 builder.append(JsonUtil.buildJson5(method.getRequestBody())).append("\n");
                 builder.append("```\n");
@@ -79,10 +79,10 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
             FieldInfo responseBody = method.getResponseBody();
             if (responseBody != null && responseBody.hasChildren()) {
                 builder.append("#### ").append(DocConstants.RESPONSE_BODY).append("\n");
-                builder.append("##### 描述\n");
+                builder.append("**描述**\n");
                 builder.append(super.buildTable(DocConstants.RESPONSE_BODY_TABLE_HEADER, responseBody.getChildren(), true));
 
-                builder.append("##### 示例\n");
+                builder.append("**示例**\n");
                 builder.append("``` json\n");
                 builder.append(JsonUtil.buildJson5(method.getResponseBody())).append("\n");
                 builder.append("```\n");

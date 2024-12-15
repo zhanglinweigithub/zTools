@@ -70,10 +70,6 @@ public abstract class AbstractHtmlTemplate {
         return buildTable(tableHeaderList, contentList, false);
     }
 
-    protected String buildDBTable(List<String> dbTableHeader, List<TableInfo> tableInfoList) {
-        return openTable + buildTableHeader(dbTableHeader) + buildColumTableContent(tableInfoList) + closeTable;
-    }
-
     protected String buildTable(List<String> tableHeaderList, List<FieldInfo> contentList, boolean withType) {
         return openTable + buildTableHeader(tableHeaderList) + buildFieldTableContent(contentList, withType) + closeTable;
     }
@@ -82,13 +78,7 @@ public abstract class AbstractHtmlTemplate {
         return openTable + buildTableHeader(tableHeaderList) + buildRequestHeaderTableContent(requestHeaders) + closeTable;
     }
 
-    private String buildDivColor(String color, String content) {
-        return "<div style='color:" + color + "'>" + content + "</div>";
-    }
 
-    private String buildDivColor(String content) {
-        return "<div style='color:" + buildColor(content) + "'>" + content + "</div>";
-    }
 
     private String buildSpanColor(String color, String content) {
         return "<span style='color:" + color + "'>" + content + "</span>";
@@ -145,14 +135,7 @@ public abstract class AbstractHtmlTemplate {
         return "";
     }
 
-    private String buildColumTableContent(List<TableInfo> tableInfoList) {
-        StringBuilder builder = new StringBuilder();
-        for (TableInfo tableInfo : tableInfoList) {
-            builder.append(tableInfo.toHtmlString());
-        }
 
-        return builder.toString();
-    }
 
     private String buildFieldTableContent(List<FieldInfo> fieldInfoList, boolean withType) {
         if (AssertUtils.isNotEmpty(fieldInfoList)) {

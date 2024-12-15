@@ -13,40 +13,6 @@ import java.util.List;
 
 public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
 
-    private final String dbStyle = "<style type='text/css'>\n" +
-            "body {\n" +
-            "    padding-bottom: 50px\n" +
-            "}\n" +
-            "body,\n" +
-            "td {\n" +
-            "    font-family: verdana, fantasy;\n" +
-            "    font-size: 12px;\n" +
-            "    line-height: 150%\n" +
-            "}\n" +
-            "table {\n" +
-            "    width: 100%;\n" +
-            "    background-color: #ccc;\n" +
-            "    margin: 5px 0\n" +
-            "}\n" +
-            "td {\n" +
-            "    background-color: #fff;\n" +
-            "    padding: 3px 3px 3px 10px\n" +
-            "}\n" +
-            "thead td {\n" +
-            "    text-align: center;\n" +
-            "    font-weight: bold;\n" +
-            "    background-color: #eee\n" +
-            "}\n" +
-            "a:link,\n" +
-            "a:visited,\n" +
-            "a:active {\n" +
-            "    color: #015fb6;\n" +
-            "    text-decoration: none\n" +
-            "}\n" +
-            "a:hover {\n" +
-            "    color: #e33e06\n" +
-            "}\n" +
-            "</style>";
     private final String apiStyle = "<style type='text/css'>\n" +
             "    .json-data {\n" +
             "        white-space: pre;\n" +
@@ -106,7 +72,7 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
             if (method.isEmpty()) {
                 continue;
             }
-            builder.append("<h2 style='line-height:50px;'>").append(method.getTitle()).append("</h2>\n")
+            builder.append("<h2 style='line-height:50px;'>").append(i + 1).append("、").append(method.getTitle()).append("</h2>\n")
                     .append("<h3>基本信息</h3>\n")
                     .append("<ul>\n")
                         .append("<li>接口描述: ").append(method.getDesc()).append("</li>\n")
@@ -148,10 +114,10 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
             FieldInfo requestBody = method.getRequestBody();
             if (requestBody != null && requestBody.hasChildren()) {
                 builder.append("<h4>").append(DocConstants.REQUEST_BODY).append("</h4>\n");
-                builder.append("<h5>描述</h5>\n");
+                builder.append("<b>描述</b>\n");
                 builder.append(super.buildTable(DocConstants.REQUEST_BODY_TABLE_HEADER, requestBody.getChildren(), true));
 
-                builder.append("<h5>示例</h5>\n");
+                builder.append("<b>示例</b>\n");
                 builder.append("<div class=\"json-data\">\n");
                 builder.append(super.toHtmlJson(method.getRequestBody(), method.getRequestBodyJson())).append("\n");
                 builder.append("</div>");
@@ -162,10 +128,10 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
             FieldInfo responseBody = method.getResponseBody();
             if (responseBody != null && responseBody.hasChildren()) {
                 builder.append("<h4>").append(DocConstants.RESPONSE_BODY).append("</h4>\n");
-                builder.append("<h5>描述</h5>\n");
+                builder.append("<b>描述</b>\n");
                 builder.append(super.buildTable(DocConstants.RESPONSE_BODY_TABLE_HEADER, responseBody.getChildren(), true));
 
-                builder.append("<h5>示例</h5>\n");
+                builder.append("<b>示例</b>\n");
                 builder.append("<div class=\"json-data\">\n");
 //                builder.append(method.getResponseBodyJson().replaceAll(" {2}", "    ")).append("\n");
                 builder.append(super.toHtmlJson(method.getResponseBody(), method.getResponseBodyJson())).append("\n");

@@ -22,10 +22,6 @@ public abstract class AbstractMarkDownTemplate {
         return buildTable(headerList, fieldInfoList, false);
     }
 
-    protected String buildDBTable(List<String> dbTableHeader, List<TableInfo> tableInfoList) {
-        return buildTableHeader(dbTableHeader) + buildTableContent(tableInfoList);
-    }
-
     protected String buildRequestHeaderTable(List<String> headerList, List<RequestHeader> requestHeaders) {
         return buildTableHeader(headerList) + buildRequestHeaderTableContent(requestHeaders);
     }
@@ -42,15 +38,6 @@ public abstract class AbstractMarkDownTemplate {
         }
 
         return "";
-    }
-
-    private String buildTableContent(List<TableInfo> tableInfoList) {
-        StringBuilder builder = new StringBuilder();
-        for (TableInfo tableInfo : tableInfoList) {
-            builder.append(tableInfo.toMarkDownString());
-        }
-
-        return builder.toString();
     }
 
     private String buildTableContent(List<FieldInfo> fieldInfoList, boolean withType) {

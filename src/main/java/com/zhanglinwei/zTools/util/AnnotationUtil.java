@@ -149,7 +149,7 @@ public class AnnotationUtil {
             for (PsiNameValuePair psiNameValuePair : psiNameValuePairs) {
                 if (psiNameValuePair.getName().equals("value") || psiNameValuePair.getName().equals("path")) {
                     String text = psiNameValuePair.getValue().getText();
-                    if (AssertUtils.isNotBlank(text)) {
+                    if (AssertUtils.isBlank(text)) {
                         return "";
                     }
                     text = text.replace("{\"", "").replace("\"}", "").replace("\"", "");

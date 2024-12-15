@@ -2,7 +2,6 @@ package com.zhanglinwei.zTools.util;
 
 import com.zhanglinwei.zTools.model.FieldInfo;
 import com.zhanglinwei.zTools.model.RequestHeader;
-import com.zhanglinwei.zTools.model.TableInfo;
 import org.apache.poi.xwpf.usermodel.*;
 
 import java.util.List;
@@ -91,32 +90,6 @@ public class Word {
         fieldTable(word, fieldInfoList, headerList, false);
     }
 
-    public static void dbTable(XWPFDocument word, List<TableInfo> tableInfoList, List<String> dbTableHeader) {
-        int cols = dbTableHeader.size();
-        int contentRows = tableInfoList.size(); // 内容行数
-        // 创建表格
-        XWPFTable table = word.createTable(1, cols);
-//        table.setTableAlignment(TableRowAlign.CENTER);
-        table.setWidth("100%");
-        // 设置表头单元格内容
-        XWPFTableRow headerRow = table.getRow(0);
-        headerRow.setHeight(1);
-        for (int j = 0; j < cols; j++) {
-            XWPFTableCell cell = headerRow.getCell(j);
-            cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
-            XWPFParagraph paragraph = cell.getParagraphs().get(0);
-            XWPFRun run = paragraph.createRun();
-            run.setText(dbTableHeader.get(j));
-            run.setBold(true);
-            run.setFontSize(9);
-        }
-        // 添加内容行
-        for (int i = 0; i < contentRows; i++) {
-            TableInfo tableInfo = tableInfoList.get(i);
-            buildRowContent(table, cols, tableInfo);
-        }
-    }
-
     public static void fieldTable(XWPFDocument word, List<FieldInfo> fieldInfoList, List<String> headerList, boolean withType) {
         int cols = headerList.size();
         int contentRows = fieldInfoList.size(); // 内容行数
@@ -151,23 +124,6 @@ public class Word {
             for (FieldInfo fieldInfo : field.getChildren()) {
                 buildChildrenFieldInfo(table, cols, fieldInfo, prefix + CommonUtils.getPrefix(), withType);
             }
-        }
-    }
-
-    private static void buildRowContent(XWPFTable table, int cols, TableInfo tableInfo) {
-        List<String> split = tableInfo.toWordList();
-        XWPFTableRow row = table.createRow();
-        row.setHeight(1);
-        for (int j = 0; j < cols; j++) {
-            XWPFTableCell cell = row.getCell(j);
-            if (cell == null) {
-                cell = row.createCell(); // 如果单元格不存在则创建
-            }
-            cell.setVerticalAlignment(XWPFTableCell.XWPFVertAlign.CENTER);
-            XWPFParagraph paragraph = cell.getParagraphs().get(0);
-            XWPFRun run = paragraph.createRun();
-            run.setText(split.get(j));
-            run.setFontSize(9);
         }
     }
 
