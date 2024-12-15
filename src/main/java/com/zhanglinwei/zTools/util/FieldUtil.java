@@ -14,6 +14,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 字段工具类
@@ -233,11 +235,7 @@ public class FieldUtil {
 
     /** 是否Map */
     public static boolean isMapType(String typeName) {
-        List<String> mapList = Arrays.asList("Map","HashMap","LinkedHashMap","JSONObject");
-        if(mapList.contains(typeName)) {
-            return true;
-        }
-        return typeName.startsWith("Map<") || typeName.startsWith("HashMap<") || typeName.startsWith("LinkedHashMap<");
+        return isMapFamily(typeName);
     }
 
     /** 是否简单集合 */
@@ -247,14 +245,49 @@ public class FieldUtil {
 
     /** 是否简单集合 */
     public static boolean isNormalCollectionType(String typeName) {
-        typeName = typeName
-                .replace("List", "")
-                .replace("Set", "")
-                .replace("Collection", "")
-                .replace(">", "")
-                .replace("<", "");
+        if (!isListFamily(typeName)) {
+            return false;
+        }
+        String regex = "(\\w+)(<(.+?)>)?";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(typeName);
+        if (matcher.matches()) {
+            String baseType = matcher.group(1); // 基础类型，例如 ArrayList, HashMap
+            String genericContent = matcher.group(2); // 泛型内容，例如 <String> 或 <String, Integer>
 
-        return isNormalType(typeName) || typeName.contains("Map");
+            if (genericContent != null) {
+                // 获得尖括号中的嵌套内容
+                typeName = genericContent.replaceAll("[<>]", "");
+            }
+        }
+
+        return isNormalType(typeName) || isMapFamily(typeName);
+    }
+
+    public static boolean isListFamily(String typeString) {
+        return typeString.startsWith("ArrayList") ||
+                typeString.startsWith("LinkedList") ||
+                typeString.startsWith("Vector") ||
+                typeString.startsWith("List") ||
+                typeString.startsWith("Set") ||
+                typeString.startsWith("TreeSet") ||
+                typeString.startsWith("HashSet") ||
+                typeString.startsWith("LinkedHashSet") ||
+                typeString.startsWith("BitSet") ||
+                typeString.startsWith("SortedSet")
+                ;
+    }
+
+    private static boolean isMapFamily(String typeString) {
+        return typeString.startsWith("Map") ||
+                typeString.startsWith("HashMap") ||
+                typeString.startsWith("LinkedHashMap") ||
+                typeString.startsWith("ConcurrentHashMap") ||
+                typeString.startsWith("ConcurrentMap") ||
+                typeString.startsWith("Hashtable") ||
+                typeString.startsWith("SortedMap") ||
+                typeString.startsWith("TreeMap")
+                ;
     }
 
     /** 是否简单数组 */

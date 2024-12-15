@@ -44,7 +44,7 @@ public class CopyJsonAction extends AnAction {
         }
         boolean generateSuccess = generateJson(project, selectedClass);
         if (generateSuccess) {
-            NotificationUtil.infoNotify(MessageConstants.JSON_SUCCESS, project);
+            NotificationUtil.infoNotify(MessageConstants.COPY_JSON_SUCCESS, project);
         }
     }
 
