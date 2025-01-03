@@ -1,6 +1,8 @@
 package com.zhanglinwei.zTools.util;
 
-import com.intellij.psi.*;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiNameValuePair;
 import com.zhanglinwei.zTools.constant.RequestMethodEnum;
 import com.zhanglinwei.zTools.constant.WebAnnotation;
 import com.zhanglinwei.zTools.model.FieldInfo;
@@ -191,8 +193,8 @@ public class AnnotationUtil {
         return defaultValue;
     }
 
-    public static List<RequestHeader> buildRequestHeaderByMappingAnnotation(PsiAnnotation methodRequestMappingAnnotation, PsiAnnotation classRequestMappingAnnotation) {
-        List<RequestHeader> headerList = new ArrayList<>();
+    public static List<FieldInfo> buildRequestHeaderByMappingAnnotation(PsiAnnotation methodRequestMappingAnnotation, PsiAnnotation classRequestMappingAnnotation) {
+        List<FieldInfo> headerList = new ArrayList<>();
 
         headerList.addAll(resolveConsumesAndProducesByMappingAnnotation(methodRequestMappingAnnotation));
         headerList.addAll(resolveConsumesAndProducesByMappingAnnotation(classRequestMappingAnnotation));
@@ -207,8 +209,8 @@ public class AnnotationUtil {
         return new RequestHeader(headerName, String.join(", ", headerValue), required, desc);
     }
 
-    public static List<RequestHeader> resolveConsumesAndProducesByMappingAnnotation(PsiAnnotation mappingAnnotation) {
-        List<RequestHeader> headers = new ArrayList<>();
+    public static List<FieldInfo> resolveConsumesAndProducesByMappingAnnotation(PsiAnnotation mappingAnnotation) {
+        List<FieldInfo> headers = new ArrayList<>();
         if (mappingAnnotation != null) {
             PsiNameValuePair[] attributes = mappingAnnotation.getParameterList().getAttributes();
             for (PsiNameValuePair pair : attributes) {
@@ -222,7 +224,7 @@ public class AnnotationUtil {
         return headers;
     }
 
-    private static List<RequestHeader> resolveConsumes(PsiNameValuePair pair) {
+    private static List<FieldInfo> resolveConsumes(PsiNameValuePair pair) {
         if (pair == null) {
             return new ArrayList<>();
         }
@@ -230,7 +232,7 @@ public class AnnotationUtil {
         if (AssertUtils.isBlank(text)) {
             return new ArrayList<>();
         }
-        List<RequestHeader> consumesList = new ArrayList<>();
+        List<FieldInfo> consumesList = new ArrayList<>();
         text = text.replace("{", "").replace("}", "").replace("\"", "");
         if (text.contains(",")) {
             String[] split = text.split(",");
@@ -243,7 +245,7 @@ public class AnnotationUtil {
         return consumesList;
     }
 
-    private static List<RequestHeader> resolveProduces(PsiNameValuePair pair) {
+    private static List<FieldInfo> resolveProduces(PsiNameValuePair pair) {
         if (pair == null) {
             return new ArrayList<>();
         }
@@ -251,15 +253,15 @@ public class AnnotationUtil {
         if (AssertUtils.isBlank(text)) {
             return new ArrayList<>();
         }
-        List<RequestHeader> producesList = new ArrayList<>();
+        List<FieldInfo> producesList = new ArrayList<>();
         text = text.replace("{\"", "").replace("\"}", "").replace("\"", "");
         if (text.contains(",")) {
             String[] split = text.split(",");
             for (String item : split) {
-                producesList.add(buildRequestHeader("Accept", item));
+                producesList.add(buildRequestHeader("Accept", buildRequestHeaderValue(item)));
             }
         } else {
-            producesList.add(buildRequestHeader("Accept", text));
+            producesList.add(buildRequestHeader("Accept", buildRequestHeaderValue(text)));
         }
         return producesList;
     }
@@ -278,12 +280,12 @@ public class AnnotationUtil {
         return new RequestHeader(field.getName(), field.getRange(), field.getRequired(), field.getDesc());
     }
 
-    public static RequestHeader buildRequestHeader(String headerName, String value) {
+    public static FieldInfo buildRequestHeader(String headerName, String value) {
         return buildRequestHeader(headerName, value, "Y", "");
     }
 
-    public static RequestHeader buildRequestHeader(String headerName, String value, String required, String desc) {
-        return new RequestHeader(headerName, value, required, desc);
+    public static FieldInfo buildRequestHeader(String headerName, String value, String required, String desc) {
+        return FieldInfo.build(headerName, value, required, desc);
     }
 
     /**

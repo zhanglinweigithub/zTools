@@ -17,8 +17,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.zhanglinwei.zTools.util.CommonUtils.NULL;
-import static com.zhanglinwei.zTools.util.CommonUtils.STAR;
+import static com.zhanglinwei.zTools.util.CommonUtils.*;
 
 
 /**
@@ -60,7 +59,7 @@ public class MethodInfo implements Serializable {
     /**
      * 请求头参数
      */
-    private List<RequestHeader> requestHeaders = new ArrayList<>();
+    private List<FieldInfo> requestHeaders = new ArrayList<>();
 
     /**
      * query参数
@@ -135,7 +134,7 @@ public class MethodInfo implements Serializable {
         List<FieldInfo> requestParamList = new ArrayList<>();
         List<FieldInfo> pathVariableList = new ArrayList<>();
         List<FieldInfo> formList = new ArrayList<>();
-        List<RequestHeader> requestHeaderList = new ArrayList<>();
+        List<FieldInfo> requestHeaderList = new ArrayList<>();
         for (FieldInfo field : requestFieldList) {
             PsiType psiType = field.getPsiType();
             String psiTypeText = psiType.getPresentableText();
@@ -146,7 +145,7 @@ public class MethodInfo implements Serializable {
             for (PsiAnnotation annotation : annotationList) {
                 String annotationText = annotation.getText();
                 if (psiTypeText.contains("MultipartFile") || annotationText.contains(WebAnnotation.RequestPart)) {
-                    requestHeaderList.add(RequestHeader.file());
+                    requestHeaderList.add(FieldInfo.build("Content-Type", "multipart/form-data", YES, "FILE"));
                     formList.addAll(field.cutFirstLayer());
                 } else if (annotationText.contains(WebAnnotation.RequestParam)) {
                     requestParamList.addAll(field.cutFirstLayer());
@@ -155,7 +154,7 @@ public class MethodInfo implements Serializable {
                 } else if (annotationText.contains(WebAnnotation.PathVariable)) {
                     pathVariableList.addAll(field.cutFirstLayer());
                 } else if (annotationText.contains(WebAnnotation.RequestHeader)) {
-                    requestHeaderList.add(AnnotationUtil.buildRequestHeaderByFieldInfo(field));
+                    requestHeaderList.add(field);
                 }
             }
         }
@@ -185,7 +184,7 @@ public class MethodInfo implements Serializable {
         // 设置请求体、请求头信息
         String paramStr = parameterList.getText();
         if (paramStr.contains(WebAnnotation.RequestBody)) {
-            this.requestHeaders.add(RequestHeader.json());
+            this.requestHeaders.add(FieldInfo.build("Content-Type", "application/json", YES, "JSON"));
             this.requestBodyType = RestConstant.JSON;
             this.requestBodyJson = JsonUtil.buildPrettyJson(this.requestBody);
         }
@@ -199,7 +198,7 @@ public class MethodInfo implements Serializable {
             else if (RequestMethodEnum.POST.name().equals(this.requestType) || RequestMethodEnum.PUT.name().equals(this.requestType)){
                 // 如果是POST、PATCH请求, 默认所有无注解的参数为form参数(排除文件)
                 this.requestBodyType = RestConstant.FORM;
-                this.requestHeaders.add(RequestHeader.form());
+                this.requestHeaders.add(FieldInfo.build("Content-Type", "application/x-www-form-urlencoded", YES, "FORM"));
                 this.formParams.addAll(noAnnotationField);
             }
             // 其它请求类型忽略无注解参数
@@ -240,14 +239,14 @@ public class MethodInfo implements Serializable {
     /**
      * 合并请求头
      */
-    private void mergeRequestHeader(List<RequestHeader> requestHeaders) {
-        List<RequestHeader> mergedList = new ArrayList<>();
+    private void mergeRequestHeader(List<FieldInfo> requestHeaders) {
+        List<FieldInfo> mergedList = new ArrayList<>();
 
-        Map<String, List<RequestHeader>> headerNameMap = requestHeaders.stream().collect(Collectors.groupingBy(RequestHeader::getName));
+        Map<String, List<FieldInfo>> headerNameMap = requestHeaders.stream().collect(Collectors.groupingBy(FieldInfo::getName));
         for (String key : headerNameMap.keySet()) {
-            List<RequestHeader> headers = headerNameMap.get(key);
-            List<String> valueList = headers.stream().map(item -> item.getValue().trim()).distinct().collect(Collectors.toList());
-            mergedList.add(new RequestHeader(key, String.join(", ", valueList), headers.get(0).getRequire(), headers.get(0).getDesc()));
+            List<FieldInfo> headers = headerNameMap.get(key);
+            List<String> valueList = headers.stream().map(item -> String.valueOf(item.getExample()).trim()).distinct().collect(Collectors.toList());
+            mergedList.add(FieldInfo.build(key, String.join(", ", valueList), headers.get(0).getRequired(), headers.get(0).getDesc()));
         }
 
         this.requestHeaders = mergedList;
@@ -350,11 +349,11 @@ public class MethodInfo implements Serializable {
         this.responseBodyAnnotation = responseBodyAnnotation;
     }
 
-    public List<RequestHeader> getRequestHeaders() {
+    public List<FieldInfo> getRequestHeaders() {
         return requestHeaders;
     }
 
-    public void setRequestHeaders(List<RequestHeader> requestHeaders) {
+    public void setRequestHeaders(List<FieldInfo> requestHeaders) {
         this.requestHeaders = requestHeaders;
     }
 

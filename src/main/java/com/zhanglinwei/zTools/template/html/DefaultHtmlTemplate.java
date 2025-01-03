@@ -4,7 +4,6 @@ import com.zhanglinwei.zTools.constant.DocConstants;
 import com.zhanglinwei.zTools.model.ClassInfo;
 import com.zhanglinwei.zTools.model.FieldInfo;
 import com.zhanglinwei.zTools.model.MethodInfo;
-import com.zhanglinwei.zTools.model.RequestHeader;
 import com.zhanglinwei.zTools.template.AbstractHtmlTemplate;
 import com.zhanglinwei.zTools.util.AssertUtils;
 import com.zhanglinwei.zTools.util.CommonUtils;
@@ -83,16 +82,16 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
 
             // RequestHeader
             if (AssertUtils.isNotEmpty(method.getRequestHeaders())) {
-                List<RequestHeader> requestHeaders = method.getRequestHeaders();
+                List<FieldInfo> requestHeaders = method.getRequestHeaders();
                 builder.append("<h4>").append(DocConstants.REQUEST_HEADER).append("</h4>\n");
-                builder.append(super.buildRequestHeaderTable(DocConstants.REQUEST_HEADER_TABLE_HEADER, requestHeaders));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, requestHeaders));
             }
 
             // PathVariable
             if (AssertUtils.isNotEmpty(method.getPathVariables())) {
                 List<FieldInfo> pathVariables = method.getPathVariables();
                 builder.append("<h4>").append(DocConstants.PATH_VARIABLE).append("</h4>\n");
-                builder.append(super.buildTable(DocConstants.PATH_VARIABLE_TABLE_HEADER, pathVariables));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, pathVariables));
 
             }
 
@@ -100,14 +99,14 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
             if (AssertUtils.isNotEmpty(method.getRequestParams())) {
                 List<FieldInfo> requestQuerys = method.getRequestParams();
                 builder.append("<h4>").append(DocConstants.REQUEST_PARAM).append("</h4>\n");
-                builder.append(super.buildTable(DocConstants.REQUEST_PARAM_TABLE_HEADER, requestQuerys));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, requestQuerys));
             }
 
             // Form
             if (AssertUtils.isNotEmpty(method.getFormParams())) {
                 List<FieldInfo> requestBodyForms = method.getFormParams();
                 builder.append("<h4>").append(DocConstants.FORM_PARAM).append("</h4>\n");
-                builder.append(super.buildTable(DocConstants.FORM_PARAM_TABLE_HEADER, requestBodyForms, true));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, requestBodyForms, true));
             }
 
             // RequestBody
@@ -115,7 +114,7 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
             if (requestBody != null && requestBody.hasChildren()) {
                 builder.append("<h4>").append(DocConstants.REQUEST_BODY).append("</h4>\n");
                 builder.append("<b>描述</b>\n");
-                builder.append(super.buildTable(DocConstants.REQUEST_BODY_TABLE_HEADER, requestBody.getChildren(), true));
+                builder.append(super.buildTable(DocConstants.BODY_TABLE_HEADER, requestBody.getChildren(), true));
 
                 builder.append("<b>示例</b>\n");
                 builder.append("<div class=\"json-data\">\n");
@@ -129,7 +128,7 @@ public class DefaultHtmlTemplate extends AbstractHtmlTemplate {
             if (responseBody != null && responseBody.hasChildren()) {
                 builder.append("<h4>").append(DocConstants.RESPONSE_BODY).append("</h4>\n");
                 builder.append("<b>描述</b>\n");
-                builder.append(super.buildTable(DocConstants.RESPONSE_BODY_TABLE_HEADER, responseBody.getChildren(), true));
+                builder.append(super.buildTable(DocConstants.BODY_TABLE_HEADER, responseBody.getChildren(), true));
 
                 builder.append("<b>示例</b>\n");
                 builder.append("<div class=\"json-data\">\n");

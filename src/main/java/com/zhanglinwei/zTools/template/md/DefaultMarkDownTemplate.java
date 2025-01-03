@@ -4,7 +4,6 @@ import com.zhanglinwei.zTools.constant.DocConstants;
 import com.zhanglinwei.zTools.model.ClassInfo;
 import com.zhanglinwei.zTools.model.FieldInfo;
 import com.zhanglinwei.zTools.model.MethodInfo;
-import com.zhanglinwei.zTools.model.RequestHeader;
 import com.zhanglinwei.zTools.template.AbstractMarkDownTemplate;
 import com.zhanglinwei.zTools.util.AssertUtils;
 import com.zhanglinwei.zTools.util.CommonUtils;
@@ -34,16 +33,16 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
 
             // RequestHeader
             if (AssertUtils.isNotEmpty(method.getRequestHeaders())) {
-                List<RequestHeader> requestHeaders = method.getRequestHeaders();
+                List<FieldInfo> requestHeaders = method.getRequestHeaders();
                 builder.append("#### ").append(DocConstants.REQUEST_HEADER).append("\n");
-                builder.append(super.buildRequestHeaderTable(DocConstants.REQUEST_HEADER_TABLE_HEADER, requestHeaders));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, requestHeaders));
             }
 
             // PathVariable
             if (AssertUtils.isNotEmpty(method.getPathVariables())) {
                 List<FieldInfo> pathVariables = method.getPathVariables();
                 builder.append("#### ").append(DocConstants.PATH_VARIABLE).append("\n");
-                builder.append(super.buildTable(DocConstants.PATH_VARIABLE_TABLE_HEADER, pathVariables));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, pathVariables));
 
             }
 
@@ -51,14 +50,14 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
             if (AssertUtils.isNotEmpty(method.getRequestParams())) {
                 List<FieldInfo> requestQuerys = method.getRequestParams();
                 builder.append("#### ").append(DocConstants.REQUEST_PARAM).append("\n");
-                builder.append(super.buildTable(DocConstants.REQUEST_PARAM_TABLE_HEADER, requestQuerys));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, requestQuerys));
             }
 
             // Form
             if (AssertUtils.isNotEmpty(method.getFormParams())) {
                 List<FieldInfo> requestBodyForms = method.getFormParams();
                 builder.append("#### ").append(DocConstants.FORM_PARAM).append("\n");
-                builder.append(super.buildTable(DocConstants.FORM_PARAM_TABLE_HEADER, requestBodyForms, true));
+                builder.append(super.buildTable(DocConstants.COMMON_TABLE_HEADER, requestBodyForms, true));
             }
 
             // RequestBody
@@ -66,7 +65,7 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
             if (requestBody != null && requestBody.hasChildren()) {
                 builder.append("#### ").append(DocConstants.REQUEST_BODY).append("\n");
                 builder.append("**描述**\n");
-                builder.append(super.buildTable(DocConstants.REQUEST_BODY_TABLE_HEADER, requestBody.getChildren(), true));
+                builder.append(super.buildTable(DocConstants.BODY_TABLE_HEADER, requestBody.getChildren(), true));
 
                 builder.append("**示例**\n");
                 builder.append("``` json\n");
@@ -80,7 +79,7 @@ public class DefaultMarkDownTemplate extends AbstractMarkDownTemplate {
             if (responseBody != null && responseBody.hasChildren()) {
                 builder.append("#### ").append(DocConstants.RESPONSE_BODY).append("\n");
                 builder.append("**描述**\n");
-                builder.append(super.buildTable(DocConstants.RESPONSE_BODY_TABLE_HEADER, responseBody.getChildren(), true));
+                builder.append(super.buildTable(DocConstants.BODY_TABLE_HEADER, responseBody.getChildren(), true));
 
                 builder.append("**示例**\n");
                 builder.append("``` json\n");

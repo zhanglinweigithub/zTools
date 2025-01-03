@@ -21,7 +21,7 @@ public class JsonUtil {
 
     private JsonUtil(){}
 
-    private static final Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC, Modifier.FINAL).setPrettyPrinting().create();
+    public static final Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC, Modifier.FINAL).setPrettyPrinting().create();
 
     public static String buildPrettyJson(List<FieldInfo> children) {
         return gson.toJson(getStringObjectMap(children));

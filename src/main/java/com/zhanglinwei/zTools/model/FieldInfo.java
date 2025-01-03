@@ -91,10 +91,10 @@ public class FieldInfo {
     public String toMarkDownString(boolean withType, String prefix) {
         StringJoiner joiner = new StringJoiner(VERTICAL);
         if (withType) {
-            return joiner.add(prefix + getFieldName(this, DocConstants.MD)).add(psiType.getPresentableText()).add(required).add(range).add(String.valueOf(example)).add(desc).toString() + "\n";
+            return joiner.add(prefix + getFieldName(this, DocConstants.MD)).add(psiType.getPresentableText()).add(String.valueOf(example)).add(required).add(desc).toString() + "\n";
         }
 
-        return joiner.add(prefix + getFieldName(this, DocConstants.MD)).add(required).add(range).add(String.valueOf(example)).add(desc).toString() + "\n";
+        return joiner.add(prefix + getFieldName(this, DocConstants.MD)).add(String.valueOf(example)).add(required).add(desc).toString() + "\n";
     }
 
     public String toHtmlString(boolean withType) {
@@ -110,18 +110,16 @@ public class FieldInfo {
             return "<tr>\n" +
                     "<td align='" + align + "'>" + prefix + getFieldName(this, DocConstants.HTML) + "</td>\n" +
                     "<td align='" + align + "'>" + psiType.getPresentableText() + "</td>\n" +
-                    "<td align='" + align + "'>" + required + "</td>\n" +
-                    "<td align='" + align + "'>" + CommonUtils.getRange(range) + "</td>\n" +
                     "<td align='" + align + "'>" + example + "</td>\n" +
+                    "<td align='" + align + "'>" + required + "</td>\n" +
                     "<td align='" + align + "'>" + desc + "</td>\n" +
                     "</tr>\n";
         }
 
         return "<tr>\n" +
                 "<td align='" + align + "'>" + prefix + getFieldName(this, DocConstants.HTML) + "</td>\n" +
-                "<td align='" + align + "'>" + required + "</td>\n" +
-                "<td align='" + align + "'>" + CommonUtils.getRange(range) + "</td>\n" +
                 "<td align='" + align + "'>" + example + "</td>\n" +
+                "<td align='" + align + "'>" + required + "</td>\n" +
                 "<td align='" + align + "'>" + desc + "</td>\n" +
                 "</tr>\n";
     }
@@ -136,9 +134,8 @@ public class FieldInfo {
         if (withType) {
             stringList.add(psiType.getPresentableText());
         }
-        stringList.add(required);
-        stringList.add(range);
         stringList.add(String.valueOf(example));
+        stringList.add(required);
         stringList.add(desc);
 
         return stringList;
@@ -255,6 +252,15 @@ public class FieldInfo {
                 fieldNameList.add(fieldInfo.getName());
             }
         }
+    }
+
+    public static FieldInfo build(String name, String example, String required, String desc) {
+        FieldInfo fieldInfo = new FieldInfo();
+        fieldInfo.setName(name);
+        fieldInfo.setExample(example);
+        fieldInfo.setRequired(required);
+        fieldInfo.setDesc(desc);
+        return fieldInfo;
     }
 
     public String getValue() {

@@ -19,6 +19,8 @@ public interface DocConstants {
     /**
      * 表格头
      */
+    List<String> BODY_TABLE_HEADER = Lists.newArrayList("名称", "类型", "示例", "必填", "描述");
+    List<String> COMMON_TABLE_HEADER = Lists.newArrayList("名称", "示例", "必填", "描述");
     List<String> REQUEST_HEADER_TABLE_HEADER = Lists.newArrayList("名称", "值", "必填", "描述");
     List<String> REQUEST_PARAM_TABLE_HEADER = Lists.newArrayList("名称", "必填", "值域范围", "示例","描述");
     List<String> PATH_VARIABLE_TABLE_HEADER = Lists.newArrayList("名称", "必填", "值域范围", "示例","描述");
