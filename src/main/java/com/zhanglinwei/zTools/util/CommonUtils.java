@@ -24,6 +24,53 @@ public class CommonUtils {
     private static final String[] UNITS = {"", "十", "百", "千"};
     private static final String[] NUMBERS = {"", "一", "二", "三", "四", "五", "六", "七", "八", "九"};
 
+
+    public static String replace(String text, String searchString, String replacement, int max) {
+        if (AssertUtils.isNotBlank(text) && AssertUtils.isNotBlank(searchString) && replacement != null && max != 0) {
+            int start = 0;
+            int end = text.indexOf(searchString, start);
+            if (end == -1) {
+                return text;
+            } else {
+                int replLength = searchString.length();
+                int increase = replacement.length() - replLength;
+                increase = Math.max(increase, 0);
+                increase *= max < 0 ? 16 : (Math.min(max, 64));
+
+                StringBuffer buf;
+                for(buf = new StringBuffer(text.length() + increase); end != -1; end = text.indexOf(searchString, start)) {
+                    buf.append(text, start, end).append(replacement);
+                    start = end + replLength;
+                    --max;
+                    if (max == 0) {
+                        break;
+                    }
+                }
+
+                buf.append(text.substring(start));
+                return buf.toString();
+            }
+        } else {
+            return text;
+        }
+    }
+
+    public static String substringBetween(String str, String open, String close) {
+        if (str != null && open != null && close != null) {
+            int start = str.indexOf(open);
+            if (start != -1) {
+                int end = str.indexOf(close, start + open.length());
+                if (end != -1) {
+                    return str.substring(start + open.length(), end);
+                }
+            }
+
+            return null;
+        } else {
+            return null;
+        }
+    }
+
     public static String convertCamelToSnake(String camelCase) {
         String snakeCase = camelCase.replaceAll("([a-z])([A-Z])", "$1_$2");
         return snakeCase.toLowerCase();

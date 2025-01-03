@@ -47,6 +47,7 @@
                            key="com.zhanglinwei.zTools.util.NotificationGroup"/>
         <projectConfigurable instance="com.zhanglinwei.zTools.config.ZToolsConfigSettings"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.config.ZToolsConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig"/>
     </extensions>
 
     <actions>
@@ -68,19 +69,37 @@
         </action>
 
         <!-- 生成SQL操作组 -->
-        <group id="GenerateSQLGroup.ID" text="Generate SQL" popup="true">
-            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID" />
+<!--        <group id="GenerateSQLGroup.ID" text="Generate SQL" popup="true">-->
+<!--            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID" />-->
 
-            <action id="copy-ddl.ID" class="com.zhanglinwei.zTools.CopyDDLAction" text="Copy DDL" />
-            <action id="copy-select.ID" class="com.zhanglinwei.zTools.CopySelectAction" text="Copy Select" />
-            <action id="copy-insert.ID" class="com.zhanglinwei.zTools.CopyInsertAction" text="Copy Insert" />
-            <action id="copy-update.ID" class="com.zhanglinwei.zTools.CopyUpdateAction" text="Copy Update" />
-            <action id="copy-delete.ID" class="com.zhanglinwei.zTools.CopyDeleteAction" text="Copy Delete"/>
-        </group>
+<!--            <action id="copy-ddl.ID" class="com.zhanglinwei.zTools.CopyDDLAction" text="Copy DDL" />-->
+<!--            <action id="copy-select.ID" class="com.zhanglinwei.zTools.CopySelectAction" text="Copy Select" />-->
+<!--            <action id="copy-insert.ID" class="com.zhanglinwei.zTools.CopyInsertAction" text="Copy Insert" />-->
+<!--            <action id="copy-update.ID" class="com.zhanglinwei.zTools.CopyUpdateAction" text="Copy Update" />-->
+<!--            <action id="copy-delete.ID" class="com.zhanglinwei.zTools.CopyDeleteAction" text="Copy Delete"/>-->
+<!--        </group>-->
 
         <!-- JSON 转 Java -->
         <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.JavaClassByJsonAction" text="Java Class By Json">
             <add-to-group group-id="NewGroup1" anchor="after" relative-to-action="NewClass"/>
+        </action>
+
+        <!-- 加密敏感数据 -->
+        <action id="encrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.EncryptSensitiveDataAction"
+                text="Encrypt">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+
+        <!-- 解密敏感数据 -->
+        <action id="decrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveDataAction"
+                text="Decrypt">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="encrypt-sensitive-data.ID"/>
+        </action>
+
+        <!-- 解密敏感数据至剪贴板 -->
+        <action id="decrypt-sensitive-data-to-clipboard.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveData2ClipboardAction"
+                text="Decrypt To Clipboard" >
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="decrypt-sensitive-data.ID"/>
         </action>
     </actions>
 

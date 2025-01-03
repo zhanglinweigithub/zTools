@@ -12,9 +12,9 @@ import java.util.List;
 
 public abstract class AbstractWordTemplate {
 
-    private final String JSON_RED = "a72020";
-    private final String JSON_BLUE = "0451a5";
-    private final String JSON_GREEN = "0a850a";
+    public static final String JSON_RED = "a72020";
+    public static final String JSON_BLUE = "0451a5";
+    public static final String JSON_GREEN = "0a850a";
 
     public abstract XWPFDocument buildContent(ClassInfo classInfo);
 
