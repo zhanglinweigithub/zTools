@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.zhanglinwei.zTools.util.CommonUtils.*;
+import static com.zhanglinwei.zTools.util.CommonUtils.SEMICOLON;
 
 @State(name = "ZToolsConfig")
 public class ZToolsConfig implements PersistentStateComponent<ZToolsConfig> {

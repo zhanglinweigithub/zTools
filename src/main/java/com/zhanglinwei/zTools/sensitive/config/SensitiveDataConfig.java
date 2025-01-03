@@ -4,7 +4,6 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.zhanglinwei.zTools.util.AssertUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,16 +12,16 @@ import static com.zhanglinwei.zTools.sensitive.constant.SensitiveDataConstant.DE
 @State(name = "SensitiveDataConfig")
 public class SensitiveDataConfig implements PersistentStateComponent<SensitiveDataConfig> {
 
-    private String cryptoAlgorithm;
-    private String iv;
-    private String secretKey;
+    private String cryptoAlgorithm = DEFAULT_ALGORITHM;
+    private String iv = "823c4a7371bb2982c93ee05424850c7a";
+    private String secretKey = "5ecbdbfa8c06742c84a6f17cdb9ee221";
 
     public static SensitiveDataConfig getInstance(Project project) {
         return project.getService(SensitiveDataConfig.class);
     }
 
     public String getCryptoAlgorithm() {
-        return AssertUtils.isBlank(cryptoAlgorithm) ? DEFAULT_ALGORITHM : cryptoAlgorithm;
+        return cryptoAlgorithm;
     }
 
     public void setCryptoAlgorithm(String cryptoAlgorithm) {
@@ -30,8 +29,7 @@ public class SensitiveDataConfig implements PersistentStateComponent<SensitiveDa
     }
 
     public String getIv() {
-//        return iv;
-        return "823c4a7371bb2982c93ee05424850c7a";
+        return iv;
     }
 
     public void setIv(String iv) {
@@ -39,8 +37,7 @@ public class SensitiveDataConfig implements PersistentStateComponent<SensitiveDa
     }
 
     public String getSecretKey() {
-        return "5ecbdbfa8c06742c84a6f17cdb9ee221";
-//        return secretKey;
+        return secretKey;
     }
 
     public void setSecretKey(String secretKey) {

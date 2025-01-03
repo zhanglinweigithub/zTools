@@ -1,6 +1,7 @@
 package com.zhanglinwei.zTools.util;
 
 import com.intellij.openapi.project.Project;
+import com.zhanglinwei.zTools.config.DocConfig;
 import com.zhanglinwei.zTools.model.ClassInfo;
 import com.zhanglinwei.zTools.model.MethodInfo;
 import org.apache.maven.model.Model;
@@ -16,31 +17,32 @@ public class FileUtils {
 
     private FileUtils(){}
 
-    public static String getFileName(MethodInfo methodInfo) {
+    public static String getFileName(MethodInfo methodInfo, Project project) {
         String fileName = methodInfo.getName();
         if (AssertUtils.isNotBlank(methodInfo.getDesc())) {
             fileName = methodInfo.getDesc().contains(" ") ? methodInfo.getDesc().split(" ")[0] : methodInfo.getDesc();
         }
 
-        return getFileName(fileName);
+        return getFileName(fileName, project);
     }
 
-    public static String getFileName(ClassInfo classInfo, boolean forMethod) {
-        return forMethod ? getFileName(classInfo.getMethods().get(0)) : getFileName(classInfo);
+    public static String getFileName(ClassInfo classInfo, boolean forMethod, Project project) {
+        return forMethod ? getFileName(classInfo.getMethods().get(0), project) : getFileName(classInfo, project);
     }
 
-    public static String getFileName(ClassInfo classInfo) {
+    public static String getFileName(ClassInfo classInfo, Project project) {
         String fileName = AssertUtils.isNotEmpty(classInfo.getClassDesc()) ? classInfo.getClassDesc() : classInfo.getClassName();
-        return getFileName(fileName);
+        return getFileName(fileName, project);
     }
 
-    public static String getFileName(String fileName) {
-
-        return ConfigUtils.isOverwriteDoc() ? fileName : fileName + System.currentTimeMillis();
+    public static String getFileName(String fileName, Project project) {
+        DocConfig apiDocConfig = DocConfig.getInstance(project);
+        return apiDocConfig.isOverwriteDoc() ? fileName : fileName + System.currentTimeMillis();
     }
 
     public static String getDirPath(Project project) {
-        String saveDir = ConfigUtils.getSaveDir();
+        DocConfig docConfig = DocConfig.getInstance(project);
+        String saveDir = docConfig.getSaveDir();
         return AssertUtils.isNotBlank(saveDir) ? saveDir : project.getBasePath() + "/target/_docs/";
     }
 

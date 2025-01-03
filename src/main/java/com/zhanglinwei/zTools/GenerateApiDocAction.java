@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.zhanglinwei.zTools.config.DocConfig;
 import com.zhanglinwei.zTools.constant.DocConstants;
 import com.zhanglinwei.zTools.constant.MessageConstants;
 import com.zhanglinwei.zTools.model.ClassInfo;
@@ -21,12 +22,14 @@ import com.zhanglinwei.zTools.template.html.DefaultHtmlTemplate;
 import com.zhanglinwei.zTools.template.md.DefaultMarkDownTemplate;
 import com.zhanglinwei.zTools.template.word.DefaultWordTemplate;
 import com.zhanglinwei.zTools.util.AnnotationUtil;
-import com.zhanglinwei.zTools.util.ConfigUtils;
 import com.zhanglinwei.zTools.util.FileUtils;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -46,7 +49,6 @@ public class GenerateApiDocAction extends AnAction {
         if (project == null) {
             return;
         }
-        ConfigUtils.init(project);
 
         PsiElement referenceAt = psiFile.findElementAt(editor.getCaretModel().getOffset());
         PsiClass selectedClass = PsiTreeUtil.getContextOfType(referenceAt, PsiClass.class);
@@ -110,9 +112,10 @@ public class GenerateApiDocAction extends AnAction {
         if (!FileUtils.mkDirectory(project, dirPath)) {
             return false;
         }
-        String fileName = FileUtils.getFileName(classInfo, forMethod);
+        String fileName = FileUtils.getFileName(classInfo, forMethod, project);
 
-        switch (ConfigUtils.getDocType()) {
+        DocConfig docConfig = DocConfig.getInstance(project);
+        switch (docConfig.getDocType()) {
             case "MarkDown": return generateMdDoc(classInfo, dirPath + fileName + DocConstants.MD);
             case "Word": return generateWordDoc(classInfo, dirPath + fileName + DocConstants.DOCX);
             case "Html": return generateHtmlDoc(classInfo, dirPath + fileName + DocConstants.HTML);

@@ -11,8 +11,11 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.util.ui.JBInsets;
+import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.FormBuilder;
 import com.zhanglinwei.zTools.constant.DocType;
+import com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig;
+import com.zhanglinwei.zTools.sensitive.constant.SensitiveDataConstant;
 import org.jdesktop.swingx.JXTextField;
 
 import javax.swing.*;
@@ -20,22 +23,32 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class ZToolsConfigSettings implements Configurable {
 
-    private ZToolsConfig oldState;
+    /**
+     * ===================================================== Doc Setting =====================================================
+     */
 
-    private JPanel globalPanel;
-
+    private final DocConfig docConfig;
     private JXTextField excludeFields;
     private TextFieldWithBrowseButton saveDirectory;
     private JBCheckBox overwriteBox;
     private ComboBox<String> docTypeBox;
 
+    /**
+     * ===================================================== Sensitive Data Setting =====================================================
+     */
+
+    private final SensitiveDataConfig sensitiveDataConfig;
+    private JXTextField secretKeyField;
+    private JXTextField ivField;
+    private ComboBox<String> cryptoTypeBox;
+
+
     public ZToolsConfigSettings(Project project) {
-        oldState = project.getService(ZToolsConfig.class);
+        docConfig = project.getService(DocConfig.class);
+        sensitiveDataConfig = SensitiveDataConfig.getInstance(project);
     }
 
     @Override
@@ -45,94 +58,92 @@ public class ZToolsConfigSettings implements Configurable {
 
     @Override
     public JComponent createComponent() {
-        GridBagLayout gridBagLayout = new GridBagLayout();
-        globalPanel = new JPanel(gridBagLayout);
-        GridBagConstraints globalConstraints = new GridBagConstraints();
-        // 设置全局约束的默认填充和权重
-        globalConstraints.fill = GridBagConstraints.HORIZONTAL; // 水平填充
-        globalConstraints.weightx = 1.0; // 列权重, 占满整列
-        globalConstraints.weighty = 0;
-        globalConstraints.anchor = GridBagConstraints.NORTH; // 位置
-        globalConstraints.insets = new JBInsets(10, 0, 10, 0); // 间距
+        JBTabbedPane zToolsTabbedPane = new JBTabbedPane();
 
-//        globalConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        globalConstraints.gridheight = 1;
-        globalConstraints.gridy = 0; // 行
-        JPanel commonPanel = createCommonSettingPanel();
-        globalPanel.add(commonPanel, globalConstraints);
+        zToolsTabbedPane.addTab("Doc Setting", createDocSettingPanel());
+        zToolsTabbedPane.addTab("Sensitive Data", createSensitiveDataSettingPanel());
 
-        globalConstraints.anchor = GridBagConstraints.NORTH;
-        globalConstraints.gridy = 1; // 行
-        globalConstraints.weighty = 1.0;
-//        globalConstraints.gridheight = GridBagConstraints.REMAINDER;
-        JPanel docPanel = createApiDocumentSettingsPanel(); // Api Doc Setting
-        globalPanel.add(docPanel, globalConstraints);
-
-        // todo 数据库文档
-
-        return globalPanel;
+        return zToolsTabbedPane;
     }
 
-    private JPanel createCommonSettingPanel() {
-        JPanel commonPanel = new JPanel(new GridBagLayout());
+    private JPanel createSensitiveDataSettingPanel() {
+        secretKeyField = new JXTextField();
+        secretKeyField.setPrompt("Secret Key");
+        secretKeyField.setPromptForeground(JBColor.GRAY);
+        secretKeyField.setText(sensitiveDataConfig.getSecretKey());
 
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.insets = new JBInsets(5, 3, 5, 3);
-        constraints.anchor = GridBagConstraints.WEST;
+        ivField = new JXTextField();
+        ivField.setPrompt("IV Offset");
+        ivField.setPromptForeground(JBColor.GRAY);
+        ivField.setText(sensitiveDataConfig.getIv());
 
-        JLabel saveDirectoryLabel = new JLabel("Save Directory");
-        constraints.gridy = 0;
-        constraints.gridx = 0;
-        commonPanel.add(saveDirectoryLabel, constraints);
+        cryptoTypeBox = new ComboBox<>();
+        cryptoTypeBox.addItem(SensitiveDataConstant.SM4_CBC);
+        cryptoTypeBox.addItem(SensitiveDataConstant.SM4_ECB);
+        cryptoTypeBox.addItem(SensitiveDataConstant.AES);
+        cryptoTypeBox.setSelectedItem(sensitiveDataConfig.getCryptoAlgorithm());
 
+        return FormBuilder.createFormBuilder()
+                .addLabeledComponent(new JLabel("Secret Key"), secretKeyField, 1, false)
+                .setVerticalGap(10) // 行间距 10px
+                .addLabeledComponent(new JLabel("IV Offset"), ivField, 2, false)
+                .setVerticalGap(10)
+                .addLabeledComponent(new JLabel("Crypto Type"), cryptoTypeBox, 3, false)
+                .setVerticalGap(10)
+                .addComponentFillVertically(new JPanel(), 0) // 填充剩余空间
+                .getPanel();
+    }
 
+    private JPanel createDocSettingPanel() {
         saveDirectory = new TextFieldWithBrowseButton();
-        saveDirectory.setText(oldState.getSaveDir());
-        saveDirectory.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                chooseFolder();
-            }
-        });
-        constraints.gridx = 1;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weightx = 1.0;
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        commonPanel.add(saveDirectory, constraints);
-
-        constraints.fill = GridBagConstraints.NONE;
-        constraints.gridy = 1;
-        JLabel docTypeLabel = new JLabel("Doc Type");
-        constraints.gridx = 0;
-        constraints.weightx = 0;
-        constraints.gridwidth = 1;
-        commonPanel.add(docTypeLabel, constraints);
+        saveDirectory.setText(docConfig.getSaveDir());
+        saveDirectory.addActionListener(e -> chooseFolder());
 
         docTypeBox = new ComboBox<>();
         for (DocType doc : DocType.values()) {
             docTypeBox.addItem(doc.getType());
         }
-        docTypeBox.setSelectedItem(oldState.getDocType());
+        docTypeBox.setSelectedItem(docConfig.getDocType());
 
-        constraints.gridx = 1;
-        constraints.weightx = 0;
-        constraints.gridwidth = 1;
-        commonPanel.add(docTypeBox, constraints);
+        overwriteBox = new JBCheckBox();
+        overwriteBox.setSelected(docConfig.isOverwriteDoc());
 
+        return FormBuilder.createFormBuilder()
+                .addLabeledComponent(new JLabel("Save Directory"), saveDirectory, 1, false)
+                .setVerticalGap(10) // 行间距 10px
+                .addLabeledComponent(new JLabel("Doc Type"), docTypeBox, 2, false)
+                .setVerticalGap(10)
+                .addLabeledComponent(new JLabel("Overwrite exists docs"), overwriteBox, 3, false)
+                .setVerticalGap(20)
+                .addComponent(createApiDocumentSettingsPanel(),4)
+                .setVerticalGap(10)
+                .addComponentFillVertically(new JPanel(), 0)
+                .getPanel();
+    }
 
-        constraints.gridx = 2;
-        constraints.gridwidth = 1;
-        constraints.weightx = 0;
-        JLabel overwriteLabel = new JLabel("Overwrite exists docs");
-        commonPanel.add(overwriteLabel, constraints);
+    private JPanel createApiDocumentSettingsPanel() {
+        excludeFields = new JXTextField();
+        excludeFields.setPrompt("Patterns should be separated with \";\"");
+        excludeFields.setPromptForeground(JBColor.GRAY);
+        excludeFields.setText(docConfig.getApiDocConfig().getExcludeFields());
 
-        constraints.gridx = 3;
-        constraints.weightx = 0;
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        overwriteBox = new JBCheckBox("Yes", oldState.isOverwriteDoc());
-        commonPanel.add(overwriteBox, constraints);
+        JPanel docPanel = FormBuilder.createFormBuilder()
+                .setVerticalGap(10) // 设置行间距为 10px
+                .addLabeledComponent(new JLabel("Exclude Fields (a;b): "), excludeFields, 1, false)
+                .addComponentFillVertically(new JPanel(), 0)
+                .getPanel();
 
-        return commonPanel;
+        Border border = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        docPanel.setBorder(BorderFactory.createTitledBorder(
+                border,
+                " Api Document Settings ",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Dialog", Font.BOLD, 14), // 标题字体
+                JBColor.black // 标题文本颜色
+        ));
+
+        return docPanel;
     }
 
     private void chooseFolder() {
@@ -145,52 +156,27 @@ public class ZToolsConfigSettings implements Configurable {
         }
     }
 
-    private JPanel createApiDocumentSettingsPanel() {
-        Border border = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-        JPanel docPanel = new JPanel(new GridBagLayout());
-        docPanel.setBorder(BorderFactory.createTitledBorder(
-                border,
-                " Api Document Settings ",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Dialog", Font.BOLD, 12), // 标题字体
-                JBColor.black // 标题文本颜色
-        ));
-
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.insets = new JBInsets(5, 3, 5, 3);
-        constraints.anchor = GridBagConstraints.WEST; // 设置标签靠左对齐
-
-        JLabel excludeFieldsLabel = new JLabel("Exclude Fields (a;b)");
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        docPanel.add(excludeFieldsLabel, constraints);
-
-        excludeFields = new JXTextField();
-        excludeFields.setPrompt("Patterns should be separated with \";\"");
-        excludeFields.setPromptForeground(JBColor.GRAY);
-        excludeFields.setText(oldState.getExcludeFields());
-        constraints.gridx = 1;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weightx = 1.0;
-//        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        docPanel.add(excludeFields, constraints);
-
-        return docPanel;
-    }
-
-
     /**
      * 是否被修改
      */
     @Override
     public boolean isModified() {
-        return !oldState.getExcludeFields().equals(excludeFields.getText()) ||
-                !oldState.getSaveDir().equals(saveDirectory.getText()) ||
-                oldState.isOverwriteDoc() != overwriteBox.isSelected() ||
-                !oldState.getDocType().equals(docTypeBox.getSelectedItem())
-                ;
+        return isDocModified() || isSensitiveDataModified();
         // todo 数据库文档
+    }
+
+    private boolean isSensitiveDataModified() {
+        return !sensitiveDataConfig.getSecretKey().equals(secretKeyField.getText()) ||
+                !sensitiveDataConfig.getIv().equals(ivField.getText()) ||
+                !sensitiveDataConfig.getCryptoAlgorithm().equals(cryptoTypeBox.getSelectedItem());
+    }
+
+    private boolean isDocModified() {
+        return !docConfig.getApiDocConfig().getExcludeFields().equals(excludeFields.getText()) ||
+                !docConfig.getSaveDir().equals(saveDirectory.getText()) ||
+                docConfig.isOverwriteDoc() != overwriteBox.isSelected() ||
+                !docConfig.getDocType().equals(docTypeBox.getSelectedItem())
+                ;
     }
 
     /**
@@ -198,11 +184,23 @@ public class ZToolsConfigSettings implements Configurable {
      */
     @Override
     public void apply() {
-        oldState.setExcludeFields(excludeFields.getText());
-        oldState.setSaveDir(saveDirectory.getText());
-        oldState.setOverwriteDoc(overwriteBox.isSelected());
-        oldState.setDocType(String.valueOf(docTypeBox.getSelectedItem()));
+        docApply();
+        sensitiveDataApply();
+
         // todo 数据库文档
+    }
+
+    private void sensitiveDataApply() {
+        sensitiveDataConfig.setSecretKey(secretKeyField.getText());
+        sensitiveDataConfig.setIv(ivField.getText());
+        sensitiveDataConfig.setCryptoAlgorithm(String.valueOf(cryptoTypeBox.getSelectedItem()));
+    }
+
+    private void docApply() {
+        docConfig.getApiDocConfig().setExcludeFields(excludeFields.getText());
+        docConfig.setSaveDir(saveDirectory.getText());
+        docConfig.setOverwriteDoc(overwriteBox.isSelected());
+        docConfig.setDocType(String.valueOf(docTypeBox.getSelectedItem()));
     }
 
 }

@@ -13,7 +13,6 @@ import com.zhanglinwei.zTools.form.JavaClassByJsonDialog;
 import com.zhanglinwei.zTools.model.JavaClass;
 import com.zhanglinwei.zTools.model.Property;
 import com.zhanglinwei.zTools.util.AssertUtils;
-import com.zhanglinwei.zTools.util.ConfigUtils;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 
 import java.io.File;
@@ -68,7 +67,6 @@ public class JavaClassByJsonAction extends AnAction {
             return;
         }
 
-        ConfigUtils.init(project);
         objectMap.clear();
         tempMap.clear();
         classNameSet.clear();

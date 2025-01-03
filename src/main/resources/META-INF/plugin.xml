@@ -46,7 +46,7 @@
                            displayType="BALLOON"
                            key="com.zhanglinwei.zTools.util.NotificationGroup"/>
         <projectConfigurable instance="com.zhanglinwei.zTools.config.ZToolsConfigSettings"/>
-        <projectService serviceImplementation="com.zhanglinwei.zTools.config.ZToolsConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.config.DocConfig"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig"/>
     </extensions>
 

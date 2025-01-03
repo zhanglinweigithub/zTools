@@ -11,7 +11,6 @@ import com.intellij.psi.util.PsiTypesUtil;
 import com.zhanglinwei.zTools.constant.MessageConstants;
 import com.zhanglinwei.zTools.normal.FieldFactory;
 import com.zhanglinwei.zTools.util.ClipboardUtils;
-import com.zhanglinwei.zTools.util.ConfigUtils;
 import com.zhanglinwei.zTools.util.JsonUtil;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 
@@ -35,7 +34,7 @@ public class CopyJsonAction extends AnAction {
         if (project == null) {
             return;
         }
-        ConfigUtils.init(project);
+
         PsiElement referenceAt = psiFile.findElementAt(editor.getCaretModel().getOffset());
         PsiClass selectedClass = PsiTreeUtil.getContextOfType(referenceAt, PsiClass.class);
         if (selectedClass == null) {

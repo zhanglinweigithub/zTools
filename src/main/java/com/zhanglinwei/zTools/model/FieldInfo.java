@@ -10,6 +10,7 @@ import com.intellij.psi.impl.source.PsiJavaFileImpl;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
+import com.zhanglinwei.zTools.config.DocConfig;
 import com.zhanglinwei.zTools.constant.DocConstants;
 import com.zhanglinwei.zTools.constant.TypeEnum;
 import com.zhanglinwei.zTools.normal.FieldFactory;
@@ -182,6 +183,7 @@ public class FieldInfo {
 
     /** 解析children */
     public void resolveChildren() {
+        DocConfig.ApiDocConfig apiDocConfig = DocConfig.getInstance(project).getApiDocConfig();
         PsiType psiType = this.psiType;
         // 如果是数组
         if(psiType instanceof PsiArrayType) {
@@ -231,7 +233,7 @@ public class FieldInfo {
             // 兼容继承
             Set<String> fieldNameList = new HashSet<>(128);
             for (PsiField psiField : psiClass.getAllFields()) {
-                if (ConfigUtils.getExcludeFieldList().contains(psiField.getName())) {
+                if (apiDocConfig.getExcludeFieldList().contains(psiField.getName())) {
                     continue;
                 }
                 if(FieldUtil.isStaticField(psiField)) {
