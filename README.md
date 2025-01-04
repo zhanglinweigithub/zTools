@@ -238,6 +238,26 @@ public class TeacherInfo_drvE {
 }
 ~~~
 
+### 4、加解/密敏感数据
+
+将选中的文本加 / 解密，配套项目 [crypto-tools](https://gitee.com/linwei-zhang/crypto-tools)
+
+> 若使用此配套项目，续修改项目内默认的 secretKey 与 iv，保证其与插件配置一致
+
+**使用方式：**
+
+1. 选中要加 / 解密的文本
+2. 鼠标右键单机
+3. 选择 `Encrypt`、`Decrypt`、`Decrypt To Clipboard`
+
+![image-20250104194331714](./img/image-20250104194331714.png)
+
 ## 三、配置说明
 
-![image-20240704230923949](./img/image-20240704230923949.png)
+### 1、生成文档配置
+
+![image-20250104194754846](./img/image-20250104194754846.png)
+
+### 2、加解密敏感数据配置
+
+![image-20250104194605591](./img/image-20250104194605591.png)
