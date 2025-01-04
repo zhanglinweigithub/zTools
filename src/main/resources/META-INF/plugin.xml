@@ -8,15 +8,15 @@
     <name>zTools</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="3498729975@qq.com" url="https://zhanglinweigithub.github.io/notes-pages/">Zhang Linwei</vendor>
+    <vendor email="3498729975@qq.com" url="">Zhang Linwei</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description>
         <![CDATA[
-            This is a Java development tool that can generate interface documents, convert classes to JSON, and generate classes from JSON<br />
-            <b>Minimum supported IDEA version: 2022.1.1</b>
+            This is a Java development tool that can generate interface documents, convert classes to JSON, and generate classes from JSON, and Encrypting and Decrypting sensitive data<br />
+            <b>Minimum supported IDEA version: 2022.1.1</b><br />
             Document:
             <ul>
                 <li><a href="https://gitee.com/linwei-zhang/z-tools/blob/master/README.md">Gitee</a></li>
@@ -27,6 +27,7 @@
                     <li>Generate interface documents, supporting three formats: Html, MarkDown, and Word</li>
                     <li>Class to JSON, support arbitrary nesting, inheritance, generics, and annotation parsing</li>
                     <li>JSON to Class</li>
+                    <li>Encrypting and Decrypting Sensitive data, Supported Algorithms [SM4_CBC, SM4_ECB, AES]</li>
                 </ul>
         ]]>
     </description>
@@ -46,27 +47,27 @@
                            displayType="BALLOON"
                            key="com.zhanglinwei.zTools.util.NotificationGroup"/>
         <projectConfigurable instance="com.zhanglinwei.zTools.config.ZToolsConfigSettings"/>
-        <projectService serviceImplementation="com.zhanglinwei.zTools.config.DocConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.doc.config.DocConfig"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig"/>
     </extensions>
 
     <actions>
         <!-- 拷贝JSON -->
-        <action id="copy-json.ID" icon="/icons/json.svg" class="com.zhanglinwei.zTools.CopyJsonAction"
+        <action id="copy-json.ID" icon="/icons/json.svg" class="com.zhanglinwei.zTools.copyjson.CopyJsonAction"
                 text="Copy Json">
             <add-to-group group-id="EditorLangPopupMenu" anchor="first"/>
         </action>
 
         <!-- 生成API文档 -->
-        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.GenerateApiDocAction"
+        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateApiDocAction"
                 text="Generate Api Doc">
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
         </action>
 
         <!-- 生成数据库文档 -->
-        <action id="generate-db-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.GenerateDBDocAction" text="Generate DB Doc">
-            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID"/>
-        </action>
+<!--        <action id="generate-db-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">-->
+<!--            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID"/>-->
+<!--        </action>-->
 
         <!-- 生成SQL操作组 -->
 <!--        <group id="GenerateSQLGroup.ID" text="Generate SQL" popup="true">-->
@@ -80,27 +81,23 @@
 <!--        </group>-->
 
         <!-- JSON 转 Java -->
-        <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.JavaClassByJsonAction" text="Java Class By Json">
+        <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.jsontoclass.JavaClassByJsonAction" text="Java Class By Json">
             <add-to-group group-id="NewGroup1" anchor="after" relative-to-action="NewClass"/>
         </action>
 
-        <!-- 加密敏感数据 -->
-        <action id="encrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.EncryptSensitiveDataAction"
-                text="Encrypt">
-            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
-        </action>
-
-        <!-- 解密敏感数据 -->
-        <action id="decrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveDataAction"
-                text="Decrypt">
-            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="encrypt-sensitive-data.ID"/>
-        </action>
-
-        <!-- 解密敏感数据至剪贴板 -->
-        <action id="decrypt-sensitive-data-to-clipboard.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveData2ClipboardAction"
-                text="Decrypt To Clipboard" >
-            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="decrypt-sensitive-data.ID"/>
-        </action>
+        <!-- 敏感数据操作组 -->
+        <group id="SensitiveDataGroup.ID" text="Sensitive Data" popup="true">
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID" />
+            <!-- 加密敏感数据 -->
+            <action id="encrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.EncryptSensitiveDataAction"
+                    text="Encrypt"/>
+            <!-- 解密敏感数据 -->
+            <action id="decrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveDataAction"
+                    text="Decrypt"/>
+            <!-- 解密敏感数据至剪贴板 -->
+            <action id="decrypt-sensitive-data-to-clipboard.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveData2ClipboardAction"
+                    text="Decrypt To Clipboard" />
+        </group>
     </actions>
 
 </idea-plugin>

@@ -2,12 +2,12 @@ package com.zhanglinwei.zTools.util;
 
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtil;
-import com.zhanglinwei.zTools.constant.JacksonAnnotation;
-import com.zhanglinwei.zTools.constant.SwaggerAnnotation;
-import com.zhanglinwei.zTools.constant.TypeEnum;
-import com.zhanglinwei.zTools.constant.WebAnnotation;
-import com.zhanglinwei.zTools.model.FieldInfo;
-import com.zhanglinwei.zTools.normal.RequireAndRange;
+import com.zhanglinwei.zTools.doc.apidoc.constant.JacksonAnnotation;
+import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
+import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
+import com.zhanglinwei.zTools.doc.apidoc.constant.WebAnnotation;
+import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
+import com.zhanglinwei.zTools.doc.apidoc.normal.RequireAndRange;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -364,22 +364,6 @@ public class FieldUtil {
             }
         }
         return false;
-    }
-
-    /**
-     * 得到Class的所有字段
-     */
-//    public static List<FieldInfo> listFieldInfos(PsiClass psiClass) {
-//        List<FieldInfo> fieldInfos = new ArrayList<>();
-//        for (PsiField psiField : psiClass.getAllFields()) {
-//            fieldInfos.add(FieldFactory.buildField(psiField.getName(), psiField.getType(), DesUtil.getDescription(psiField), psiField.getAnnotations()));
-//        }
-//        return fieldInfos;
-//    }
-
-    /** 获得类型枚举 */
-    public static TypeEnum getTypeEnum(PsiParameter parameter) {
-        return getTypeEnum(parameter.getType());
     }
 
     /** 获得类型枚举 */

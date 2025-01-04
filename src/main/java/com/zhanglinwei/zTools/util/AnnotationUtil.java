@@ -3,10 +3,9 @@ package com.zhanglinwei.zTools.util;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameValuePair;
-import com.zhanglinwei.zTools.constant.RequestMethodEnum;
-import com.zhanglinwei.zTools.constant.WebAnnotation;
-import com.zhanglinwei.zTools.model.FieldInfo;
-import com.zhanglinwei.zTools.model.RequestHeader;
+import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
+import com.zhanglinwei.zTools.doc.apidoc.constant.RequestMethodEnum;
+import com.zhanglinwei.zTools.doc.apidoc.constant.WebAnnotation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -202,13 +201,6 @@ public class AnnotationUtil {
         return headerList;
     }
 
-    private static RequestHeader buildRequestHeader(String headerName, HashSet<String> headerValue, String required, String desc) {
-        if (AssertUtils.isEmpty(headerValue) || AssertUtils.isBlank(headerName)) {
-            return null;
-        }
-        return new RequestHeader(headerName, String.join(", ", headerValue), required, desc);
-    }
-
     public static List<FieldInfo> resolveConsumesAndProducesByMappingAnnotation(PsiAnnotation mappingAnnotation) {
         List<FieldInfo> headers = new ArrayList<>();
         if (mappingAnnotation != null) {
@@ -274,10 +266,6 @@ public class AnnotationUtil {
         }
         String value = mediaType.get(key);
         return AssertUtils.isBlank(value) ? item : value;
-    }
-
-    public static RequestHeader buildRequestHeaderByFieldInfo(FieldInfo field) {
-        return new RequestHeader(field.getName(), field.getRange(), field.getRequired(), field.getDesc());
     }
 
     public static FieldInfo buildRequestHeader(String headerName, String value) {

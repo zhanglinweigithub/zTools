@@ -6,7 +6,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.zhanglinwei.zTools.constant.SwaggerAnnotation;
+import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
 
 import java.util.Objects;
 

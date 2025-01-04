@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.zhanglinwei"
-version = "1.0-RELEASE"
+version = "2025.01.04"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

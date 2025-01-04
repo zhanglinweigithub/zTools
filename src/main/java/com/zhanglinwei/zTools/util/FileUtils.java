@@ -1,9 +1,9 @@
 package com.zhanglinwei.zTools.util;
 
 import com.intellij.openapi.project.Project;
-import com.zhanglinwei.zTools.config.DocConfig;
-import com.zhanglinwei.zTools.model.ClassInfo;
-import com.zhanglinwei.zTools.model.MethodInfo;
+import com.zhanglinwei.zTools.doc.config.DocConfig;
+import com.zhanglinwei.zTools.doc.apidoc.model.ClassInfo;
+import com.zhanglinwei.zTools.doc.apidoc.model.MethodInfo;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 

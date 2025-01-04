@@ -8,8 +8,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.util.PsiUtil;
-import com.zhanglinwei.zTools.constant.TypeEnum;
-import com.zhanglinwei.zTools.model.FieldInfo;
+import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
+import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
