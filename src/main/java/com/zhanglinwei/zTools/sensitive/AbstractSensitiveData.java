@@ -16,8 +16,14 @@ public abstract class AbstractSensitiveData extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {
-        Editor editor = actionEvent.getRequiredData(CommonDataKeys.EDITOR);
-        Project project = actionEvent.getRequiredData(CommonDataKeys.PROJECT);
+        Editor editor = actionEvent.getDataContext().getData(CommonDataKeys.EDITOR);
+        if (editor == null) {
+            return;
+        }
+        Project project = editor.getProject();
+        if (project == null) {
+            return;
+        }
         Document document = editor.getDocument();
 
         Caret primaryCaret = editor.getCaretModel().getPrimaryCaret();
