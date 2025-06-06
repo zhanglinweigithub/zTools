@@ -1,8 +1,9 @@
-package com.zhanglinwei.zTools.doc.apidoc.constant;
+package com.zhanglinwei.zTools.common.constants;
 
 public interface WebAnnotation {
 
     String Controller = "Controller";
+    String RestController = "RestController";
     String RequestMapping = "@RequestMapping";
     String RequestParam = "@RequestParam";
     String GetMapping = "@GetMapping";

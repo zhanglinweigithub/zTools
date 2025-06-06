@@ -4,9 +4,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
-import com.zhanglinwei.zTools.doc.apidoc.constant.RequestMethodEnum;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.doc.apidoc.constant.RestConstant;
-import com.zhanglinwei.zTools.doc.apidoc.constant.WebAnnotation;
+import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.normal.FieldFactory;
 import com.zhanglinwei.zTools.util.AnnotationUtil;
 import com.zhanglinwei.zTools.util.AssertUtils;
@@ -191,11 +191,11 @@ public class MethodInfo implements Serializable {
 
         List<FieldInfo> noAnnotationField = noAnnotationField(requestFieldList, true);
         if (AssertUtils.isNotBlank(this.requestType) && !this.requestType.contains("、") && AssertUtils.isNotEmpty(noAnnotationField)) {
-            if (RequestMethodEnum.GET.name().equals(this.requestType) || RequestMethodEnum.DELETE.name().equals(this.requestType)) {
+            if (HttpMethod.GET.name().equals(this.requestType) || HttpMethod.DELETE.name().equals(this.requestType)) {
                 // 如果是GET、DELETE请求, 默认所有无注解的参数为query参数(排除文件)
                 this.requestParams.addAll(noAnnotationField);
             }
-            else if (RequestMethodEnum.POST.name().equals(this.requestType) || RequestMethodEnum.PUT.name().equals(this.requestType)){
+            else if (HttpMethod.POST.name().equals(this.requestType) || HttpMethod.PUT.name().equals(this.requestType)){
                 // 如果是POST、PATCH请求, 默认所有无注解的参数为form参数(排除文件)
                 this.requestBodyType = RestConstant.FORM;
                 this.requestHeaders.add(FieldInfo.build("Content-Type", "application/x-www-form-urlencoded", YES, "FORM"));
@@ -216,7 +216,7 @@ public class MethodInfo implements Serializable {
         // 合并请求头
         mergeRequestHeader(this.requestHeaders);
         if (AssertUtils.isBlank(this.requestType)) {
-            this.requestType = RequestMethodEnum.getAll();
+            this.requestType = HttpMethod.getAll();
         }
     }
 

@@ -51,6 +51,7 @@
         <projectConfigurable instance="com.zhanglinwei.zTools.config.ZToolsConfigSettings"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.doc.config.DocConfig"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.restful.config.IRestfulConfig"/>
     </extensions>
 
     <actions>
@@ -100,6 +101,10 @@
             <action id="decrypt-sensitive-data-to-clipboard.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveData2ClipboardAction"
                     text="Decrypt To Clipboard" />
         </group>
+        <action id="GoToRestfulAction" class="com.zhanglinwei.zTools.restful.GoToRestfulAction" text="GoToRestfulAction"
+                description="GoToRestfulAction">
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
+        </action>
     </actions>
 
 </idea-plugin>

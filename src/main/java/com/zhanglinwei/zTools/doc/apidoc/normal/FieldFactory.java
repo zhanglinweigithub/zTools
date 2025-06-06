@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
-import com.zhanglinwei.zTools.doc.apidoc.constant.WebAnnotation;
+import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
 import com.zhanglinwei.zTools.util.CommonUtils;
 import com.zhanglinwei.zTools.util.FieldUtil;

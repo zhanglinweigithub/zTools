@@ -5,7 +5,7 @@ import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.doc.apidoc.constant.JacksonAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
-import com.zhanglinwei.zTools.doc.apidoc.constant.WebAnnotation;
+import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
 import com.zhanglinwei.zTools.doc.apidoc.normal.RequireAndRange;
 

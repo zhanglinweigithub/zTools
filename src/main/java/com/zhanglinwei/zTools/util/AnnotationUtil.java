@@ -4,8 +4,8 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameValuePair;
 import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
-import com.zhanglinwei.zTools.doc.apidoc.constant.RequestMethodEnum;
-import com.zhanglinwei.zTools.doc.apidoc.constant.WebAnnotation;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -83,20 +83,20 @@ public class AnnotationUtil {
                 if ("method".equals(pair.getName())) {
                     String text = pair.getValue().getText();
                     if (AssertUtils.isNotBlank(text)) {
-                        if (text.contains(RequestMethodEnum.GET.name())) {
-                            requestTypeList.add(RequestMethodEnum.GET.name());
+                        if (text.contains(HttpMethod.GET.name())) {
+                            requestTypeList.add(HttpMethod.GET.name());
                         }
-                        if (text.contains(RequestMethodEnum.POST.name())) {
-                            requestTypeList.add(RequestMethodEnum.POST.name());
+                        if (text.contains(HttpMethod.POST.name())) {
+                            requestTypeList.add(HttpMethod.POST.name());
                         }
-                        if (text.contains(RequestMethodEnum.PUT.name())) {
-                            requestTypeList.add(RequestMethodEnum.PUT.name());
+                        if (text.contains(HttpMethod.PUT.name())) {
+                            requestTypeList.add(HttpMethod.PUT.name());
                         }
-                        if (text.contains(RequestMethodEnum.PATCH.name())) {
-                            requestTypeList.add(RequestMethodEnum.PATCH.name());
+                        if (text.contains(HttpMethod.PATCH.name())) {
+                            requestTypeList.add(HttpMethod.PATCH.name());
                         }
-                        if (text.contains(RequestMethodEnum.DELETE.name())) {
-                            requestTypeList.add(RequestMethodEnum.DELETE.name());
+                        if (text.contains(HttpMethod.DELETE.name())) {
+                            requestTypeList.add(HttpMethod.DELETE.name());
                         }
                     }
                 }
@@ -113,19 +113,19 @@ public class AnnotationUtil {
      */
     private static String extractRequestTypeStringByMappingText(String text) {
         if (text.contains(WebAnnotation.GetMapping)) {
-            return RequestMethodEnum.GET.name();
+            return HttpMethod.GET.name();
         }
         if (text.contains(WebAnnotation.PutMapping)) {
-            return RequestMethodEnum.PUT.name();
+            return HttpMethod.PUT.name();
         }
         if (text.contains(WebAnnotation.DeleteMapping)) {
-            return RequestMethodEnum.DELETE.name();
+            return HttpMethod.DELETE.name();
         }
         if (text.contains(WebAnnotation.PatchMapping)) {
-            return RequestMethodEnum.PATCH.name();
+            return HttpMethod.PATCH.name();
         }
 
-        return RequestMethodEnum.POST.name();
+        return HttpMethod.POST.name();
     }
 
     /**
