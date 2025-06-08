@@ -3,7 +3,7 @@ package com.zhanglinwei.zTools.common.enums;
 import java.util.StringJoiner;
 
 public enum HttpMethod {
-    GET,POST,PUT,DELETE,PATCH;
+    GET,POST,PUT,DELETE,PATCH,NONE;
 
 
     public static String getAll(){

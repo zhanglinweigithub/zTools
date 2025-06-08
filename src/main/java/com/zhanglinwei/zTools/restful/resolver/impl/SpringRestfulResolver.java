@@ -6,6 +6,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.zhanglinwei.zTools.common.constants.WebAnnotation;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import com.zhanglinwei.zTools.restful.resolver.AbstractRestfulResolver;
 import com.zhanglinwei.zTools.util.AnnotationUtil;
@@ -39,13 +40,13 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
 
     public List<IRestful> createIRestful(PsiClass psiClass) {
         return psiClass == null ? null : Arrays.stream(psiClass.getMethods())
-                .map(this::createIRestful)
+                .flatMap(psiMethod -> createIRestful(psiMethod).stream())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
     }
 
-    public IRestful createIRestful(PsiMethod psiMethod) {
+    public List<IRestful> createIRestful(PsiMethod psiMethod) {
         PsiClass containingClass = psiMethod.getContainingClass();
         if (containingClass == null) {
             return null;
@@ -56,13 +57,26 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
         String classRequestPath = AnnotationUtil.getPathFromAnnotation(classXxxMappingAnnotation);
         String methodRequestPath = AnnotationUtil.getPathFromAnnotation(methodXxxMappingAnnotation);
 
-        IRestful iRestful = new IRestful();
-        iRestful.setPsiMethod(psiMethod);
-        iRestful.setRequestPath(CommonUtils.buildPath(classRequestPath, methodRequestPath));
-        iRestful.setRequestType(AnnotationUtil.getRequestTypeFromAnnotation(classXxxMappingAnnotation, methodXxxMappingAnnotation));
-        iRestful.setRequestTypeList(Arrays.stream(iRestful.getRequestPath().split(", ")).distinct().collect(Collectors.toList()));
+        Set<String> requestTypes = AnnotationUtil.getRequestTypeListFromAnnotation(classXxxMappingAnnotation, methodXxxMappingAnnotation);
+        String requestPath = CommonUtils.buildPath(classRequestPath, methodRequestPath);
+        if (requestTypes.isEmpty()) {
+            IRestful iRestful = new IRestful();
+            iRestful.setPsiMethod(psiMethod);
+            iRestful.setRequestPath(requestPath);
+            iRestful.setRequestType(HttpMethod.NONE);
+            iRestful.setName(requestPath);
+            return Collections.singletonList(iRestful);
+        }
 
-        return iRestful;
+        return requestTypes.stream()
+                .map(requestType -> {
+                    IRestful iRestful = new IRestful();
+                    iRestful.setPsiMethod(psiMethod);
+                    iRestful.setRequestPath(requestPath);
+                    iRestful.setRequestType(HttpMethod.of(requestType));
+                    iRestful.setName(requestPath);
+                    return iRestful;
+                }).collect(Collectors.toList());
     }
 
 }

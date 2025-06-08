@@ -32,8 +32,7 @@ public class IRestfulChooseByNameModel extends FilteringGotoByModel<HttpMethod> 
     @Override
     protected @Nullable HttpMethod filterValueFor(NavigationItem navigationItem) {
         if (navigationItem instanceof IRestful) {
-            String requestType = ((IRestful) navigationItem).getRequestTypeList().get(0);
-            return HttpMethod.of(requestType);
+            return ((IRestful) navigationItem).getRequestType();
         }
 
         return null;

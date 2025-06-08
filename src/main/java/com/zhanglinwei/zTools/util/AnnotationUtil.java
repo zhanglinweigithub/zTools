@@ -65,11 +65,17 @@ public class AnnotationUtil {
      * 获得请求类型
      */
     public static String getRequestTypeFromAnnotation(PsiAnnotation classMapping, PsiAnnotation methodMapping) {
+        Set<String> requestTypeList = getRequestTypeListFromAnnotation(classMapping, methodMapping);
+
+        return String.join(", ", requestTypeList);
+    }
+
+    public static Set<String> getRequestTypeListFromAnnotation(PsiAnnotation classMapping, PsiAnnotation methodMapping) {
         Set<String> requestTypeList = new HashSet<>();
         requestTypeList.addAll(getRequestTypeListByMappingAnnotation(classMapping));
         requestTypeList.addAll(getRequestTypeListByMappingAnnotation(methodMapping));
 
-        return String.join(", ", requestTypeList);
+        return requestTypeList;
     }
 
     /**

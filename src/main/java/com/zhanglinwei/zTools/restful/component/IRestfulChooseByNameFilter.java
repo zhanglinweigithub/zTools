@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class IRestfulChooseByNameFilter extends ChooseByNameFilter<HttpMethod> {
 
@@ -30,6 +31,6 @@ public class IRestfulChooseByNameFilter extends ChooseByNameFilter<HttpMethod> {
 
     @Override
     protected @NotNull Collection<HttpMethod> getAllFilterValues() {
-        return Arrays.stream(HttpMethod.values()).toList();
+        return Arrays.stream(HttpMethod.values()).collect(Collectors.toList());
     }
 }

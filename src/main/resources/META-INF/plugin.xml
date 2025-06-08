@@ -101,8 +101,9 @@
             <action id="decrypt-sensitive-data-to-clipboard.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveData2ClipboardAction"
                     text="Decrypt To Clipboard" />
         </group>
-        <action id="GoToRestfulAction" class="com.zhanglinwei.zTools.restful.GoToRestfulAction" text="GoToRestfulAction"
-                description="GoToRestfulAction">
+
+        <!-- 搜索 Restful 接口 -->
+        <action id="go-to-restful.ID" class="com.zhanglinwei.zTools.restful.GoToRestfulAction" >
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
         </action>
     </actions>

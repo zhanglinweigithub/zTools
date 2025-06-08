@@ -37,7 +37,7 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
         ChooseByNameContributor chooseByNameContributor = createChooseByNameContributor(module);
         IRestfulChooseByNameModel chooseByNameModel = new IRestfulChooseByNameModel(project, chooseByNameContributor);
 
-        GotoActionCallback<HttpMethod> iRestfulCallback = new GotoActionCallback<>() {
+        GotoActionBase.GotoActionCallback<HttpMethod> iRestfulCallback = new GotoActionBase.GotoActionCallback<HttpMethod>() {
             @Override
             protected ChooseByNameFilter<HttpMethod> createFilter(@NotNull ChooseByNamePopup popup) {
                 return new IRestfulChooseByNameFilter(popup, chooseByNameModel, project);
@@ -63,18 +63,18 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
 
     private ChooseByNameContributor createChooseByNameContributor(Module module) {
         return new ChooseByNameContributor() {
-            final List<IRestful> restfulList = new ArrayList<>();
+            List<IRestful> restfulList = new ArrayList<>();
 
             @Override
             public String @NotNull [] getNames(Project project, boolean onlyThisModule) {
-                restfulList.addAll(onlyThisModule && module != null ? createRestfulByModule(module) : createRestfulByProject(project));
+                restfulList = onlyThisModule && module != null ? createRestfulByModule(module) : createRestfulByProject(project);
                 return restfulList.stream().map(IRestful::getName).toArray(String[]::new);
             }
 
             @Override
             public NavigationItem @NotNull [] getItemsByName(String name, String pattern, Project project, boolean onlyThisModule) {
                 return restfulList.stream()
-                        .filter(restful -> restful.getName().equals(name))
+                        .filter(restful -> name.equals(restful.getName()))
                         .toArray(NavigationItem[]::new);
             }
 
