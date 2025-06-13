@@ -1,6 +1,7 @@
 package com.zhanglinwei.zTools.util;
 
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.doc.apidoc.constant.JacksonAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
@@ -323,6 +324,10 @@ public class FieldUtil {
         if(modifierList == null) {
             return false;
         }
+        String modifierText = modifierList.getText();
+        if (modifierText != null && modifierText.contains("static")) {
+            return true;
+        }
         for (PsiElement child : modifierList.getChildren()) {
             if(child instanceof PsiKeyword) {
                 if(child.getText().equals("static")) {
@@ -338,6 +343,10 @@ public class FieldUtil {
         PsiModifierList modifierList = psiField.getModifierList();
         if(modifierList == null) {
             return false;
+        }
+        String modifierText = modifierList.getText();
+        if (modifierText != null && modifierText.contains("final")) {
+            return true;
         }
         for (PsiElement child : modifierList.getChildren()) {
             if(child instanceof PsiKeyword) {
@@ -378,5 +387,18 @@ public class FieldUtil {
         return TypeEnum.OBJECT;
     }
 
+    public static boolean isInterface(PsiType psiType) {
+        PsiClass psiClass = null;
+        if (psiType instanceof PsiClassReferenceType) {
+            psiClass = ((PsiClassReferenceType) psiType).resolve();
+            return psiClass != null && psiClass.isInterface();
+        }
+        if (psiType instanceof PsiClassType) {
+            psiClass = ((PsiClassType) psiType).resolve();
+            return psiClass != null && psiClass.isInterface();
+        }
+        psiClass = PsiUtil.resolveClassInType(psiType);
+        return psiClass != null && psiClass.isInterface();
+    }
 }
 

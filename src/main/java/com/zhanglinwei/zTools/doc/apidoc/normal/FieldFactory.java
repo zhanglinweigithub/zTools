@@ -126,6 +126,9 @@ public class FieldFactory {
         if(FieldUtil.isMultipartType(psiType)) {
             return false;
         }
+        if (FieldUtil.isInterface(psiType)) {
+            return false;
+        }
 
         return true;
     }
