@@ -252,6 +252,12 @@ public class TeacherInfo_drvE {
 
 ![image-20250104194331714](./img/image-20250104194331714.png)
 
+### 5、搜索并跳转 Restful 接口
+
+快捷键 `Ctrl + \`
+
+![image-20250613210838452](./img/image-20250613210838452.png)
+
 ## 三、配置说明
 
 ### 1、生成文档配置
