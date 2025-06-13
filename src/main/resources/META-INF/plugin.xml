@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -30,6 +30,7 @@
                     <li>Class to JSON, support arbitrary nesting, inheritance, generics, and annotation parsing</li>
                     <li>JSON to Class</li>
                     <li>Encrypting and Decrypting Sensitive data, Supported Algorithms [SM4_CBC, SM4_ECB, AES]</li>
+                    <li>Quick search jump to Restful interface [Ctrl + \]</li>
                 </ul>
         ]]>
     </description>

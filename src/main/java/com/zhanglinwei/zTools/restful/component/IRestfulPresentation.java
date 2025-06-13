@@ -1,9 +1,9 @@
 package com.zhanglinwei.zTools.restful.component;
 
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.intellij.ui.IconManager;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +43,6 @@ public class IRestfulPresentation implements ItemPresentation {
 
     @Override
     public @Nullable Icon getIcon(boolean b) {
-        return IconManager.getInstance().getIcon(iRestful.iconPath(), IRestfulPresentation.class);
+        return IconLoader.getIcon(iRestful.iconPath(), IRestfulPresentation.class);
     }
 }

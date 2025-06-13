@@ -3,8 +3,10 @@ package com.zhanglinwei.zTools.restful.resolver.impl;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
+import com.intellij.psi.impl.java.stubs.index.JavaStubIndexKeys;
+import com.intellij.psi.impl.search.JavaSourceFilterScope;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.stubs.StubIndex;
 import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.model.IRestful;
@@ -25,7 +27,7 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
     public List<IRestful> searchIRestful(Project project, GlobalSearchScope globalSearchScope) {
         return SUPPORT_ANNOTATION.stream()
                 .flatMap(annotationName ->
-                        JavaAnnotationIndex.getInstance().get(annotationName, project, globalSearchScope)
+                        StubIndex.getElements(JavaStubIndexKeys.ANNOTATIONS, annotationName, project, new JavaSourceFilterScope(globalSearchScope), PsiAnnotation.class)
                                 .stream()
                                 .map(psiAnnotation -> {
                                     PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
