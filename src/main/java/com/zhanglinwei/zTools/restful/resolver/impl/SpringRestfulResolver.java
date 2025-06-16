@@ -51,11 +51,14 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
     public List<IRestful> createIRestful(PsiMethod psiMethod) {
         PsiClass containingClass = psiMethod.getContainingClass();
         if (containingClass == null) {
-            return null;
+            return Collections.emptyList();
         }
 
         PsiAnnotation classXxxMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(containingClass.getAnnotations());
         PsiAnnotation methodXxxMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(psiMethod.getAnnotations());
+        if (classXxxMappingAnnotation == null || methodXxxMappingAnnotation == null) {
+            return Collections.emptyList();
+        }
         String classRequestPath = AnnotationUtil.getPathFromAnnotation(classXxxMappingAnnotation);
         String methodRequestPath = AnnotationUtil.getPathFromAnnotation(methodXxxMappingAnnotation);
 
