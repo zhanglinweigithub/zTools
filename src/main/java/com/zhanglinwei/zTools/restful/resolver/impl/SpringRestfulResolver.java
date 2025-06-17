@@ -59,11 +59,12 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
         if (classXxxMappingAnnotation == null || methodXxxMappingAnnotation == null) {
             return Collections.emptyList();
         }
+
         String classRequestPath = AnnotationUtil.getPathFromAnnotation(classXxxMappingAnnotation);
         String methodRequestPath = AnnotationUtil.getPathFromAnnotation(methodXxxMappingAnnotation);
+        String requestPath = buildRequestPath(classRequestPath, methodRequestPath, psiMethod.getProject());
 
         Set<String> requestTypes = AnnotationUtil.getRequestTypeListFromAnnotation(classXxxMappingAnnotation, methodXxxMappingAnnotation);
-        String requestPath = CommonUtils.buildPath(classRequestPath, methodRequestPath);
         if (requestTypes.isEmpty()) {
             IRestful iRestful = new IRestful();
             iRestful.setPsiMethod(psiMethod);
@@ -82,6 +83,12 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
                     iRestful.setName(requestPath);
                     return iRestful;
                 }).collect(Collectors.toList());
+    }
+
+    private String buildRequestPath(String classRequestPath, String methodRequestPath, Project project) {
+        String basePath = CommonUtils.buildPath(classRequestPath, methodRequestPath);
+//        return CommonUtils.buildPath(globalRequestPrefix(project), basePath);
+        return basePath;
     }
 
 }

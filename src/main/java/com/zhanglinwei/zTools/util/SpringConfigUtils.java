@@ -1,21 +1,138 @@
 package com.zhanglinwei.zTools.util;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.IOException;
+import java.util.*;
 
 public final class SpringConfigUtils {
 
-    private static final Object CONFIG_FILE = null;
+    private SpringConfigUtils() {}
 
-    static {
-        if (CONFIG_FILE == null) {
+    private static Map<String, Object> findYamlToFlattenMap(Project project) {
+        Collection<VirtualFile> configFileList = new ArrayList<>();
+        configFileList.addAll(FilenameIndex.getVirtualFilesByName("application.yaml", false, GlobalSearchScope.projectScope(project)));
+        configFileList.addAll(FilenameIndex.getVirtualFilesByName("application.yml", false, GlobalSearchScope.projectScope(project)));
 
+        VirtualFile configFile = configFileList.stream()
+                .filter(file -> file.getPath().contains("src/main/resources"))
+                .findFirst()
+                .orElse(null);
+
+        if (configFile != null) {
+            String yamlContent = null;
+            try {
+                yamlContent = new String(configFile.contentsToByteArray());
+            } catch (IOException ignore) {
+                // ignore exception
+            }
+
+            if (AssertUtils.isNotBlank(yamlContent)) {
+                return yamlToFlattenMap(yamlContent);
+            }
+        }
+
+        return Collections.emptyMap();
+    }
+
+    private static Map<String, Object> yamlToFlattenMap(String yamlContent) {
+        if (AssertUtils.isBlank(yamlContent)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Object> yamlMap = new Yaml().load(yamlContent);
+        return flattenMap(yamlMap);
+    }
+
+    private static Map<String, Object> flattenMap(Map<String, Object> sourceMap) {
+        Map<String, Object> flatMap = new LinkedHashMap<>();
+        flattenMapRecursive("", sourceMap, flatMap);
+        return flatMap;
+    }
+
+    /**
+     * 递归辅助方法
+     * @param prefix 当前键前缀
+     * @param source 当前处理的Map或值
+     * @param result 结果Map
+     */
+    private static void flattenMapRecursive(String prefix, Object source, Map<String, Object> result) {
+        // 处理Map类型
+        if (source instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) source;
+            map.forEach((key, value) -> {
+                String kebabKey = CamelUtils.camelToKebabCase(key.toString());
+                String newPrefix = prefix.isEmpty() ? kebabKey : prefix + "." + kebabKey;
+                flattenMapRecursive(newPrefix, value, result);
+            });
+        }
+        // 处理列表/数组类型
+//        else if (source instanceof Iterable) {
+//            int index = 0;
+//            for (Object item : (Iterable<?>) source) {
+//                String newPrefix = prefix.isEmpty() ? String.valueOf(index) : prefix + "[" + index + "]";
+//                flattenMapRecursive(newPrefix, item, result);
+//                index++;
+//            }
+//        }
+        // 基本类型，直接放入结果
+        else {
+            if (source != null) {
+                result.put(prefix, source);
+            }
         }
     }
 
-    private SpringConfigUtils() {}
+    public static Object property(Project project, SpringConfigProperties configProperties) {
+        Map<String, Object> yamlMap = findYamlToFlattenMap(project);
+        return yamlMap.get(configProperties.getValue());
+    }
 
-    public String propertyValue(SpringConfigProperties configProperties) {
+    public static String propertyAsString(Project project, SpringConfigProperties configProperties) {
+        Object object = property(project, configProperties);
+        if (object != null) {
+            if (object instanceof Iterable) {
+                StringJoiner joiner = new StringJoiner(",", "[", "]");
+                for (Object item : ((Iterable<?>) object)) {
+                    joiner.add(item.toString());
+                }
+                return joiner.toString();
+            }
 
-        return "";
+            return object.toString();
+        }
+        return null;
+    }
+
+    public static boolean propertyAsBoolean(Project project, SpringConfigProperties configProperties) {
+        String value = propertyAsString(project, configProperties);
+        return "true".equalsIgnoreCase(value);
+    }
+
+    public static Long propertyAsLong(Project project, SpringConfigProperties configProperties) {
+        try {
+            String value = propertyAsString(project, configProperties);
+            return AssertUtils.isBlank(value) ? null : Long.parseLong(value);
+        } catch (NumberFormatException ignore) {
+            // ignore exception
+        }
+
+        return null;
+    }
+
+    public static Integer propertyAsInteger(Project project, SpringConfigProperties configProperties) {
+        try {
+            String value = propertyAsString(project, configProperties);
+            return AssertUtils.isBlank(value) ? null : Integer.parseInt(value);
+        } catch (NumberFormatException ignore) {
+            // ignore exception
+        }
+
+        return null;
     }
 }

@@ -3,7 +3,10 @@ package com.zhanglinwei.zTools.restful.resolver;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.restful.model.IRestful;
+import com.zhanglinwei.zTools.util.AssertUtils;
+import com.zhanglinwei.zTools.util.SpringConfigUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,5 +23,13 @@ public abstract class AbstractRestfulResolver implements RestfulResolver {
     @Override
     public List<IRestful> resolverByModule(Module module) {
         return module == null ? Collections.emptyList() : searchIRestful(module.getProject(), GlobalSearchScope.moduleScope(module));
+    }
+
+    protected String globalRequestPrefix(Project project) {
+        String prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
+        if (AssertUtils.isBlank(prefix)) {
+            prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
+        }
+        return prefix;
     }
 }
