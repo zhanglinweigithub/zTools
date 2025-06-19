@@ -8,7 +8,11 @@ import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+
+import static com.zhanglinwei.zTools.util.CommonUtils.STAR;
 
 /**
  * 注释工具类
@@ -17,6 +21,31 @@ public class DesUtil {
 
     private DesUtil(){}
 
+    /**
+     * 获得方法注释中的字段描述
+     */
+    public static Map<String, String> paramDescMapForDocComment(PsiDocComment docComment) {
+        Map<String, String> paramDescMap = new HashMap<>();
+        if (docComment == null) {
+            return paramDescMap;
+        }
+        for (PsiDocTag docTag : docComment.getTags()) {
+            String tagValue = docTag.getValueElement() == null ? "" : docTag.getValueElement().getText();
+            if ("param".equals(docTag.getName()) && AssertUtils.isNotBlank(tagValue)) {
+                paramDescMap.put(tagValue, getParamDesc(docTag.getText()));
+            }
+        }
+        return paramDescMap;
+    }
+
+    private static String getParamDesc(String tagText) {
+        String[] strings = tagText.replace(STAR, "").replaceAll(" {2,}", " ").trim().split(" ");
+        if (strings.length >= 3) {
+            String desc = strings[2];
+            return desc.replace("\n", "");
+        }
+        return "";
+    }
 
     /**
      * 去除字符串首尾出现的某个字符.

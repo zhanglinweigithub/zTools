@@ -1,11 +1,10 @@
 package com.zhanglinwei.zTools.util;
 
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiNameValuePair;
-import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
-import com.zhanglinwei.zTools.common.enums.HttpMethod;
+import com.intellij.psi.*;
+import com.zhanglinwei.zTools.common.constants.FQN;
 import com.zhanglinwei.zTools.common.constants.WebAnnotation;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
+import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,6 +44,8 @@ public class AnnotationUtil {
         mediaType.put("TEXT_XML_VALUE", "text/xml");
         mediaType.put("PARAM_QUALITY_FACTOR", "q");
     }
+
+    private static List<String> REQUIRED_ANNOTATION_LIST = Arrays.asList("@NotNull", "@NotBlank", "@NotEmpty");
 
     private AnnotationUtil(){}
 
@@ -337,4 +338,85 @@ public class AnnotationUtil {
         return getAnnotationByName(annotations, WebAnnotation.RequestPart);
     }
 
+    public static boolean hasController(PsiClass psiClass) {
+        if (psiClass == null) {
+            return false;
+        }
+
+        PsiModifierList modifierList = psiClass.getModifierList();
+        if (modifierList == null) {
+            return false;
+        }
+        if (modifierList.getText().contains(WebAnnotation.Controller)) {
+            return true;
+        }
+        if (modifierList.findAnnotation(FQN.Controller) != null) {
+            return true;
+        }
+        if (modifierList.findAnnotation(FQN.RestController) != null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /** 是否必填*/
+    public static boolean isRequired(PsiAnnotation psiAnnotation) {
+        if (psiAnnotation == null) {
+            return false;
+        }
+
+        PsiAnnotationMemberValue required = psiAnnotation.findAttributeValue("required");
+        if (required != null && "true".equals(required.getText())) {
+            return true;
+        }
+        if (REQUIRED_ANNOTATION_LIST.contains(psiAnnotation.getText().split("\\(")[0])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean isRequired(PsiAnnotation[] psiAnnotations) {
+        return psiAnnotations != null && Arrays.stream(psiAnnotations)
+                .anyMatch(AnnotationUtil::isRequired);
+    }
+
+    public static String extractParamName(String originName, PsiAnnotation[] annotations) {
+        if (annotations == null || annotations.length == 0 || AssertUtils.isBlank(originName)) {
+            return originName;
+        }
+
+        for (PsiAnnotation annotation : annotations) {
+            String annotationText = annotation.getText();
+            if (
+                    annotationText.contains(WebAnnotation.RequestParam) ||
+                    annotationText.contains(WebAnnotation.PathVariable) ||
+                    annotationText.contains(WebAnnotation.RequestPart) ||
+                    annotationText.contains(WebAnnotation.RequestHeader)
+            ) {
+                String value = resolveAttributeAsString(annotation, "value");
+                if (AssertUtils.isNotBlank(value)) {
+                    return value;
+                }
+                break;
+            }
+        }
+
+        return originName;
+    }
+
+    private static String resolveAttributeAsString(PsiAnnotation annotation, String attribute) {
+        if (annotation == null || AssertUtils.isBlank(attribute)) {
+            return null;
+        }
+
+        for (PsiNameValuePair pair : annotation.getParameterList().getAttributes()) {
+            if (attribute.equals(pair.getAttributeName())) {
+                return pair.getLiteralValue();
+            }
+        }
+
+        return null;
+    }
 }

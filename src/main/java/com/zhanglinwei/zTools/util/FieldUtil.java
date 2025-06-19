@@ -3,11 +3,12 @@ package com.zhanglinwei.zTools.util;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiUtil;
+import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.JacksonAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
-import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
+import com.zhanglinwei.zTools.doc.apidoc.model.JavaProperty;
 import com.zhanglinwei.zTools.doc.apidoc.normal.RequireAndRange;
 
 import java.sql.Timestamp;
@@ -145,6 +146,86 @@ public class FieldUtil {
         return getValue(fieldInfo);
     }
 
+    public static String normalExample(JavaProperty javaProperty) {
+        PsiType psiType = javaProperty.getPsiType();
+        String typeName = psiType.getPresentableText();
+
+        if (isNormalType(psiType)) {
+            return normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
+        }
+
+        if (isIterableType(psiType)) {
+            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
+            if (type == null) {
+                return "[]";
+            }
+            if (isNormalType(type)) {
+                String value = normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
+                return value == null ? "[]" : "[" + value + ", " + value + "]";
+            }
+        }
+
+        return null;
+    }
+
+    public static String normalIterableExample(JavaProperty javaProperty) {
+        PsiType psiType = javaProperty.getPsiType();
+        String typeName = psiType.getPresentableText();
+
+        if (isIterableType(psiType)) {
+            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
+            if (type == null) {
+                return "[]";
+            }
+            if (isNormalType(type)) {
+                String value = normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
+                return value == null ? "[]" : "[" + value + ", " + value + "]";
+            }
+        }
+
+        return null;
+    }
+
+    private static String normalValue(String typeStr,List<PsiAnnotation> annotations) {
+        if(Arrays.asList("LocalDate", "LocalDateTime", "Date").contains(typeStr)) {
+            for (PsiAnnotation annotation : annotations) {
+                if(annotation.getText().contains(JacksonAnnotation.JsonFormat)) {
+                    PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
+                    if (attributes.length >= 1) {
+                        for (PsiNameValuePair attribute : attributes) {
+                            if ("pattern".equals(attribute.getName())) {
+                                return attribute.getLiteralValue();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return normalTypes.get(typeStr).toString();
+    }
+
+    public static String example(JavaProperty javaProperty) {
+        PsiType psiType = javaProperty.getPsiType();
+        if (isIterableType(psiType)) {
+            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
+            if (type == null) {
+                return "[]";
+            }
+            if (isNormalType(type)) {
+                String value = getValue(type.getPresentableText(), Arrays.asList(javaProperty.getPsiAnnotations()));
+                if (value == null) {
+                    return "[]";
+                }
+
+                return "[" + value + "," + value + "]";
+            }
+        }
+        String value = getValue(psiType.getPresentableText(), Arrays.asList(javaProperty.getPsiAnnotations()));
+        return value == null ? " " : value;
+    }
+
+
+
     /** 示例值 */
     public static Object getValue(FieldInfo fieldInfo) {
         PsiType psiType = fieldInfo.getPsiType();
@@ -167,8 +248,8 @@ public class FieldUtil {
     }
 
     /** 示例值 */
-    private static Object getValue(String typeStr,List<PsiAnnotation> annotations) {
-        if(Arrays.asList("LocalDateTime","Date").contains(typeStr)) {
+    private static String getValue(String typeStr,List<PsiAnnotation> annotations) {
+        if(Arrays.asList("LocalDate", "LocalDateTime", "Date").contains(typeStr)) {
             for (PsiAnnotation annotation : annotations) {
                 if(annotation.getText().contains(JacksonAnnotation.JsonFormat)) {
                     PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
@@ -182,7 +263,8 @@ public class FieldUtil {
                 }
             }
         }
-        return normalTypes.get(typeStr);
+        Object value = normalTypes.get(typeStr);
+        return value == null ? "" : value.toString();
     }
 
     /** 是否泛型 */
@@ -199,9 +281,11 @@ public class FieldUtil {
         return isCollectionType(typeName) || typeName.contains("[]");
     }
 
-    /** 是否可迭代 */
+    /**
+     * 是否可迭代
+     */
     public static boolean isIterableType(PsiType psiType) {
-        return isIterableType(psiType.getPresentableText());
+        return isIterableType(psiType.getPresentableText()) || psiType instanceof PsiArrayType;
     }
 
     /** 是否集合 */
@@ -211,12 +295,7 @@ public class FieldUtil {
 
     /** 是否集合 */
     private static boolean isCollectionType(String typeName) {
-        if (AssertUtils.isEmpty(typeName)) {
-            return false;
-        }
-        return typeName.startsWith("List")
-                || typeName.startsWith("Set")
-                || typeName.startsWith("Collection");
+        return AssertUtils.isNotEmpty(typeName) && isListFamily(typeName);
     }
 
     /** 是否普通类型 */
@@ -237,6 +316,10 @@ public class FieldUtil {
     /** 是否Map */
     public static boolean isMapType(String typeName) {
         return isMapFamily(typeName);
+    }
+
+    public static boolean isNormalIterableType(PsiType psiType) {
+        return isNormalCollectionType(psiType.getPresentableText()) || isNormalArrayType(psiType);
     }
 
     /** 是否简单集合 */
@@ -266,16 +349,21 @@ public class FieldUtil {
     }
 
     public static boolean isListFamily(String typeString) {
-        return typeString.startsWith("ArrayList") ||
+        return typeString.startsWith("List") ||
+                typeString.startsWith("ArrayList") ||
                 typeString.startsWith("LinkedList") ||
+                typeString.startsWith("CopyOnWriteArrayList") ||
+                typeString.startsWith("AbstractList") ||
                 typeString.startsWith("Vector") ||
-                typeString.startsWith("List") ||
+
                 typeString.startsWith("Set") ||
                 typeString.startsWith("TreeSet") ||
                 typeString.startsWith("HashSet") ||
                 typeString.startsWith("LinkedHashSet") ||
                 typeString.startsWith("BitSet") ||
-                typeString.startsWith("SortedSet")
+                typeString.startsWith("SortedSet") ||
+
+                typeString.startsWith("Collection")
                 ;
     }
 
@@ -293,7 +381,11 @@ public class FieldUtil {
 
     /** 是否简单数组 */
     public static boolean isNormalArrayType(PsiType psiType) {
-        return isNormalArrayType(psiType.getPresentableText());
+        if (psiType instanceof PsiArrayType) {
+            PsiType componentType = ((PsiArrayType) psiType).getComponentType();
+            return isNormalType(componentType.getPresentableText());
+        }
+        return false;
     }
 
     /** 是否简单数组 */
@@ -399,6 +491,35 @@ public class FieldUtil {
         }
         psiClass = PsiUtil.resolveClassInType(psiType);
         return psiClass != null && psiClass.isInterface();
+    }
+
+    public static boolean isObjectIterableType(PsiType psiType) {
+        if (!isIterableType(psiType)) {
+            return false;
+        }
+        if (isMapType(psiType)) {
+            return false;
+        }
+        PsiType deepComponentType = psiType.getDeepComponentType();
+//        PsiType psiType1 = PsiUtil.extractIterableTypeParameter(psiType, false);
+        if (isNormalType(deepComponentType)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean isObjectType(PsiType psiType) {
+        if (isIterableType(psiType)) {
+            return false;
+        }
+        if (isMapType(psiType)) {
+            return false;
+        }
+        if (isNormalType(psiType)) {
+            return false;
+        }
+        return true;
     }
 }
 

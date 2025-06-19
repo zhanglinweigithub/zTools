@@ -11,6 +11,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
 import com.zhanglinwei.zTools.doc.apidoc.model.ClassInfo;
 import com.zhanglinwei.zTools.doc.apidoc.model.MethodInfo;
 import com.zhanglinwei.zTools.doc.facade.DocFacade;
@@ -68,15 +69,15 @@ public class GenerateApiDocAction extends AnAction {
     }
 
     protected boolean generateApiDocForSelectedMethod(Project project, PsiMethod selectedMethod) throws Exception {
-        PsiClass containingClass = selectedMethod.getContainingClass();
-
         if (!AnnotationUtil.hasMappingAnnotation(selectedMethod)) {
             NotificationUtil.warnNotify("The method is not a RestApi!", project);
             return false;
         }
 
+        ApiInfo apiInfo = new ApiInfo(selectedMethod);
+        PsiClass containingClass = selectedMethod.getContainingClass();
         ClassInfo classInfo = new ClassInfo(containingClass, new MethodInfo(selectedMethod));
-        if (!classInfo.hasController()) {
+        if (!AnnotationUtil.hasController(containingClass)) {
             NotificationUtil.errorNotify("The file is not a Controller!", project);
             return false;
         }
