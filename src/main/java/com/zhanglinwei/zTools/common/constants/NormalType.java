@@ -1,10 +1,7 @@
 package com.zhanglinwei.zTools.common.constants;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,10 +29,10 @@ public final class NormalType {
         NORMAL_TYPE_MAP.put("Double", 0.0D);
         NORMAL_TYPE_MAP.put("String", "stringValue");
         NORMAL_TYPE_MAP.put("BigDecimal", 0.111111);
-        NORMAL_TYPE_MAP.put("Date", new Date().getTime());
-        NORMAL_TYPE_MAP.put("LocalDateTime", LocalDateTime.now().toString());
-        NORMAL_TYPE_MAP.put("LocalDate", LocalDate.now().toString());
-        NORMAL_TYPE_MAP.put("LocalTime", LocalTime.now().toString());
+        NORMAL_TYPE_MAP.put("Date", "yyyy-MM-dd HH:mm:ss");
+        NORMAL_TYPE_MAP.put("LocalDateTime", "yyyy-MM-dd HH:mm:ss");
+        NORMAL_TYPE_MAP.put("LocalDate", "yyyy-MM-dd");
+        NORMAL_TYPE_MAP.put("LocalTime", "HH:mm:ss");
         NORMAL_TYPE_MAP.put("Timestamp", Timestamp.valueOf(LocalDateTime.now()));
         NORMAL_TYPE_MAP.put("BigInteger", 0);
         NORMAL_TYPE_MAP.put("MultipartFile", "文件");

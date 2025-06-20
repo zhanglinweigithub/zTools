@@ -5,62 +5,69 @@ import com.intellij.psi.PsiNameValuePair;
 import com.intellij.psi.PsiType;
 import com.zhanglinwei.zTools.common.constants.NormalType;
 import com.zhanglinwei.zTools.doc.apidoc.constant.JacksonAnnotation;
-import com.zhanglinwei.zTools.doc.apidoc.model.JavaProperty;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class ExampleUtils {
 
     private ExampleUtils() {}
 
-    public static String normalExample(JavaProperty javaProperty) {
-        PsiType psiType = javaProperty.getPsiType();
-        String typeName = psiType.getPresentableText();
-
+    public static String createExampleAsString(PsiType psiType, PsiAnnotation[] annotations) {
+        // 普通类型
         if (TypeUtils.isNormalType(psiType)) {
-            return normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
+            Object normalValue = normalValue(psiType.getPresentableText(), Arrays.asList(annotations));
+            return normalValue != null ? normalValue.toString() : "";
         }
 
-        return "?";
-    }
-
-    public static String normalIterableExample(JavaProperty javaProperty) {
-        PsiType psiType = javaProperty.getPsiType();
-        String typeName = psiType.getPresentableText();
-
+        // 可迭代类型
         if (TypeUtils.isIterableType(psiType)) {
+            Object wrapped = null;
             TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(psiType);
             PsiType realType = nestedInfo.getRealType();
-            if (realType == null) {
-                return "[]";
-            }
+
+            // 普通类型
             if (TypeUtils.isNormalType(realType)) {
-                String value = normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
+                Object example = normalValue(realType.getPresentableText(), Arrays.asList(annotations));
+                wrapped = NestedUtils.wrapWithNesting(example + ", " + example, nestedInfo.getDepth());
+            } else {
+                wrapped = NestedUtils.wrapWithNesting(Collections.emptyMap(), nestedInfo.getDepth());
+            }
 
-                for (int i = 0; i < nestedInfo.getDepth(); i++) {
-                    if (value == null) {
-                        return "?";
-                    } else {
-                        value = "[" + value + ", " + value + "]";
-                    }
-                }
+            return JsonUtil.toJsonString(wrapped);
+        }
 
-                return AssertUtils.isBlank(value) ? "[]" : value;
+        return JsonUtil.toJsonString(Collections.emptyMap());
+    }
+
+    public static String createNormalExampleAsString(PsiType psiType, PsiAnnotation[] annotations) {
+        TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(psiType);
+        PsiType realType = nestedInfo.getRealType();
+
+        if (TypeUtils.isNormalType(realType)) {
+            Object normalValue = normalValue(realType.getPresentableText(), Arrays.asList(annotations));
+            if (normalValue != null) {
+                Object wrapped = NestedUtils.wrapWithNesting(normalValue + ", " + normalValue, nestedInfo.getDepth());
+                return JsonUtil.toJsonString(wrapped);
             }
         }
 
-        return null;
+        return "N/A";
     }
 
-    private static String normalValue(String typeName, List<PsiAnnotation> annotations) {
+    public static Object createSimpleJsonExample(PsiType psiType, PsiAnnotation[] annotations) {
+        return normalValue(psiType.getPresentableText(), Arrays.asList(annotations));
+    }
+
+    private static Object normalValue(String typeName, List<PsiAnnotation> annotations) {
         if(Arrays.asList("LocalDate", "LocalDateTime", "Date").contains(typeName)) {
             for (PsiAnnotation annotation : annotations) {
                 if(annotation.getText().contains(JacksonAnnotation.JsonFormat)) {
                     PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
                     if (attributes.length >= 1) {
                         for (PsiNameValuePair attribute : attributes) {
-                            if ("pattern".equals(attribute.getName())) {
+                            if ("pattern".equals(attribute.getAttributeName())) {
                                 return attribute.getLiteralValue();
                             }
                         }
@@ -68,7 +75,7 @@ public final class ExampleUtils {
                 }
             }
         }
-        Object value = NormalType.get(typeName);
-        return value == null ? "?" : value.toString();
+
+        return NormalType.get(typeName);
     }
 }

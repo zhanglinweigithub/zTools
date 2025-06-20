@@ -64,7 +64,7 @@ public class JavaProperty {
         javaProperty.setTypeName(parameterType.getPresentableText());
         javaProperty.setGenericTypeMap(resolveGenerics(parameterType));
         javaProperty.setComment(paramDescMap.get(psiParameter.getName()));
-        javaProperty.setExample(FieldUtil.example(javaProperty));
+        javaProperty.setExample(ExampleUtils.createNormalExampleAsString(parameterType, annotations));
         javaProperty.setRequired(AnnotationUtil.isRequired(annotations));
         javaProperty.setParent(null);
         javaProperty.setCycle(false);
@@ -219,10 +219,12 @@ public class JavaProperty {
                 property.setComment(DesUtil.getDescription(psiField.getDocComment(), psiField.getAnnotations()));
                 property.setGenericTypeMap(resolveGenerics(fieldRealType));
                 property.setRequired(AnnotationUtil.isRequired(psiField.getAnnotations()));
+                property.setExample(ExampleUtils.createNormalExampleAsString(fieldRealType, psiField.getAnnotations()));
 
                 if (TypeUtils.isIterableType(fieldRealType)) {
                     TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(fieldRealType);
                     JavaProperty simple = JavaProperty.createSimple(nestedInfo.getRealType(), currentProject, javaProperty);
+                    property.setCycle(simple.isCycle());
                     property.setChildren(simple.getChildren());
                 } else {
                     property.setChildren(resolveChildren(property));

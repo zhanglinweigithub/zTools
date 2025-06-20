@@ -24,7 +24,7 @@ public class JsonUtil {
 
     private JsonUtil(){}
 
-    public static final Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC, Modifier.FINAL).setPrettyPrinting().create();
+    private static final Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC).setPrettyPrinting().create();
 
     public static String buildPrettyJson(FieldInfo fieldInfo) {
         if (TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
@@ -195,14 +195,14 @@ public class JsonUtil {
 
         Object value;
         if (TypeUtils.isNormalType(realType)) {
-            value = ExampleUtils.normalExample(property);
+            value = ExampleUtils.createSimpleJsonExample(realType, property.getPsiAnnotations());
         } else {
             List<JavaProperty> children = extractEffectiveChildren(property);
             value = propertyConvertToMap(children);
         }
 
         // 添加嵌套层级
-        return wrapWithNesting(value, nestedInfo.getDepth());
+        return NestedUtils.wrapWithNesting(value, nestedInfo.getDepth());
     }
 
     /**
@@ -218,15 +218,7 @@ public class JsonUtil {
         return children;
     }
 
-    /**
-     * 包装嵌套层级
-     */
-    private static Object wrapWithNesting(Object value, int depth) {
-        for (int i = 0; i < depth; i++) {
-            value = Collections.singletonList(value);
-        }
-        return value;
-    }
+
 
     /**
      * 转换 Map 结构
@@ -378,5 +370,9 @@ public class JsonUtil {
             NotificationUtil.errorNotify("json format error, Caused by: " + e.getMessage(), project);
         }
         return "";
+    }
+
+    public static String toJsonString(Object object) {
+        return object == null ? "" : gson.toJson(object);
     }
 }
