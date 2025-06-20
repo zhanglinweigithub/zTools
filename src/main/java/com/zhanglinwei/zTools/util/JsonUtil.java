@@ -15,6 +15,7 @@ import com.zhanglinwei.zTools.doc.apidoc.model.JavaProperty;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * JSON工具类
@@ -24,10 +25,6 @@ public class JsonUtil {
     private JsonUtil(){}
 
     public static final Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC, Modifier.FINAL).setPrettyPrinting().create();
-
-    public static String buildPrettyJson(List<FieldInfo> children) {
-        return gson.toJson(getStringObjectMap(children));
-    }
 
     public static String buildPrettyJson(FieldInfo fieldInfo) {
         if (TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
@@ -63,25 +60,23 @@ public class JsonUtil {
         return buildJson5(buildPrettyJson(fieldInfo), buildFieldDescList(fieldInfo));
     }
 
-    public static String prettyJsonWithComment(JavaProperty javaProperty) {
-        if (javaProperty == null) {
+    /**
+     * 格式化后、带注释的 Json
+     */
+    public static String prettyJsonWithComment(JavaProperty property) {
+        if (property == null) {
             return "";
         }
 
         // 格式化后的Json
-        String prettyJson = prettyJsonString(javaProperty);
+        String prettyJson = prettyJsonString(property);
         if (AssertUtils.isBlank(prettyJson)) {
             return prettyJson;
         }
 
         // Json注释
-        List<JavaProperty> children = javaProperty.getChildren();
-        PsiType psiType = javaProperty.getPsiType();
-        if (TypeUtils.isIterableType(psiType)) {
-            PsiType realType = TypeUtils.deepExtractIterableType(psiType).getRealType();
-            children = JavaProperty.createSimple(realType, javaProperty.getProject(), javaProperty.getParent()).getChildren();
-        }
-        List<String> commentList = extractJsonCommentList(children);
+        List<JavaProperty> children = extractEffectiveChildren(property);
+        List<String> commentList = extractAllPropertyComments(children);
         if (AssertUtils.isEmpty(commentList)) {
             return prettyJson;
         }
@@ -90,165 +85,164 @@ public class JsonUtil {
         return mergePrettyJsonAndComment(prettyJson, commentList);
     }
 
+    /**
+     * 合并 Json、注释
+     */
     private static String mergePrettyJsonAndComment(String prettyJson, List<String> commentList) {
         if (AssertUtils.isBlank(prettyJson) || AssertUtils.isEmpty(commentList)) {
             return prettyJson;
         }
 
-        StringBuilder jsonBuilder = new StringBuilder();
-
-        String[] splitJson = prettyJson.split("\n");
-        int index = 0;
-        for (String line : splitJson) {
-            String temp = line;
-            if (line.contains(":")) {
-                String comment = commentList.get(index++);
-                if (AssertUtils.isNotBlank(comment)) {
-                    temp = line + " // " + comment;
-                }
-            }
-            jsonBuilder.append(temp);
-            jsonBuilder.append("\n");
-        }
-
-        return jsonBuilder.toString();
+        Iterator<String> commentIterator = commentList.iterator();
+        return Arrays.stream(prettyJson.split("\n"))
+                .map(line -> appendCommentToLine(line, commentIterator))
+                .collect(Collectors.joining("\n"));
     }
 
-    private static List<String> extractJsonCommentList(JavaProperty javaProperty, boolean isRoot) {
-        if (javaProperty == null) {
-            return Collections.emptyList();
+    /**
+     * Json 追加注释
+     */
+    private static String appendCommentToLine(String line, Iterator<String> commentIterator) {
+        if (!line.contains(":") || !commentIterator.hasNext()) {
+            return line;
         }
 
-        PsiType psiType = javaProperty.getPsiType();
-        if (TypeUtils.isNormalType(psiType)) {
-            return Collections.emptyList();
-        }
-
-        List<String> commentList = new ArrayList<>();
-        if (!isRoot) {
-            commentList.add(buildPropertyComment(javaProperty));
-        }
-
-        if (javaProperty.hasChildren()) {
-            commentList.addAll(extractJsonCommentList(javaProperty.getChildren()));
-        }
-
-        return commentList;
+        String comment = commentIterator.next();
+        return AssertUtils.isNotBlank(comment) ? line + " // " + comment : line;
     }
 
-    private static List<String> extractJsonCommentList(Collection<JavaProperty> javaProperties) {
-        if (AssertUtils.isEmpty(javaProperties)) {
-            return Collections.emptyList();
-        }
-
-        List<String> commentList = new ArrayList<>();
-        for (JavaProperty property : javaProperties) {
-            commentList.add(buildPropertyComment(property));
-
-            List<JavaProperty> children = property.getChildren();
-            PsiType psiType = property.getPsiType();
-            if (TypeUtils.isIterableType(psiType)) {
-                PsiType realType = TypeUtils.deepExtractIterableType(psiType).getRealType();
-                children = JavaProperty.createSimple(realType, property.getProject(), property.getParent()).getChildren();
-            }
-            commentList.addAll(extractJsonCommentList(children));
-        }
-
-        return commentList;
+    /**
+     * 提取属性注释
+     */
+    private static List<String> extractAllPropertyComments(Collection<JavaProperty> properties) {
+        return AssertUtils.isEmpty(properties) ? Collections.emptyList() : properties.stream()
+                .flatMap(property -> extractOwnAndAllPropertyComments(property).stream())
+                .collect(Collectors.toList());
     }
 
-    private static String buildPropertyComment(JavaProperty javaProperty) {
-        if (javaProperty == null) {
+    /**
+     * 提取属性注释 包含本身
+     */
+    private static List<String> extractOwnAndAllPropertyComments(JavaProperty rootProperty) {
+        List<JavaProperty> allProperties = flattenProperties(rootProperty);
+        return allProperties.stream()
+                .map(JsonUtil::buildPropertyComment)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 铺平属性和子属性 包含本身
+     */
+    private static List<JavaProperty> flattenProperties(JavaProperty property) {
+        List<JavaProperty> result = new ArrayList<>();
+        if (property == null) {
+            return result;
+        }
+
+        result.add(property);
+        extractEffectiveChildren(property).forEach(child -> {
+            result.addAll(flattenProperties(child));
+        });
+
+        return result;
+    }
+
+    /**
+     * 构建注释，添加说明信息
+     */
+    private static String buildPropertyComment(JavaProperty property) {
+        if (property == null) {
             return "";
         }
 
-        String comment = javaProperty.getComment();
-        if (javaProperty.isRequired()) {
-            comment = AssertUtils.isNotBlank(comment) ? comment + ", 必填" : "必填";
+        List<String> commentParts = new ArrayList<>();
+
+        if (AssertUtils.isNotBlank(property.getComment())) {
+            commentParts.add(property.getComment());
         }
-        if (javaProperty.isCycle()) {
-            comment = AssertUtils.isNotBlank(comment) ? comment + ", 同外层" : "同外层";
+        if (property.isRequired()) {
+            commentParts.add("必填");
+        }
+        if (property.isCycle()) {
+            commentParts.add("同外层");
         }
 
-        return comment;
+        return String.join(", ", commentParts);
     }
 
-
-    public static String prettyJsonString(JavaProperty javaProperty) {
-        if (javaProperty == null) {
+    /**
+     * 格式化的 Json
+     */
+    public static String prettyJsonString(JavaProperty property) {
+        if (property == null) {
             return "";
         }
 
-        TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(javaProperty.getPsiType());
-        PsiType psiType = nestedInfo.getRealType();
-
-        Object object = null;
-        if (TypeUtils.isNormalType(psiType)) {
-            object = ExampleUtils.normalExample(javaProperty);
-        } else {
-            JavaProperty realProperty = JavaProperty.createSimple(psiType, javaProperty.getProject(), null);
-            object = propertyConvertToMap(realProperty.getChildren());
-        }
-
-        for (int i = 0; i < nestedInfo.getDepth(); i++) {
-            object = Collections.singletonList(object);
-        }
-
+        Object object = convertPropertyToJsonObject(property);
         return gson.toJson(object);
     }
 
+    /**
+     * 转换为 Json 对象
+     */
+    private static Object convertPropertyToJsonObject(JavaProperty property) {
+        if (property == null) {
+            return "";
+        }
+
+        TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(property.getPsiType());
+        PsiType realType = nestedInfo.getRealType();
+
+        Object value;
+        if (TypeUtils.isNormalType(realType)) {
+            value = ExampleUtils.normalExample(property);
+        } else {
+            List<JavaProperty> children = extractEffectiveChildren(property);
+            value = propertyConvertToMap(children);
+        }
+
+        // 添加嵌套层级
+        return wrapWithNesting(value, nestedInfo.getDepth());
+    }
+
+    /**
+     * 提取有效子属性
+     */
+    private static List<JavaProperty> extractEffectiveChildren(JavaProperty property) {
+        List<JavaProperty> children = property.getChildren();
+        if (TypeUtils.isIterableType(property.getPsiType())) {
+            PsiType realType = TypeUtils.deepExtractIterableType(property.getPsiType()).getRealType();
+            return JavaProperty.createSimple(realType, property.getProject(), property.getParent())
+                    .getChildren();
+        }
+        return children;
+    }
+
+    /**
+     * 包装嵌套层级
+     */
+    private static Object wrapWithNesting(Object value, int depth) {
+        for (int i = 0; i < depth; i++) {
+            value = Collections.singletonList(value);
+        }
+        return value;
+    }
+
+    /**
+     * 转换 Map 结构
+     */
     private static Map<String, Object> propertyConvertToMap(List<JavaProperty> children) {
         if (AssertUtils.isEmpty(children)) {
             return new HashMap<>();
         }
 
         Map<String, Object> resultMap = new LinkedHashMap<>();
-
         for (JavaProperty property : children) {
-            TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(property.getPsiType());
-            PsiType psiType = nestedInfo.getRealType();
-
-            Object object = null;
-            // 获得值
-            if (TypeUtils.isNormalType(psiType)) {
-                object = ExampleUtils.normalExample(property);
-            } else {
-                object = propertyConvertToMap(property.getChildren());
-            }
-
-            // 添加嵌套层级
-            for (int i = 0; i < nestedInfo.getDepth(); i++) {
-                object = Collections.singletonList(object);
-            }
-
-            resultMap.put(property.getName(), object);
+            Object object = convertPropertyToJsonObject(property);
+            resultMap.put(property.getOriginName(), object);
         }
         
         return resultMap;
-    }
-
-//    private static Map<String, Object> propertyConvertToMap(JavaProperty property) {
-//        if (property == null) {
-//            return new HashMap<>();
-//        }
-//
-//        Map<String, Object> resultMap = new LinkedHashMap<>();
-//        for (JavaProperty property : propertyList) {
-//            Map<String, Object> propertyMap = propertyConvertToMap(property);
-//            if (AssertUtils.isNotEmpty(propertyMap)) {
-//                resultMap.putAll(propertyMap);
-//            }
-//        }
-//
-//        return resultMap;
-//    }
-
-    public static String buildJson5(String json, FieldInfo field) {
-        return buildJson5(json, buildFieldDescList(field));
-    }
-
-    public static String buildJson5(List<FieldInfo> children) {
-        return buildJson5(buildPrettyJson(children), buildFieldDescList(children));
     }
 
 

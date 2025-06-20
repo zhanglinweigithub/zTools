@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class JavaProperty {
 
     private String name;
+    private String originName;
     private String typeName;
     private String comment;
     private String example;
@@ -50,7 +51,7 @@ public class JavaProperty {
         return AssertUtils.isNotEmpty(this.children);
     }
 
-    public static JavaProperty create(PsiParameter psiParameter, Map<String, String> paramDescMap) {
+    private static JavaProperty create(PsiParameter psiParameter, Map<String, String> paramDescMap) {
         PsiType parameterType = psiParameter.getType();
         PsiAnnotation[] annotations = psiParameter.getAnnotations();
 
@@ -58,6 +59,7 @@ public class JavaProperty {
         javaProperty.setPsiType(parameterType);
         javaProperty.setProject(psiParameter.getProject());
         javaProperty.setPsiAnnotations(annotations);
+        javaProperty.setOriginName(psiParameter.getName());
         javaProperty.setName(AnnotationUtil.extractParamName(psiParameter.getName(), annotations));
         javaProperty.setTypeName(parameterType.getPresentableText());
         javaProperty.setGenericTypeMap(resolveGenerics(parameterType));
@@ -82,24 +84,6 @@ public class JavaProperty {
     public static JavaProperty createSimple(PsiType psiType, Project project, JavaProperty parent) {
         JavaProperty property = new JavaProperty(psiType, project, parent);
         property.setGenericTypeMap(resolveGenerics(psiType));
-        property.setChildren(resolveChildren(property));
-        return property;
-    }
-
-    public static JavaProperty createRealProperty(PsiType realType, JavaProperty originProperty) {
-        JavaProperty property = new JavaProperty();
-        property.setName(originProperty.getName());
-        property.setComment(originProperty.getComment());
-        property.setExample(originProperty.getExample());
-        property.setRequired(originProperty.isRequired());
-        property.setParent(originProperty.getParent());
-        property.setCycle(originProperty.isCycle());
-        property.setProject(originProperty.getProject());
-        property.setPsiAnnotations(originProperty.getPsiAnnotations());
-
-        property.setPsiType(realType);
-        property.setTypeName(realType.getPresentableText());
-        property.setGenericTypeMap(resolveGenerics(realType));
         property.setChildren(resolveChildren(property));
         return property;
     }
@@ -141,8 +125,8 @@ public class JavaProperty {
             if (psiType instanceof PsiArrayType) {
                 psiType = ((PsiArrayType) psiType).getComponentType();
             }
-            else if (FieldUtil.isCollectionType(psiType)) {
-                psiType = PsiUtil.extractIterableTypeParameter(psiType, false);
+            else if (TypeUtils.isCollectionType(psiType)) {
+                psiType = TypeUtils.deepExtractIterableType(psiType).getRealType();
             }
 
             if(resolvedTypeSet.contains(psiType)) {
@@ -230,21 +214,22 @@ public class JavaProperty {
                 property.setPsiType(fieldRealType);
                 property.setPsiAnnotations(psiField.getAnnotations());
                 property.setParent(javaProperty);
-                property.setName(psiField.getName());
+                property.setName(AnnotationUtil.extractParamName(psiField.getName(), psiField.getAnnotations()));
+                property.setOriginName(psiField.getName());
                 property.setComment(DesUtil.getDescription(psiField.getDocComment(), psiField.getAnnotations()));
                 property.setGenericTypeMap(resolveGenerics(fieldRealType));
                 property.setRequired(AnnotationUtil.isRequired(psiField.getAnnotations()));
 
                 if (TypeUtils.isIterableType(fieldRealType)) {
                     TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(fieldRealType);
-                    JavaProperty simple = JavaProperty.createSimple(nestedInfo.getRealType(), currentProject, javaProperty.getParent());
+                    JavaProperty simple = JavaProperty.createSimple(nestedInfo.getRealType(), currentProject, javaProperty);
                     property.setChildren(simple.getChildren());
                 } else {
                     property.setChildren(resolveChildren(property));
                 }
 
                 theChildren.add(property);
-                fieldNameList.add(property.getName());
+                fieldNameList.add(property.getOriginName());
             }
 
             return theChildren;
@@ -313,6 +298,14 @@ public class JavaProperty {
             }
         }
         return psiType;
+    }
+
+    public String getOriginName() {
+        return originName;
+    }
+
+    public void setOriginName(String originName) {
+        this.originName = originName;
     }
 
     public String getName() {

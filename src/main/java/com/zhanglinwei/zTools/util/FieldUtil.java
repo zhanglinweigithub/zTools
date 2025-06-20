@@ -146,64 +146,6 @@ public class FieldUtil {
         return getValue(fieldInfo);
     }
 
-    public static String normalExample(JavaProperty javaProperty) {
-        PsiType psiType = javaProperty.getPsiType();
-        String typeName = psiType.getPresentableText();
-
-        if (isNormalType(psiType)) {
-            return normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
-        }
-
-        if (isIterableType(psiType)) {
-            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
-            if (type == null) {
-                return "[]";
-            }
-            if (isNormalType(type)) {
-                String value = normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
-                return value == null ? "[]" : "[" + value + ", " + value + "]";
-            }
-        }
-
-        return null;
-    }
-
-    public static String normalIterableExample(JavaProperty javaProperty) {
-        PsiType psiType = javaProperty.getPsiType();
-        String typeName = psiType.getPresentableText();
-
-        if (isIterableType(psiType)) {
-            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
-            if (type == null) {
-                return "[]";
-            }
-            if (isNormalType(type)) {
-                String value = normalValue(typeName, Arrays.asList(javaProperty.getPsiAnnotations()));
-                return value == null ? "[]" : "[" + value + ", " + value + "]";
-            }
-        }
-
-        return null;
-    }
-
-    private static String normalValue(String typeStr,List<PsiAnnotation> annotations) {
-        if(Arrays.asList("LocalDate", "LocalDateTime", "Date").contains(typeStr)) {
-            for (PsiAnnotation annotation : annotations) {
-                if(annotation.getText().contains(JacksonAnnotation.JsonFormat)) {
-                    PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
-                    if (attributes.length >= 1) {
-                        for (PsiNameValuePair attribute : attributes) {
-                            if ("pattern".equals(attribute.getName())) {
-                                return attribute.getLiteralValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return normalTypes.get(typeStr).toString();
-    }
-
     public static String example(JavaProperty javaProperty) {
         PsiType psiType = javaProperty.getPsiType();
         if (isIterableType(psiType)) {

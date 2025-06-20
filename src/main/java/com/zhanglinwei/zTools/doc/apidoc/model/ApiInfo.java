@@ -94,7 +94,7 @@ public class ApiInfo {
             List<TableRowInfo> rowList = new ArrayList<>();
 
             children.forEach(property -> {
-                TableRowInfo rowInfo = new TableRowInfo(prefix + property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), property.getExample());
+                TableRowInfo rowInfo = new TableRowInfo(prefix + property.getOriginName(), property.getTypeName(), property.isRequired(), property.getComment(), property.getExample());
                 rowList.add(rowInfo);
                 rowList.addAll(createTableRow(prefix + cfgPrefix, property.getChildren()));
             });
@@ -103,15 +103,20 @@ public class ApiInfo {
 
         protected static ApiTableInfo createBody(JavaProperty body) {
             if (body != null) {
-                List<TableRowInfo> rowList = new ArrayList<>();
-                PsiType psiType = TypeUtils.deepExtractIterableType(body.getPsiType()).getRealType();
+                JavaProperty realBody = body;
+                if (TypeUtils.isIterableType(realBody.getPsiType())) {
+                    PsiType realType = TypeUtils.deepExtractIterableType(realBody.getPsiType()).getRealType();
+                    realBody = JavaProperty.createSimple(realType, realBody.getProject(), realBody.getParent());
+                }
 
-                if (TypeUtils.isNormalType(psiType)) {
-                    TableRowInfo rowInfo = new TableRowInfo(body.getName(), body.getTypeName(), body.isRequired(), body.getComment(), body.getExample());
+                PsiType realType = realBody.getPsiType();
+                List<TableRowInfo> rowList = new ArrayList<>();
+
+                if (TypeUtils.isNormalType(realType)) {
+                    TableRowInfo rowInfo = new TableRowInfo(body.getOriginName(), body.getTypeName(), body.isRequired(), body.getComment(), body.getExample());
                     rowList.add(rowInfo);
                 } else {
-                    JavaProperty realProperty = JavaProperty.createSimple(psiType, body.getProject(), null);
-                    List<TableRowInfo> infoList = createTableRow("", realProperty.getChildren());
+                    List<TableRowInfo> infoList = createTableRow("", realBody.getChildren());
                     rowList.addAll(infoList);
                 }
                 return new ApiTableInfo(rowList);
@@ -150,7 +155,7 @@ public class ApiInfo {
             }
             List<TableRowInfo> rowList = requestList.stream()
                     .filter(property -> property.hasAnnotation(WebAnnotation.RequestPart))
-                    .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), property.getExample()))
+                    .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), JsonUtil.prettyJsonString(property)))
                     .collect(Collectors.toList());
             return new ApiTableInfo(rowList);
         }
