@@ -71,12 +71,12 @@ public class DesUtil {
         return source;
     }
 
-    public static String getDescription(PsiClass psiClass) {
+    public static String obtainDescription(PsiClass psiClass) {
         String description = getDescription(psiClass.getDocComment(), psiClass.getAnnotations());
         return AssertUtils.isBlank(description) ? psiClass.getName() : description;
     }
 
-    public static String getDescription(PsiMethod psiMethod) {
+    public static String obtainDescription(PsiMethod psiMethod) {
         String description = getDescription(psiMethod.getDocComment(), psiMethod.getAnnotations());
         return AssertUtils.isBlank(description) ? psiMethod.getName() : description;
     }

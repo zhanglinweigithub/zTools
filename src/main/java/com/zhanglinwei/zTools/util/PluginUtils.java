@@ -6,7 +6,7 @@ import com.intellij.openapi.extensions.PluginId;
 
 import java.util.List;
 
-public class PluginUtils {
+public final class PluginUtils {
 
     private PluginUtils (){}
 

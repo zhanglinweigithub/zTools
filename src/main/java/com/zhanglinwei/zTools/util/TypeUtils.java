@@ -1,6 +1,8 @@
 package com.zhanglinwei.zTools.util;
 
 import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.common.constants.NormalType;
@@ -52,6 +54,73 @@ public final class TypeUtils {
         }
 
         return new NestedInfo(realType, depth);
+    }
+
+    /** 是否基本类型 */
+    public static boolean isPrimitive(PsiType psiType) {
+        return psiType != null && psiType instanceof PsiPrimitiveType;
+    }
+
+    /** 是否 http 类型 */
+    public static boolean isHttpType(PsiType psiType) {
+        return isInPackage(psiType, "javax.servlet.http");
+    }
+
+    /** 是否 servlet 类型 */
+    public static boolean isServletType(PsiType psiType) {
+        return isInPackage(psiType, "javax.servlet");
+    }
+
+    /** 是否 IO 类型 */
+    public static boolean isIOType(PsiType psiType) {
+        return isInPackage(psiType, "java.io");
+    }
+
+    /** 是否属于某个包 */
+    public static boolean isInPackage(PsiType psiType, String packageName) {
+        if (psiType == null || AssertUtils.isBlank(packageName)) {
+            return false;
+        }
+
+        PsiClass psiClass = PsiUtil.resolveClassInType(psiType);
+        if (psiClass == null) {
+            return false;
+        }
+
+        String qualifiedName = psiClass.getQualifiedName();
+        return AssertUtils.isNotBlank(qualifiedName) && qualifiedName.startsWith(packageName);
+    }
+
+    /** 是否Multipart类型 */
+    public static boolean isMultipartType(PsiType psiType) {
+        return psiType != null && psiType.getPresentableText().contains("MultipartFile");
+    }
+
+    /** 是否注解类型 */
+    public static boolean isAnnotation(PsiType psiType) {
+        if (psiType != null) {
+            PsiClass psiClass = PsiUtil.resolveClassInType(psiType);
+            return psiClass != null && psiClass.isAnnotationType();
+        }
+        return false;
+    }
+
+    /** 是否接口类型 */
+    public static boolean isInterface(PsiType psiType) {
+        if (psiType != null) {
+            PsiClass psiClass = PsiUtil.resolveClassInType(psiType);
+            return psiClass != null && psiClass.isInterface();
+        }
+        return false;
+    }
+
+    /** 是否枚举类型 */
+    public static boolean isEnum(PsiType psiType) {
+        if (psiType != null) {
+            PsiClass psiClass = PsiUtil.resolveClassInType(psiType);
+            return psiClass != null && psiClass.isEnum();
+        }
+        return false;
     }
 
     /** 是否普通类型 */

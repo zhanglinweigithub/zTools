@@ -23,7 +23,7 @@ public class JavaProperty {
     private String originName;
     private String typeName;
     private String comment;
-    private String example;
+    private Object example;
     private boolean required;
 
     private JavaProperty parent;
@@ -44,7 +44,7 @@ public class JavaProperty {
     }
 
     public boolean hasAnnotation(String annotationName) {
-        return AnnotationUtil.getAnnotationByName(psiAnnotations, annotationName) != null;
+        return AnnotationUtil.findAnnotationByName(psiAnnotations, annotationName) != null;
     }
 
     public boolean hasChildren() {
@@ -64,7 +64,7 @@ public class JavaProperty {
         javaProperty.setTypeName(parameterType.getPresentableText());
         javaProperty.setGenericTypeMap(resolveGenerics(parameterType));
         javaProperty.setComment(paramDescMap.get(psiParameter.getName()));
-        javaProperty.setExample(ExampleUtils.createNormalExampleAsString(parameterType, annotations));
+        javaProperty.setExample(ExampleUtils.createNormalExample(parameterType, annotations));
         javaProperty.setRequired(AnnotationUtil.isRequired(annotations));
         javaProperty.setParent(null);
         javaProperty.setCycle(false);
@@ -81,6 +81,34 @@ public class JavaProperty {
                 .collect(Collectors.toList());
     }
 
+    public static JavaProperty create(PsiField psiField, JavaProperty parent) {
+        PsiType fieldType = resolveGeneric(psiField.getType(), parent);
+
+        JavaProperty property = new JavaProperty();
+        property.setProject(psiField.getProject());
+        property.setPsiType(fieldType);
+        property.setTypeName(fieldType.getPresentableText());
+        property.setPsiAnnotations(psiField.getAnnotations());
+        property.setParent(parent);
+        property.setName(AnnotationUtil.extractParamName(psiField.getName(), psiField.getAnnotations()));
+        property.setOriginName(psiField.getName());
+        property.setComment(DesUtil.getDescription(psiField.getDocComment(), psiField.getAnnotations()));
+        property.setGenericTypeMap(resolveGenerics(fieldType));
+        property.setRequired(AnnotationUtil.isRequired(psiField.getAnnotations()));
+        property.setExample(ExampleUtils.createNormalExample(fieldType, psiField.getAnnotations()));
+
+        if (TypeUtils.isIterableType(fieldType)) {
+            TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(fieldType);
+            JavaProperty simple = JavaProperty.createSimple(nestedInfo.getRealType(), psiField.getProject(), parent);
+            property.setCycle(simple.isCycle());
+            property.setChildren(simple.getChildren());
+        } else {
+            property.setChildren(resolveChildren(property));
+        }
+
+        return property;
+    }
+
     public static JavaProperty createSimple(PsiType psiType, Project project, JavaProperty parent) {
         JavaProperty property = new JavaProperty(psiType, project, parent);
         property.setGenericTypeMap(resolveGenerics(psiType));
@@ -89,159 +117,172 @@ public class JavaProperty {
     }
 
     private static boolean needResolveChildren(JavaProperty javaProperty) {
-        JavaProperty propertyParent = javaProperty.getParent();
         PsiType psiType = javaProperty.getPsiType();
-        String typeName = psiType.getPresentableText();
+        if (psiType == null) {
+            return false;
+        }
 
-        if(FieldUtil.isNormalType(typeName)) {
-            return false;
-        }
-        if(FieldUtil.isNormalCollectionType(typeName)) {
-            return false;
-        }
-        if(FieldUtil.isNormalArrayType(typeName)) {
-            return false;
-        }
-        if(FieldUtil.isEnum(psiType)) {
-            return false;
-        }
-        if(FieldUtil.isMapType(typeName)) {
-            return false;
-        }
-        if(FieldUtil.isMultipartType(psiType)) {
-            return false;
-        }
-//        if (FieldUtil.isInterface(psiType)) {
-//            return false;
-//        }
-        if (propertyParent != null) {
-            Set<PsiType> resolvedTypeSet = new HashSet<>();
-            JavaProperty dummyParent = propertyParent;
-            while (dummyParent != null) {
-                resolvedTypeSet.add(dummyParent.getPsiType());
-                dummyParent = dummyParent.getParent();
-            }
-
-            if (psiType instanceof PsiArrayType) {
-                psiType = ((PsiArrayType) psiType).getComponentType();
-            }
-            else if (TypeUtils.isCollectionType(psiType)) {
-                psiType = TypeUtils.deepExtractIterableType(psiType).getRealType();
-            }
-
-            if(resolvedTypeSet.contains(psiType)) {
-                javaProperty.setCycle(true);
+        // 1. 可迭代普通类型
+        if (TypeUtils.isIterableType(psiType)) {
+            PsiType realType = TypeUtils.deepExtractIterableType(psiType).getRealType();
+            if (TypeUtils.isNormalType(realType)) {
                 return false;
             }
+        }
+
+        // 2. 普通类型
+        if(TypeUtils.isNormalType(psiType)) {
+            return false;
+        }
+
+        // 3. 枚举类型
+        if(TypeUtils.isEnum(psiType)) {
+            return false;
+        }
+
+        // 4. Map 类型
+        if(TypeUtils.isMapType(psiType)) {
+            return false;
+        }
+
+        // 5. Multipart 类型
+        if(TypeUtils.isMultipartType(psiType)) {
+            return false;
+        }
+
+        // 6. IO 相关
+        if(TypeUtils.isIOType(psiType)) {
+            return false;
+        }
+
+        // 7. Servlet 相关
+        if(TypeUtils.isServletType(psiType)) {
+            return false;
+        }
+
+        // 8. 循环引用
+        if (hasCycleReference(psiType, javaProperty.getParent())) {
+            javaProperty.setCycle(true);
+            return false;
         }
 
         return true;
     }
 
+    private static boolean hasCycleReference(PsiType psiType, JavaProperty propertyParent) {
+        if (propertyParent == null) {
+            return false;
+        }
 
-    private static List<JavaProperty> resolveChildren(JavaProperty javaProperty) {
-        Project currentProject = javaProperty.getProject();
-        PsiType parameterType = javaProperty.getPsiType();
+        Set<PsiType> resolvedTypeSet = new HashSet<>();
+        JavaProperty dummyParent = propertyParent;
+        while (dummyParent != null) {
+            resolvedTypeSet.add(dummyParent.getPsiType());
+            dummyParent = dummyParent.getParent();
+        }
 
-        if (!needResolveChildren(javaProperty)) {
+        PsiType realType = TypeUtils.deepExtractIterableType(psiType).getRealType();
+        return resolvedTypeSet.contains(realType);
+    }
+
+
+    private static List<JavaProperty> resolveChildren(JavaProperty parentProperty) {
+        PsiType parameterType = parentProperty.getPsiType();
+
+        // 1. 是否需要解析
+        if (!needResolveChildren(parentProperty)) {
             return Collections.emptyList();
         }
 
-        DocConfig.ApiDocConfig apiDocConfig = DocConfig.getInstance(currentProject).getApiDocConfig();
-        // 如果是数组
+        // 2. 如果是数组
         if(parameterType instanceof PsiArrayType) {
-            // 获取数组类型
-            PsiType componentType = ((PsiArrayType) parameterType).getComponentType();
-            JavaProperty property = new JavaProperty(componentType, currentProject, javaProperty.getParent());
-            return resolveChildren(property);
+            return resolveArrayType((PsiArrayType) parameterType, parentProperty);
         }
 
-        // 如果是JavaClass
+        // 3. 如果是JavaClass
         if (parameterType instanceof PsiClassType) {
-            // 如果是集合类型
-            if (TypeUtils.isCollectionType(parameterType)) {
-                TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(parameterType);
-                PsiType realType = nestedInfo.getRealType();
-                if (realType == null) {
-                    return Collections.emptyList();
-                }
-
-                // 兼容泛型
-                realType = resolveGeneric(realType, javaProperty);
-                JavaProperty property = new JavaProperty(realType, currentProject, javaProperty.getParent());
-                return resolveChildren(property);
-            }
-
-            // 兼容泛型
-            PsiType realType = resolveGeneric(parameterType, javaProperty);
-            PsiClass psiClass = PsiUtil.resolveClassInType(realType);
-
-            // 兼容第三方jar包
-            if (psiClass instanceof ClsClassImpl){
-                psiClass = resolveJarPackage(psiClass, currentProject);
-            }
-
-            if (psiClass == null) {
-                return Collections.emptyList();
-            }
-
-            // 兼容继承
-            Set<String> fieldNameList = new HashSet<>(128);
-            List<JavaProperty> theChildren = new ArrayList<>();
-            for (PsiField psiField : psiClass.getAllFields()) {
-                // 需要忽略的字段
-                if (apiDocConfig.getExcludeFieldList().contains(psiField.getName())) {
-                    continue;
-                }
-                // 忽略静态字段
-                if(FieldUtil.isStaticField(psiField)) {
-                    continue;
-                }
-                // 忽略标注了xxxIgnore注解的字段
-                if(FieldUtil.isIgnoredField(psiField)) {
-                    continue;
-                }
-                // 继承的情况下会出现子类与父类拥有相同名称的字段
-                if(fieldNameList.contains(psiField.getName())) {
-                    continue;
-                }
-
-                // 兼容泛型
-                PsiType fieldRealType = resolveGeneric(psiField.getType(), javaProperty);
-
-                JavaProperty property = new JavaProperty();
-                property.setProject(currentProject);
-                property.setPsiType(fieldRealType);
-                property.setPsiAnnotations(psiField.getAnnotations());
-                property.setParent(javaProperty);
-                property.setName(AnnotationUtil.extractParamName(psiField.getName(), psiField.getAnnotations()));
-                property.setOriginName(psiField.getName());
-                property.setComment(DesUtil.getDescription(psiField.getDocComment(), psiField.getAnnotations()));
-                property.setGenericTypeMap(resolveGenerics(fieldRealType));
-                property.setRequired(AnnotationUtil.isRequired(psiField.getAnnotations()));
-                property.setExample(ExampleUtils.createNormalExampleAsString(fieldRealType, psiField.getAnnotations()));
-
-                if (TypeUtils.isIterableType(fieldRealType)) {
-                    TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(fieldRealType);
-                    JavaProperty simple = JavaProperty.createSimple(nestedInfo.getRealType(), currentProject, javaProperty);
-                    property.setCycle(simple.isCycle());
-                    property.setChildren(simple.getChildren());
-                } else {
-                    property.setChildren(resolveChildren(property));
-                }
-
-                theChildren.add(property);
-                fieldNameList.add(property.getOriginName());
-            }
-
-            return theChildren;
+            return resolveClassType((PsiClassType) parameterType, parentProperty);
         }
-
 
         return Collections.emptyList();
     }
 
-    private static PsiClass resolveJarPackage(PsiClass psiClass, Project currentProject) {
+    private static List<JavaProperty> resolveArrayType(PsiArrayType arrayType, JavaProperty parent) {
+        // 1. 得到数组类型
+        PsiType componentType = arrayType.getComponentType();
+        // 2. 创建真实类型对象
+        JavaProperty child = new JavaProperty(componentType, parent.getProject(), parent);
+        // 3. 解析子属性
+        return resolveChildren(child);
+    }
+
+    private static List<JavaProperty> resolveCollectionType(PsiClassType collectionType, JavaProperty parent) {
+        // 1. 提取集合元素类型（支持多层泛型）
+        TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(collectionType);
+        PsiType realType = nestedInfo.getRealType();
+        if (realType == null) {
+            return Collections.emptyList();
+        }
+
+        // 2. 解析泛型实际类型（如 List<T> 中的 T）
+        PsiType resolvedType = resolveGeneric(realType, parent);
+        if (resolvedType == null) {
+            return Collections.emptyList();
+        }
+
+        // 3. 创建真实类型对象
+        JavaProperty elementProperty = new JavaProperty(resolvedType, parent.getProject(), parent);
+
+        // 4. 处理循环引用标记
+        if (hasCycleReference(resolvedType, parent)) {
+            elementProperty.setCycle(true);
+            return Collections.singletonList(elementProperty);
+        }
+
+        // 5. 继续解析子属性
+        return resolveChildren(elementProperty);
+    }
+
+    private static List<JavaProperty> resolveClassType(PsiClassType classType, JavaProperty parent) {
+        DocConfig.ApiDocConfig config = DocConfig.getInstance(parent.getProject()).getApiDocConfig();
+
+        // 1. 处理集合类型
+        if (TypeUtils.isCollectionType(classType)) {
+            return resolveCollectionType(classType, parent);
+        }
+
+        // 2. 处理普通类类型 解析泛型 获得Class
+        PsiType resolvedType = resolveGeneric(classType, parent);
+        PsiClass psiClass = PsiUtil.resolveClassInType(resolvedType);
+        if (psiClass == null) {
+            return Collections.emptyList();
+        }
+
+        // 3. 处理第三方 JAR 包中的类
+        if (psiClass instanceof ClsClassImpl) {
+            psiClass = resolveJarPackage(psiClass);
+        }
+
+        // 4. 收集
+        return new ArrayList<>(
+                Arrays.stream(psiClass.getAllFields())
+                        .filter(field -> !config.getExcludeFieldList().contains(field.getName())) // 过滤配置忽略的字段
+                        .filter(field -> !FieldUtil.isStaticField(field)) // 过滤静态字段
+                        .filter(field -> !FieldUtil.isIgnoredField(field)) // 过滤需要忽略的字段
+                        .collect(
+                                Collectors.toMap(
+                                        PsiField::getName,
+                                        field -> JavaProperty.create(field, parent),
+                                        (oldVal, newVal) -> oldVal, // 继承的情况下会出现子类与父类拥有相同名称的字段 保留首次出现的字段
+                                        LinkedHashMap::new
+                                )
+                        )
+                        .values()
+        );
+    }
+
+    private static PsiClass resolveJarPackage(PsiClass psiClass) {
+        Project currentProject = psiClass.getProject();
         StubElement parentStub = ((ClsClassImpl) psiClass).getStub().getParentStub();
         if(parentStub instanceof PsiJavaFileStubImpl) {
             String sourcePath = ((PsiJavaFileStubImpl) parentStub)
@@ -259,27 +300,27 @@ public class JavaProperty {
         return psiClass;
     }
 
-    private static Map<PsiTypeParameter, PsiType> resolveGenerics(PsiType psiType){
-        if(psiType instanceof PsiArrayType) {
-            return new HashMap<>();
+    private static Map<PsiTypeParameter, PsiType> resolveGenerics(PsiType psiType) {
+        if (!(psiType instanceof PsiClassType)) {
+            return Collections.emptyMap();
         }
-        if(psiType instanceof PsiClassType) {
-            PsiClassType psiClassType = (PsiClassType) psiType;
-            PsiType[] realParameters = psiClassType.getParameters();
-            PsiClass psiClass = psiClassType.resolve();
-            if (psiClass != null) {
-                PsiTypeParameter[] formParameters = psiClass.getTypeParameters();
-                int i = 0;
-                Map<PsiTypeParameter, PsiType> map = new HashMap<>();
-                for (PsiType realParameter : realParameters) {
-                    map.put(formParameters[i], realParameter);
-                    i ++;
-                }
-                return map;
-            }
 
+        PsiClassType classType = (PsiClassType) psiType;
+        PsiClass psiClass = classType.resolve();
+        if (psiClass == null) {
+            return Collections.emptyMap();
         }
-        return new HashMap<>();
+
+        PsiTypeParameter[] genericParameters = psiClass.getTypeParameters(); // 泛型类型
+        PsiType[] actualParameters = classType.getParameters(); // 实际类型
+
+        int len = Math.min(genericParameters.length, actualParameters.length);
+        Map<PsiTypeParameter, PsiType> mapping = new HashMap<>();
+        for (int i = 0; i < len; i++) {
+            mapping.put(genericParameters[i], actualParameters[i]);
+        }
+
+        return mapping;
     }
 
     /**
@@ -289,13 +330,14 @@ public class JavaProperty {
         if(null == psiType){
             return null;
         }
-        JavaProperty propertyParent = javaProperty.getParent();
-        Map<PsiTypeParameter, PsiType> map = propertyParent != null ? propertyParent.getGenericTypeMap() : javaProperty.getGenericTypeMap();
 
-        if(AssertUtils.isNotEmpty(map)){
-            for (PsiTypeParameter psiTypeParameter : map.keySet()) {
+        JavaProperty propertyParent = javaProperty.getParent();
+        Map<PsiTypeParameter, PsiType> mapping = propertyParent != null ? propertyParent.getGenericTypeMap() : javaProperty.getGenericTypeMap();
+
+        if(AssertUtils.isNotEmpty(mapping)){
+            for (PsiTypeParameter psiTypeParameter : mapping.keySet()) {
                 if(Objects.equals(psiTypeParameter.getName(), psiType.getPresentableText())){
-                    return map.get(psiTypeParameter);
+                    return mapping.get(psiTypeParameter);
                 }
             }
         }
@@ -334,11 +376,11 @@ public class JavaProperty {
         this.comment = comment;
     }
 
-    public String getExample() {
+    public Object getExample() {
         return example;
     }
 
-    public void setExample(String example) {
+    public void setExample(Object example) {
         this.example = example;
     }
 

@@ -231,30 +231,6 @@ public class JavaClassByJsonAction extends AnAction {
         return "LocalDateTime";
     }
 
-//    public  Map<String, Object> convertToNestedMaps(Map<String, Object> map) {
-//        Map<String, Object> nestedMap = new LinkedHashMap<>();
-//        for (Map.Entry<String, Object> entry : map.entrySet()) {
-//            String key = entry.getKey();
-//            Object value = entry.getValue();
-//            if (value instanceof Map) {
-//                nestedMap.put(key, convertToNestedMaps((Map<String, Object>) value));
-//            } else if (value instanceof List) {
-//                List<Object> list = new ArrayList<>();
-//                for (Object obj : (List<?>) value) {
-//                    if (obj instanceof Map) {
-//                        list.add(convertToNestedMaps((Map<String, Object>) obj));
-//                    } else {
-//                        list.add(obj);
-//                    }
-//                }
-//                nestedMap.put(key, list);
-//            } else {
-//                nestedMap.put(key, value);
-//            }
-//        }
-//        return nestedMap;
-//    }
-
     public static String generateUniqueCode(Collection<String> collection) {
         if (AssertUtils.isEmpty(collection)) {
             return "";

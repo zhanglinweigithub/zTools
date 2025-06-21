@@ -6,10 +6,7 @@ import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.config.DocConfig;
 import com.zhanglinwei.zTools.util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ApiInfo {
@@ -22,35 +19,45 @@ public class ApiInfo {
 
     private boolean empty;
 
-    public ApiInfo(PsiMethod psiMethod) {
+    private ApiInfo(){}
+
+    public static List<ApiInfo> create(PsiClass psiClass) {
+        return psiClass == null ? Collections.emptyList() : Arrays.stream(psiClass.getAllMethods()).map(ApiInfo::create).filter(api -> !api.isEmpty()).collect(Collectors.toList());
+    }
+
+    public static ApiInfo create(PsiMethod psiMethod) {
+        ApiInfo apiInfo = new ApiInfo();
+
         // 忽略未标注xxxMapping注解的方法
         if (psiMethod == null || !AnnotationUtil.hasMappingAnnotation(psiMethod)) {
-            this.empty = true;
-            return;
+            apiInfo.setEmpty(true);
+            return apiInfo;
         }
         // 方法所在类
         PsiClass psiClass = psiMethod.getContainingClass();
         if (psiClass == null) {
-            this.empty = true;
-            return;
+            apiInfo.setEmpty(true);
+            return apiInfo;
         }
 
         // 方法标题: 优先使用方法注释
         String methodName = psiMethod.getName();
         String methodDescription = DesUtil.getDescription(psiMethod.getDocComment(), psiMethod.getAnnotations());
-        this.title = AssertUtils.isBlank(methodDescription) ? methodName : methodDescription;
+        apiInfo.setTitle(AssertUtils.isBlank(methodDescription) ? methodName : methodDescription);
 
         // 方法注释
-        this.description = methodDescription;
+        apiInfo.setDescription(methodDescription);
 
         // 方法基本信息
-        this.baseInfo = new ApiBaseInfo(psiMethod, psiClass);
+        apiInfo.setBaseInfo(new ApiBaseInfo(psiMethod, psiClass));
 
         // 方法请求信息
-        this.requestInfo = new ApiRequestInfo(psiMethod, psiClass);
+        apiInfo.setRequestInfo(new ApiRequestInfo(psiMethod, psiClass));
 
         // 方法响应信息
-        this.responseInfo = new ApiResponseInfo(psiMethod);
+        apiInfo.setResponseInfo(new ApiResponseInfo(psiMethod));
+
+        return apiInfo;
     }
 
     public static class ApiBaseInfo {
@@ -58,14 +65,14 @@ public class ApiInfo {
         private String requestPath;
 
         public ApiBaseInfo(PsiMethod psiMethod, PsiClass psiClass) {
-            PsiAnnotation classMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(psiClass.getAnnotations());
-            PsiAnnotation methodMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(psiMethod.getAnnotations());
+            PsiAnnotation classMappingAnnotation = AnnotationUtil.findXxxMappingAnnotation(psiClass.getAnnotations());
+            PsiAnnotation methodMappingAnnotation = AnnotationUtil.findXxxMappingAnnotation(psiMethod.getAnnotations());
 
-            String classPath = AnnotationUtil.getPathFromAnnotation(classMappingAnnotation);
-            String methodPath = AnnotationUtil.getPathFromAnnotation(methodMappingAnnotation);
+            String classPath = AnnotationUtil.extractPathFromAnnotation(classMappingAnnotation);
+            String methodPath = AnnotationUtil.extractPathFromAnnotation(methodMappingAnnotation);
 
             this.requestPath = CommonUtils.buildPath(classPath, methodPath);
-            this.requestType = AnnotationUtil.getRequestTypeFromAnnotation(classMappingAnnotation, methodMappingAnnotation);
+            this.requestType = AnnotationUtil.extractRequestTypeFromAnnotation(classMappingAnnotation, methodMappingAnnotation);
         }
 
         public String getRequestType() {
@@ -85,7 +92,7 @@ public class ApiInfo {
         }
     }
 
-    private abstract static class ApiBody {
+    private abstract static class AbstractBody {
         protected static List<TableRowInfo> createTableRow(String prefix, List<JavaProperty> children) {
             if (AssertUtils.isEmpty(children)) {
                 return Collections.emptyList();
@@ -129,7 +136,7 @@ public class ApiInfo {
         }
     }
 
-    public static class ApiRequestInfo extends ApiBody {
+    public static class ApiRequestInfo extends AbstractBody {
         private ApiTableInfo requestHeader;
         private ApiTableInfo pathVariable;
         private ApiTableInfo requestParam;
@@ -155,7 +162,7 @@ public class ApiInfo {
             }
             List<TableRowInfo> rowList = requestList.stream()
                     .filter(property -> property.hasAnnotation(WebAnnotation.RequestPart))
-                    .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), JsonUtil.prettyJsonString(property)))
+                    .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), JsonUtil.flattenJsonString(property)))
                     .collect(Collectors.toList());
             return new ApiTableInfo(rowList);
         }
@@ -183,8 +190,8 @@ public class ApiInfo {
         }
 
         private ApiTableInfo createRequestHeader(PsiMethod psiMethod, PsiClass psiClass) {
-            PsiAnnotation classMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(psiClass.getAnnotations());
-            PsiAnnotation methodMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(psiMethod.getAnnotations());
+            PsiAnnotation classMappingAnnotation = AnnotationUtil.findXxxMappingAnnotation(psiClass.getAnnotations());
+            PsiAnnotation methodMappingAnnotation = AnnotationUtil.findXxxMappingAnnotation(psiMethod.getAnnotations());
 
             PsiParameterList parameterList = psiMethod.getParameterList();
 
@@ -209,20 +216,18 @@ public class ApiInfo {
                     String annotationText = annotation.getText();
                     // 处理 RequestHeader
                     if (annotationText.contains(WebAnnotation.RequestHeader)) {
-                        String headerName = "";
-                        boolean required = false;
+                        String headerName = parameterName;
+                        boolean required = AnnotationUtil.isRequired(annotation);
                         String description = paramDescMap.get(parameterName);
 
                         PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
                         for (PsiNameValuePair attribute : attributes) {
-                            if ("name".equals(attribute.getName()) || "value".equals(attribute.getName())) {
-                                headerName = attribute.getValue().getText();
-                            } else if ("required".equals(attribute.getName())) {
-                                required = "true".equals(attribute.getValue().getText());
+                            if ("name".equals(attribute.getAttributeName()) || "value".equals(attribute.getAttributeName())) {
+                                headerName = attribute.getLiteralValue();
                             }
                         }
 
-                        headerList.add(new TableRowInfo(headerName, typeName, required, description, ""));
+                        headerList.add(new TableRowInfo(headerName, "String", required, description, "stringValue"));
                     }
                     // 处理 RequestPart
                     else if (annotationText.contains(WebAnnotation.RequestPart)) {
@@ -245,7 +250,7 @@ public class ApiInfo {
             Map<String, List<TableRowInfo>> headerNameMap = headerList.stream().collect(Collectors.groupingBy(TableRowInfo::getName));
             for (String key : headerNameMap.keySet()) {
                 List<TableRowInfo> headers = headerNameMap.get(key);
-                List<String> valueList = headers.stream().map(TableRowInfo::getExample).distinct().collect(Collectors.toList());
+                List<String> valueList = headers.stream().map(TableRowInfo::getExample).map(String::valueOf).distinct().collect(Collectors.toList());
 
                 if (valueList.size() == 1) {
                     mergedList.add(new TableRowInfo(key, "String", headers.get(0).isRequired(), headers.get(0).getDescription(), headers.get(0).getExample()));
@@ -261,9 +266,9 @@ public class ApiInfo {
             if (mappingAnnotation != null) {
                 PsiNameValuePair[] attributes = mappingAnnotation.getParameterList().getAttributes();
                 for (PsiNameValuePair pair : attributes) {
-                    if ("consumes".equals(pair.getName())) {
+                    if ("consumes".equals(pair.getAttributeName())) {
                         headers.addAll(resolveConsumes(pair));
-                    } else if ("produces".equals(pair.getName())) {
+                    } else if ("produces".equals(pair.getAttributeName())) {
                         headers.addAll(resolveProduces(pair));
                     }
                 }
@@ -371,7 +376,7 @@ public class ApiInfo {
 
 
 
-    public static class ApiResponseInfo extends ApiBody {
+    public static class ApiResponseInfo extends AbstractBody {
         private ApiTableInfo responseBody;
         private String responseBodyJson;
 
@@ -399,17 +404,15 @@ public class ApiInfo {
         }
     }
 
-    private static class ApiTableInfo {
-        private List<TableRowInfo> rowList = new ArrayList<>();
+    public static class ApiTableInfo {
+        private List<TableRowInfo> rowList;
 
         public ApiTableInfo(List<TableRowInfo> rowList) {
-            if (rowList != null) {
-                this.rowList = rowList;
-            }
+            this.rowList = rowList != null ? rowList : new ArrayList<>();
         }
 
         public List<TableRowInfo> getRowList() {
-            return rowList;
+            return this.rowList;
         }
 
         public void setRowList(List<TableRowInfo> rowList) {
@@ -417,14 +420,14 @@ public class ApiInfo {
         }
     }
 
-    private static class TableRowInfo {
+    public static class TableRowInfo {
         private String name;
         private String type;
         private boolean required;
         private String description;
-        private String example;
+        private Object example;
 
-        public TableRowInfo(String name, String type, boolean required, String description, String example) {
+        public TableRowInfo(String name, String type, boolean required, String description, Object example) {
             this.name = name;
             this.type = type;
             this.required = required;
@@ -464,13 +467,21 @@ public class ApiInfo {
             this.description = description;
         }
 
-        public String getExample() {
+        public Object getExample() {
             return example;
         }
 
-        public void setExample(String example) {
+        public void setExample(Object example) {
             this.example = example;
         }
+    }
+
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
     }
 
     public String getTitle() {

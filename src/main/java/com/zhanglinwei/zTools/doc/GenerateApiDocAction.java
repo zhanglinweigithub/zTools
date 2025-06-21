@@ -12,13 +12,14 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
-import com.zhanglinwei.zTools.doc.apidoc.model.ClassInfo;
-import com.zhanglinwei.zTools.doc.apidoc.model.MethodInfo;
 import com.zhanglinwei.zTools.doc.facade.DocFacade;
 import com.zhanglinwei.zTools.util.AnnotationUtil;
+import com.zhanglinwei.zTools.util.DesUtil;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 public class GenerateApiDocAction extends AnAction {
 
@@ -68,30 +69,30 @@ public class GenerateApiDocAction extends AnAction {
 
     }
 
-    protected boolean generateApiDocForSelectedMethod(Project project, PsiMethod selectedMethod) throws Exception {
+    private boolean generateApiDocForSelectedMethod(Project project, PsiMethod selectedMethod) throws Exception {
         if (!AnnotationUtil.hasMappingAnnotation(selectedMethod)) {
             NotificationUtil.warnNotify("The method is not a RestApi!", project);
             return false;
         }
 
-        ApiInfo apiInfo = new ApiInfo(selectedMethod);
         PsiClass containingClass = selectedMethod.getContainingClass();
-        ClassInfo classInfo = new ClassInfo(containingClass, new MethodInfo(selectedMethod));
         if (!AnnotationUtil.hasController(containingClass)) {
             NotificationUtil.errorNotify("The file is not a Controller!", project);
             return false;
         }
-        return DocFacade.generateApiDoc(classInfo, project, false);
+
+        ApiInfo apiInfo = ApiInfo.create(selectedMethod);
+        return DocFacade.generateApiDoc(Collections.singletonList(apiInfo), project, DesUtil.obtainDescription(selectedMethod));
     }
 
     private boolean generateApiDocForAllMethods(Project project, PsiClass selectedClass) throws Exception {
-        ClassInfo classInfo = new ClassInfo(selectedClass, true);
-        if (!classInfo.hasController()) {
+        if (!AnnotationUtil.hasController(selectedClass)) {
             NotificationUtil.errorNotify("The file is not a Controller!", project);
             return false;
         }
 
-        return DocFacade.generateApiDoc(classInfo, project, false);
+        List<ApiInfo> apiInfos = ApiInfo.create(selectedClass);
+        return DocFacade.generateApiDoc(apiInfos, project, DesUtil.obtainDescription(selectedClass));
     }
 
 }

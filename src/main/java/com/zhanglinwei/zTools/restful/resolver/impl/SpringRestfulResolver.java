@@ -54,17 +54,17 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
             return Collections.emptyList();
         }
 
-        PsiAnnotation classXxxMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(containingClass.getAnnotations());
-        PsiAnnotation methodXxxMappingAnnotation = AnnotationUtil.getXxxMappingAnnotation(psiMethod.getAnnotations());
+        PsiAnnotation classXxxMappingAnnotation = AnnotationUtil.findXxxMappingAnnotation(containingClass.getAnnotations());
+        PsiAnnotation methodXxxMappingAnnotation = AnnotationUtil.findXxxMappingAnnotation(psiMethod.getAnnotations());
         if (classXxxMappingAnnotation == null || methodXxxMappingAnnotation == null) {
             return Collections.emptyList();
         }
 
-        String classRequestPath = AnnotationUtil.getPathFromAnnotation(classXxxMappingAnnotation);
-        String methodRequestPath = AnnotationUtil.getPathFromAnnotation(methodXxxMappingAnnotation);
+        String classRequestPath = AnnotationUtil.extractPathFromAnnotation(classXxxMappingAnnotation);
+        String methodRequestPath = AnnotationUtil.extractPathFromAnnotation(methodXxxMappingAnnotation);
         String requestPath = buildRequestPath(classRequestPath, methodRequestPath, psiMethod.getProject());
 
-        Set<String> requestTypes = AnnotationUtil.getRequestTypeListFromAnnotation(classXxxMappingAnnotation, methodXxxMappingAnnotation);
+        Set<String> requestTypes = AnnotationUtil.extractRequestTypeListFromAnnotation(classXxxMappingAnnotation, methodXxxMappingAnnotation);
         if (requestTypes.isEmpty()) {
             IRestful iRestful = new IRestful();
             iRestful.setPsiMethod(psiMethod);

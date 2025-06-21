@@ -35,21 +35,21 @@ public final class ExampleUtils {
                 wrapped = NestedUtils.wrapWithNesting(Collections.emptyMap(), nestedInfo.getDepth());
             }
 
-            return JsonUtil.toJsonString(wrapped);
+            return JsonUtil.toJsonString(wrapped, false);
         }
 
-        return JsonUtil.toJsonString(Collections.emptyMap());
+        return JsonUtil.toJsonString(Collections.emptyMap(), false);
     }
 
-    public static String createNormalExampleAsString(PsiType psiType, PsiAnnotation[] annotations) {
+    public static Object createNormalExample(PsiType psiType, PsiAnnotation[] annotations) {
         TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(psiType);
         PsiType realType = nestedInfo.getRealType();
 
         if (TypeUtils.isNormalType(realType)) {
             Object normalValue = normalValue(realType.getPresentableText(), Arrays.asList(annotations));
             if (normalValue != null) {
-                Object wrapped = NestedUtils.wrapWithNesting(normalValue + ", " + normalValue, nestedInfo.getDepth());
-                return JsonUtil.toJsonString(wrapped);
+                Object wrapped = NestedUtils.wrapWithNesting(normalValue, nestedInfo.getDepth());
+                return JsonUtil.toJsonString(wrapped, false);
             }
         }
 

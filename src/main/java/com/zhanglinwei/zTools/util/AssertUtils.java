@@ -6,29 +6,34 @@ import java.util.Map;
 /**
  * 校验工具类
  */
-public class AssertUtils {
+public final class AssertUtils {
 
     private AssertUtils(){}
 
-    public static boolean isNotEmpty(Collection collection) {
+    public static boolean isNotEmpty(Collection<?> collection) {
         return !isEmpty(collection);
     }
-
-    public static boolean isEmpty(Collection collection) {
+    public static boolean isEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();
     }
 
-    public static boolean isEmpty(Map map) {
+    public static boolean isNotEmpty(Object[] array) {
+        return !isEmpty(array);
+    }
+    public static boolean isEmpty(Object[] array) {
+        return array == null || array.length == 0;
+    }
+
+    public static boolean isEmpty(Map<?, ?> map) {
         return map == null || map.isEmpty();
     }
-    public static boolean isNotEmpty(Map map) {
+    public static boolean isNotEmpty(Map<?, ?> map) {
         return !isEmpty(map);
     }
 
     public static boolean isEmpty(String str) {
-        return str == null || str.length() == 0;
+        return str == null || str.isEmpty();
     }
-
     public static boolean isNotEmpty(String str) {
         return !isEmpty(str);
     }
@@ -44,7 +49,6 @@ public class AssertUtils {
         }
         return true;
     }
-
     public static boolean isNotBlank(String str) {
         return !isBlank(str);
     }

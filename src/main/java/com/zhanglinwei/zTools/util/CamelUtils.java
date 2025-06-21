@@ -4,6 +4,10 @@ public final class CamelUtils {
 
     private CamelUtils(){}
 
+    /**
+     * 驼峰转中划线
+     * userList ==> user-list
+     */
     public static String camelToKebabCase(String camelCase) {
         if (AssertUtils.isBlank(camelCase)) {
             return camelCase;

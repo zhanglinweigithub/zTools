@@ -8,15 +8,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
-import com.zhanglinwei.zTools.doc.apidoc.normal.FieldFactory;
+import com.zhanglinwei.zTools.doc.apidoc.model.JavaProperty;
+import com.zhanglinwei.zTools.util.AssertUtils;
 import com.zhanglinwei.zTools.util.ClipboardUtils;
 import com.zhanglinwei.zTools.util.JsonUtil;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 
 
-/**
- * 不带注释的JSON
- */
 public class CopyJsonAction extends AnAction {
 
     @Override
@@ -40,23 +38,25 @@ public class CopyJsonAction extends AnAction {
             NotificationUtil.errorNotify("This operation only supports Java Class files!", project);
             return;
         }
-        boolean generateSuccess = generateJson(project, selectedClass);
-        if (generateSuccess) {
+
+        if (generateJson(selectedClass)) {
             NotificationUtil.infoNotify("Copy Json successfully!", project);
         }
     }
 
-    private boolean generateJson(Project project, PsiClass selectedClass) {
+    private boolean generateJson(PsiClass selectedClass) {
+        Project project = selectedClass.getProject();
+
         try {
             PsiField[] allFields = selectedClass.getAllFields();
-            if (allFields.length == 0) {
+            if (AssertUtils.isEmpty(allFields)) {
                 NotificationUtil.errorNotify("This class file has no fields!", project);
                 return false;
             }
-            PsiType classType = PsiTypesUtil.getClassType(selectedClass);
 
-            String jsonStr = JsonUtil.buildJson5(FieldFactory.buildByPsiType(classType, null, project));
-            ClipboardUtils.copyToClipboard(jsonStr);
+            PsiType classType = PsiTypesUtil.getClassType(selectedClass);
+            String prettyJson = JsonUtil.prettyJsonWithComment(JavaProperty.createSimple(classType, project, null));
+            ClipboardUtils.copyToClipboard(prettyJson);
             return true;
         } catch (Exception e) {
             NotificationUtil.errorNotify("Copy Json fail, Caused by: " + e.getMessage(), project);

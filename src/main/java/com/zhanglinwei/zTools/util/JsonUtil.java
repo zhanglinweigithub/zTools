@@ -5,12 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiArrayType;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiType;
-import com.intellij.psi.util.PsiUtil;
-import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
-import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
 import com.zhanglinwei.zTools.doc.apidoc.model.JavaProperty;
 
 import java.lang.reflect.Modifier;
@@ -20,45 +15,12 @@ import java.util.stream.Collectors;
 /**
  * JSON工具类
  */
-public class JsonUtil {
+public final class JsonUtil {
 
     private JsonUtil(){}
 
-    private static final Gson gson = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC).setPrettyPrinting().create();
-
-    public static String buildPrettyJson(FieldInfo fieldInfo) {
-        if (TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
-            return FieldUtil.getValue(fieldInfo).toString();
-        }
-        Map<String, Object> stringObjectMap = getStringObjectMap(fieldInfo.getChildren());
-        if (TypeEnum.ARRAY.equals(fieldInfo.getParamType())) {
-            return gson.toJson(Collections.singletonList(stringObjectMap));
-        }
-        return gson.toJson(stringObjectMap);
-    }
-
-    private static String buildJson5(String prettyJson, List<String> fieldDesc) {
-        String[] split = prettyJson.split("\n");
-        StringBuffer json5 = new StringBuffer();
-        int index = 0;
-        for (String str : split) {
-            String temp = str;
-            if (str.contains(":")) {
-                index++;
-                String desc = fieldDesc.get(index - 1);
-                if (AssertUtils.isNotBlank(desc)) {
-                    temp = str + " // " + desc;
-                }
-            }
-            json5.append(temp);
-            json5.append("\n");
-        }
-        return json5.toString();
-    }
-
-    public static String buildJson5(FieldInfo fieldInfo) {
-        return buildJson5(buildPrettyJson(fieldInfo), buildFieldDescList(fieldInfo));
-    }
+    private static final Gson PRETTY_GSON = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC).setPrettyPrinting().create();
+    private static final Gson FLATTEN_GSON = new GsonBuilder().excludeFieldsWithModifiers(Modifier.STATIC).create();
 
     /**
      * 格式化后、带注释的 Json
@@ -179,7 +141,16 @@ public class JsonUtil {
         }
 
         Object object = convertPropertyToJsonObject(property);
-        return gson.toJson(object);
+        return PRETTY_GSON.toJson(object);
+    }
+
+    public static String flattenJsonString(JavaProperty property) {
+        if (property == null) {
+            return "";
+        }
+
+        Object object = convertPropertyToJsonObject(property);
+        return FLATTEN_GSON.toJson(object);
     }
 
     /**
@@ -237,92 +208,6 @@ public class JsonUtil {
         return resultMap;
     }
 
-
-    public static List<String> buildFieldDescList(List<FieldInfo> children) {
-        List<String> descList = new ArrayList<>();
-        if (children == null) {
-            return descList;
-        }
-        for (FieldInfo fieldInfo : children) {
-            String desc = buildDesc(fieldInfo);
-            if (fieldInfo.isCycle()) {
-                descList.add(AssertUtils.isBlank(desc) ? "同外层" : desc + " 同外层");
-            } else {
-                descList.add(desc);
-            }
-            if (!TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
-                descList.addAll(buildFieldDescList(fieldInfo.getChildren()));
-            }
-        }
-        return descList;
-    }
-
-    public static List<String> buildFieldDescList(FieldInfo fieldInfo) {
-        List<String> descList = new ArrayList<>();
-        if (fieldInfo == null) {
-            return descList;
-        }
-        if (TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
-            if (AssertUtils.isBlank(fieldInfo.getDesc())) {
-                return descList;
-            }
-            descList.add(buildDesc(fieldInfo));
-        } else {
-            descList.addAll(buildFieldDescList(fieldInfo.getChildren()));
-        }
-        return descList;
-    }
-
-    private static String buildDesc(FieldInfo fieldInfo) {
-        String desc = fieldInfo.getDesc();
-        if (!fieldInfo.isRequired()) {
-            return desc;
-        }
-        if (AssertUtils.isEmpty(desc)) {
-            return "必填";
-        }
-        return desc + ", 必填";
-    }
-
-    public static Map<String, Object> getStringObjectMap(List<FieldInfo> fieldInfos) {
-        Map<String, Object> map = new LinkedHashMap<>(64);
-        if (fieldInfos == null) {
-            return map;
-        }
-        for (FieldInfo fieldInfo : fieldInfos) {
-            buildJsonValue(map, fieldInfo);
-        }
-        return map;
-    }
-
-    private static void buildJsonValue(Map<String, Object> map, FieldInfo fieldInfo) {
-        Object example = fieldInfo.getExample();
-        if (TypeEnum.LITERAL.equals(fieldInfo.getParamType())) {
-            map.put(fieldInfo.getName(), example == null ? FieldUtil.getValue(fieldInfo) : example);
-            return;
-        }
-        if (TypeEnum.ARRAY.equals(fieldInfo.getParamType())) {
-            if (AssertUtils.isNotEmpty(fieldInfo.getChildren())) {
-                map.put(fieldInfo.getName(), Collections.singletonList(getStringObjectMap(fieldInfo.getChildren())));
-                return;
-            }
-            PsiClass psiClass = PsiUtil.resolveClassInType(fieldInfo.getPsiType());
-            String innerType = fieldInfo.getPsiType() instanceof PsiArrayType ? ((PsiArrayType)fieldInfo.getPsiType()).getComponentType().getPresentableText() :
-                    PsiUtil.substituteTypeParameter(fieldInfo.getPsiType(), psiClass, 0, true).getPresentableText();
-            map.put(fieldInfo.getName(), Collections.singletonList(FieldUtil.normalTypes.get(innerType) == null ? new HashMap<>() : FieldUtil.normalTypes.get(innerType)));
-            return;
-        }
-        if (fieldInfo.getChildren() == null) {
-            map.put(fieldInfo.getName(), new HashMap<>());
-            return;
-        }
-        for (FieldInfo info : fieldInfo.getChildren()) {
-            if (!info.getName().equals(fieldInfo.getName())) {
-                map.put(fieldInfo.getName(), getStringObjectMap(fieldInfo.getChildren()));
-            }
-        }
-    }
-
     public static boolean validateJson(String jsonString) {
         boolean passFlag = false;
 
@@ -331,7 +216,7 @@ public class JsonUtil {
         }
 
         try {
-            Object obj = gson.fromJson(jsonString, Object.class);
+            Object obj = PRETTY_GSON.fromJson(jsonString, Object.class);
             if (obj != null) {
                 passFlag = true;
             }
@@ -350,8 +235,8 @@ public class JsonUtil {
         }
 
         try {
-            JsonObject jsonObj = gson.fromJson(jsonString, JsonObject.class);
-            return gson.toJson(jsonObj);
+            JsonObject jsonObj = PRETTY_GSON.fromJson(jsonString, JsonObject.class);
+            return PRETTY_GSON.toJson(jsonObj);
         } catch (Exception e) {
             NotificationUtil.errorNotify("json format error, Caused by: " + e.getMessage(), project);
         }
@@ -364,15 +249,19 @@ public class JsonUtil {
         }
 
         try {
-            JsonArray jsonArray = gson.fromJson(jsonString, JsonArray.class);
-            return gson.toJson(jsonArray);
+            JsonArray jsonArray = PRETTY_GSON.fromJson(jsonString, JsonArray.class);
+            return PRETTY_GSON.toJson(jsonArray);
         } catch (Exception e) {
             NotificationUtil.errorNotify("json format error, Caused by: " + e.getMessage(), project);
         }
         return "";
     }
 
-    public static String toJsonString(Object object) {
-        return object == null ? "" : gson.toJson(object);
+    public static String toJsonString(Object object, boolean pretty) {
+        if (object == null) {
+            return "";
+        }
+
+        return pretty ? PRETTY_GSON.toJson(object) : FLATTEN_GSON.toJson(object);
     }
 }

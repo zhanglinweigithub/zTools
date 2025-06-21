@@ -7,7 +7,7 @@ import java.awt.datatransfer.StringSelection;
 /**
  * 剪贴板工具类
  */
-public class ClipboardUtils {
+public final class ClipboardUtils {
 
     private ClipboardUtils(){}
 

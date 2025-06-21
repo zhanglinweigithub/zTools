@@ -2,7 +2,7 @@ package com.zhanglinwei.zTools.util;
 
 import java.io.InputStream;
 
-public class ResourcesUtils {
+public final class ResourcesUtils {
 
     private ResourcesUtils(){}
 
