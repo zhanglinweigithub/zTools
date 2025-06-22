@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public abstract class AbstractDocHandler implements DocHandler {
 
     @Override
@@ -98,8 +100,8 @@ public abstract class AbstractDocHandler implements DocHandler {
 
     protected String escapeCharacter(String string) {
         if (string != null) {
-            return string.replaceAll("<", "&lt;")
-                    .replaceAll(">", "&gt;");
+            return string.replaceAll(LEFT_CHEV, HTML_LT)
+                    .replaceAll(RIGHT_CHEV, HTML_GT);
         }
         return string;
     }

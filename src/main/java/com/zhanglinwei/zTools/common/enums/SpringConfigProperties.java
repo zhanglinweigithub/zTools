@@ -8,7 +8,7 @@ public enum SpringConfigProperties {
     ACTIVE_PROFILES("spring.profiles.active"),
     ;
 
-    private String value;
+    private final String value;
 
     SpringConfigProperties(String value) {
         this.value = value;

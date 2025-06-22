@@ -7,6 +7,8 @@ import com.zhanglinwei.zTools.common.enums.HttpMethod;
 
 import java.util.*;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 /**
  * 注解工具类
  */
@@ -37,7 +39,7 @@ public final class AnnotationUtil {
      */
     public static String extractRequestTypeFromAnnotation(PsiAnnotation classMapping, PsiAnnotation methodMapping) {
         Set<String> requestTypeList = extractRequestTypeListFromAnnotation(classMapping, methodMapping);
-        return String.join(", ", requestTypeList);
+        return String.join(COMMA_SPACE, requestTypeList);
     }
 
     public static Set<String> extractRequestTypeListFromAnnotation(PsiAnnotation classMapping, PsiAnnotation methodMapping) {
@@ -135,9 +137,9 @@ public final class AnnotationUtil {
                     if ("value".equals(attrName) || "path".equals(attrName)) {
                         PsiAnnotationMemberValue attrValue = attr.getValue();
                         if (attrValue != null) {
-                            String text = attrValue.getText().replace("{\"", "").replace("\"}", "").replace("\"", "");
-                            if (text.contains(",")) {
-                                return CommonUtils.appendSlash(text.split(",")[0]);
+                            String text = attrValue.getText().replace("{\"", EMPTY).replace("\"}", EMPTY).replace("\"", EMPTY);
+                            if (text.contains(COMMA)) {
+                                return CommonUtils.appendSlash(text.split(COMMA)[0]);
                             }
                             return CommonUtils.appendSlash(text);
                         }
@@ -146,7 +148,7 @@ public final class AnnotationUtil {
             }
         }
 
-        return "";
+        return EMPTY;
     }
 
     /**
@@ -201,7 +203,7 @@ public final class AnnotationUtil {
         }
 
         PsiAnnotationMemberValue required = psiAnnotation.findAttributeValue("required");
-        if (required != null && "true".equals(required.getText())) {
+        if (required != null && TRUE.equals(required.getText())) {
             return true;
         }
         if (REQUIRED_ANNOTATION_LIST.contains(psiAnnotation.getText().split("\\(")[0])) {

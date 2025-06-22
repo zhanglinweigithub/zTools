@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.doc.constant;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 public enum DocType {
 
     MD(".md", "MarkDown"),
@@ -23,7 +24,7 @@ public enum DocType {
             }
         }
 
-        return "";
+        return EMPTY;
     }
 
     public String getSuffix() {

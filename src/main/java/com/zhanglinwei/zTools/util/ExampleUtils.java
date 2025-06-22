@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public final class ExampleUtils {
 
     private ExampleUtils() {}
@@ -18,7 +20,7 @@ public final class ExampleUtils {
         // 普通类型
         if (TypeUtils.isNormalType(psiType)) {
             Object normalValue = normalValue(psiType.getPresentableText(), Arrays.asList(annotations));
-            return normalValue != null ? normalValue.toString() : "";
+            return normalValue != null ? normalValue.toString() : EMPTY;
         }
 
         // 可迭代类型
@@ -30,7 +32,7 @@ public final class ExampleUtils {
             // 普通类型
             if (TypeUtils.isNormalType(realType)) {
                 Object example = normalValue(realType.getPresentableText(), Arrays.asList(annotations));
-                wrapped = NestedUtils.wrapWithNesting(example + ", " + example, nestedInfo.getDepth());
+                wrapped = NestedUtils.wrapWithNesting(example + COMMA_SPACE + example, nestedInfo.getDepth());
             } else {
                 wrapped = NestedUtils.wrapWithNesting(Collections.emptyMap(), nestedInfo.getDepth());
             }
@@ -53,7 +55,7 @@ public final class ExampleUtils {
             }
         }
 
-        return "N/A";
+        return NA;
     }
 
     public static Object createSimpleJsonExample(PsiType psiType, PsiAnnotation[] annotations) {

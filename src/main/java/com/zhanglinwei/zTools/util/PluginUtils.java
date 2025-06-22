@@ -6,6 +6,9 @@ import com.intellij.openapi.extensions.PluginId;
 
 import java.util.List;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.SLASH;
+
 public final class PluginUtils {
 
     private PluginUtils (){}
@@ -16,12 +19,12 @@ public final class PluginUtils {
             for (IdeaPluginDescriptor plugin : loadedPlugins) {
                 PluginId pluginId = plugin.getPluginId();
                 if("com.zhanglinwei.zTools".equals(pluginId.getIdString())) {
-                    return plugin.getPluginPath().toString().replaceAll("\\\\", "/");
+                    return plugin.getPluginPath().toString().replaceAll("\\\\", SLASH);
                 }
             }
         }
 
-        return "";
+        return EMPTY;
     }
 
     public static IdeaPluginDescriptor getPluginDescriptor() {

@@ -12,6 +12,8 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 /**
  * JSON工具类
  */
@@ -27,7 +29,7 @@ public final class JsonUtil {
      */
     public static String prettyJsonWithComment(JavaProperty property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
 
         // 格式化后的Json
@@ -56,21 +58,21 @@ public final class JsonUtil {
         }
 
         Iterator<String> commentIterator = commentList.iterator();
-        return Arrays.stream(prettyJson.split("\n"))
+        return Arrays.stream(prettyJson.split(NEWLINE))
                 .map(line -> appendCommentToLine(line, commentIterator))
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining(NEWLINE));
     }
 
     /**
      * Json 追加注释
      */
     private static String appendCommentToLine(String line, Iterator<String> commentIterator) {
-        if (!line.contains(":") || !commentIterator.hasNext()) {
+        if (!line.contains(COLON) || !commentIterator.hasNext()) {
             return line;
         }
 
         String comment = commentIterator.next();
-        return AssertUtils.isNotBlank(comment) ? line + " // " + comment : line;
+        return AssertUtils.isNotBlank(comment) ? line + SPACE_SLASH_SLASH_SPACE + comment : line;
     }
 
     /**
@@ -114,7 +116,7 @@ public final class JsonUtil {
      */
     private static String buildPropertyComment(JavaProperty property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
 
         List<String> commentParts = new ArrayList<>();
@@ -129,7 +131,7 @@ public final class JsonUtil {
             commentParts.add("同外层");
         }
 
-        return String.join(", ", commentParts);
+        return String.join(COMMA_SPACE, commentParts);
     }
 
     /**
@@ -137,7 +139,7 @@ public final class JsonUtil {
      */
     public static String prettyJsonString(JavaProperty property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
 
         Object object = convertPropertyToJsonObject(property);
@@ -146,7 +148,7 @@ public final class JsonUtil {
 
     public static String flattenJsonString(JavaProperty property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
 
         Object object = convertPropertyToJsonObject(property);
@@ -158,7 +160,7 @@ public final class JsonUtil {
      */
     private static Object convertPropertyToJsonObject(JavaProperty property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
 
         TypeUtils.NestedInfo nestedInfo = TypeUtils.deepExtractIterableType(property.getPsiType());
@@ -226,12 +228,12 @@ public final class JsonUtil {
     }
 
     public static String formatJson(String jsonString, Project project) {
-        return jsonString.startsWith("[") ? formatJsonArray(jsonString, project) : formatJsonObject(jsonString, project);
+        return jsonString.startsWith(LEFT_SQ_BRACKET) ? formatJsonArray(jsonString, project) : formatJsonObject(jsonString, project);
     }
 
     private static String formatJsonObject(String jsonString, Project project) {
         if (AssertUtils.isBlank(jsonString)) {
-            return "";
+            return EMPTY;
         }
 
         try {
@@ -240,12 +242,12 @@ public final class JsonUtil {
         } catch (Exception e) {
             NotificationUtil.errorNotify("json format error, Caused by: " + e.getMessage(), project);
         }
-        return "";
+        return EMPTY;
     }
 
     public static String formatJsonArray(String jsonString, Project project) {
         if (AssertUtils.isBlank(jsonString)) {
-            return "";
+            return EMPTY;
         }
 
         try {
@@ -254,12 +256,12 @@ public final class JsonUtil {
         } catch (Exception e) {
             NotificationUtil.errorNotify("json format error, Caused by: " + e.getMessage(), project);
         }
-        return "";
+        return EMPTY;
     }
 
     public static String toJsonString(Object object, boolean pretty) {
         if (object == null) {
-            return "";
+            return EMPTY;
         }
 
         return pretty ? PRETTY_GSON.toJson(object) : FLATTEN_GSON.toJson(object);

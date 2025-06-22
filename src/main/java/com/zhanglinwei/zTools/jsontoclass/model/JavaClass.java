@@ -5,12 +5,12 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.DOT_JAVA;
+
 /**
  * JavaClass
  */
 public class JavaClass {
-
-    private String suffix = ".java";
 
     /**
      * 包名
@@ -117,7 +117,7 @@ public class JavaClass {
     }
 
     public String getFullClassName() {
-        return className + suffix;
+        return className + DOT_JAVA;
     }
 
     public void setClassName(String className) {

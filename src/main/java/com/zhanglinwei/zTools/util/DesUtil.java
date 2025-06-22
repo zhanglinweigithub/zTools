@@ -6,13 +6,14 @@ import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.zhanglinwei.zTools.common.constants.CharacterPool;
 import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.zhanglinwei.zTools.util.CommonUtils.STAR;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 
 /**
  * 注释工具类
@@ -30,7 +31,7 @@ public class DesUtil {
             return paramDescMap;
         }
         for (PsiDocTag docTag : docComment.getTags()) {
-            String tagValue = docTag.getValueElement() == null ? "" : docTag.getValueElement().getText();
+            String tagValue = docTag.getValueElement() == null ? EMPTY : docTag.getValueElement().getText();
             if ("param".equals(docTag.getName()) && AssertUtils.isNotBlank(tagValue)) {
                 paramDescMap.put(tagValue, getParamDesc(docTag.getText()));
             }
@@ -39,12 +40,12 @@ public class DesUtil {
     }
 
     private static String getParamDesc(String tagText) {
-        String[] strings = tagText.replace(STAR, "").replaceAll(" {2,}", " ").trim().split(" ");
+        String[] strings = tagText.replace(STAR, EMPTY).replaceAll(" {2,}", SPACE).trim().split(SPACE);
         if (strings.length >= 3) {
             String desc = strings[2];
-            return desc.replace("\n", "");
+            return desc.replace(NEWLINE, EMPTY);
         }
-        return "";
+        return EMPTY;
     }
 
     /**
@@ -59,7 +60,7 @@ public class DesUtil {
         boolean endIndexFlag;
         do {
             if (Strings.isNullOrEmpty(source.trim()) || source.equals(String.valueOf(element))) {
-                source = "";
+                source = EMPTY;
                 break;
             }
             int beginIndex = source.indexOf(element) == 0 ? 1 : 0;
@@ -119,32 +120,32 @@ public class DesUtil {
                 String docTag = psiDocTag.getText().toLowerCase();
                 if (docTag.contains("description")) {
                     return trimFirstAndLastChar(docTag
-                            .replace("@description", "")
-                            .replace("@Description", "")
-                            .replace("Description", "")
-                            .replace("<br>", "")
-                            .replace(":", "")
-                            .replace("*", "")
-                            .replace("\n", " "), ' ');
+                            .replace("@description", EMPTY)
+                            .replace("@Description", EMPTY)
+                            .replace("Description", EMPTY)
+                            .replace("<br>", EMPTY)
+                            .replace(COLON, EMPTY)
+                            .replace(STAR, EMPTY)
+                            .replace(NEWLINE, SPACE), CharacterPool.SPACE);
                 }
             }
             // 匹配 "todo"（忽略大小写）及其后面的所有内容，直到换行符或字符串结尾
-            String text = psiDocComment.getText().replaceAll("(?i)TODO.*", "");
+            String text = psiDocComment.getText().replaceAll("(?i)TODO.*", EMPTY);
             return trimFirstAndLastChar(
-                    text.split("@")[0]
-                            .replace("@description", "")
-                            .replace("@Description", "")
-                            .replace("Description", "")
-                            .replace("<br>", "\n")
-                            .replace(":", "")
-                            .replace("*", "")
-                            .replace("/", "")
-                            .replace("\n", " ")
-                            .replace("<p>", "\n")
-                            .replace("</p>", "\n")
-                            .replace("<li>", "\n")
-                            .replace("</li>", "\n")
-                            .replace("{", ""), ' '
+                    text.split(AT)[0]
+                            .replace("@description", EMPTY)
+                            .replace("@Description", EMPTY)
+                            .replace("Description", EMPTY)
+                            .replace("<br>", NEWLINE)
+                            .replace(":", EMPTY)
+                            .replace("*", EMPTY)
+                            .replace("/", EMPTY)
+                            .replace("\n", SPACE)
+                            .replace("<p>", NEWLINE)
+                            .replace("</p>", NEWLINE)
+                            .replace("<li>", NEWLINE)
+                            .replace("</li>", NEWLINE)
+                            .replace("{", EMPTY), CharacterPool.SPACE
             );
         }
 
@@ -162,12 +163,12 @@ public class DesUtil {
         if (psiMethodTarget.getDocComment() != null) {
             PsiDocTag[] psiDocTags = psiMethodTarget.getDocComment().getTags();
             for (PsiDocTag psiDocTag : psiDocTags) {
-                if ((psiDocTag.getText().contains("@param") || psiDocTag.getText().contains("@Param")) && (!psiDocTag.getText().contains("[")) && psiDocTag.getText().contains(paramName)) {
-                    return trimFirstAndLastChar(psiDocTag.getText().replace("@param", "").replace("@Param", "").replace(paramName, "").replace(":", "").replace("*", "").replace("\n", " "), ' ');
+                if ((psiDocTag.getText().contains("@param") || psiDocTag.getText().contains("@Param")) && (!psiDocTag.getText().contains(LEFT_SQ_BRACKET)) && psiDocTag.getText().contains(paramName)) {
+                    return trimFirstAndLastChar(psiDocTag.getText().replace("@param", EMPTY).replace("@Param", EMPTY).replace(paramName, EMPTY).replace(COLON, EMPTY).replace(STAR, EMPTY).replace(NEWLINE, SPACE), CharacterPool.SPACE);
                 }
             }
         }
-        return "";
+        return EMPTY;
     }
 
     /**
@@ -180,10 +181,10 @@ public class DesUtil {
         if (Objects.nonNull(psiDocComment)) {
             String fileText = psiDocComment.getText();
             if (!Strings.isNullOrEmpty(fileText)) {
-                return trimFirstAndLastChar(fileText.replace("*", "").replace("/", "").replace(" ", "").replace("\n", ",").replace("\t", ""), ',').split("\\{@link")[0];
+                return trimFirstAndLastChar(fileText.replace(STAR, EMPTY).replace(SLASH, EMPTY).replace(SPACE, EMPTY).replace(NEWLINE, COMMA).replace(TAB, EMPTY), CharacterPool.COMMA).split("\\{@link")[0];
             }
         }
-        return "";
+        return EMPTY;
     }
 
     /**
@@ -202,7 +203,7 @@ public class DesUtil {
         String[] linkString = field.getDocComment().getText().split("@link");
         if (linkString.length > 1) {
             //说明有link
-            String linkAddress = linkString[1].split("}")[0].trim();
+            String linkAddress = linkString[1].split(RIGHT_BRACE)[0].trim();
             PsiClass psiClassLink = JavaPsiFacade.getInstance(project).findClass(linkAddress, GlobalSearchScope.allScope(project));
             if (Objects.isNull(psiClassLink)) {
                 //可能没有获得全路径，尝试获得全路径
@@ -222,28 +223,28 @@ public class DesUtil {
                 //说明获得了link 的class
                 PsiField[] linkFields = psiClassLink.getFields();
                 if (linkFields.length > 0) {
-                    remark += "," + psiClassLink.getName() + "[";
+                    remark += COMMA + psiClassLink.getName() + LEFT_SQ_BRACKET;
                     StringBuilder remarkBuilder = new StringBuilder(remark);
                     for (int i = 0; i < linkFields.length; i++) {
                         PsiField psiField = linkFields[i];
                         if (i > 0) {
-                            remarkBuilder.append(",");
+                            remarkBuilder.append(COMMA);
                         }
                         // 先获得名称
                         remarkBuilder.append(psiField.getName());
                         // 后获得value,通过= 来截取获得，第二个值，再截取;
-                        String[] splitValue = psiField.getText().split("=");
+                        String[] splitValue = psiField.getText().split(EQUALS);
                         if (splitValue.length > 1) {
-                            String value = splitValue[1].split(";")[0];
-                            remarkBuilder.append(":").append(value);
+                            String value = splitValue[1].split(SEMICOLON)[0];
+                            remarkBuilder.append(COLON).append(value);
                         }
                         String filedValue = DesUtil.getFiledDesc(psiField.getDocComment());
                         if (!Strings.isNullOrEmpty(filedValue)) {
-                            remarkBuilder.append("(").append(filedValue).append(")");
+                            remarkBuilder.append(LEFT_BRACKET).append(filedValue).append(RIGHT_BRACKET);
                         }
                     }
                     remark = remarkBuilder.toString();
-                    remark += "]";
+                    remark += RIGHT_SQ_BRACKET;
                 }
             }
         }

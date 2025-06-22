@@ -26,6 +26,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public class JavaClassByJsonAction extends AnAction {
 
     private Project currentProject = null;
@@ -38,8 +40,8 @@ public class JavaClassByJsonAction extends AnAction {
     private static Map<String, JavaClass> tempMap = new HashMap<>();
     private static Set<String> classNameSet = new HashSet<>();
     private static Gson gson = new Gson();
-    private static String folderPath = "";
-    private static String packageName = "";
+    private static String folderPath = EMPTY;
+    private static String packageName = EMPTY;
 
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {
@@ -54,7 +56,7 @@ public class JavaClassByJsonAction extends AnAction {
             return;
         }
         String path = actionFolder.getPath();
-        folderPath = actionFolder.isDirectory() ? path : path.substring(0, path.lastIndexOf("/"));
+        folderPath = actionFolder.isDirectory() ? path : path.substring(0, path.lastIndexOf(SLASH));
 
         VirtualFile moduleSourceRoot = ProjectRootManager.getInstance(project).getFileIndex().getSourceRootForFile(actionFolder);
         if (moduleSourceRoot == null) {
@@ -75,10 +77,10 @@ public class JavaClassByJsonAction extends AnAction {
             Type type = new TypeToken<Map<String, Object>>() {
             }.getType();
 
-            if (jsonString.startsWith("[")) {
+            if (jsonString.startsWith(LEFT_SQ_BRACKET)) {
                 jsonString = jsonString.substring(1);
             }
-            if (jsonString.endsWith("]")) {
+            if (jsonString.endsWith(RIGHT_SQ_BRACKET)) {
                 jsonString = jsonString.substring(0, jsonString.length() - 1);
             }
 
@@ -116,7 +118,7 @@ public class JavaClassByJsonAction extends AnAction {
             folderPath =  actionFolder.getParent().getPath();
         }
 
-        return folderPath.replace(moduleSourcePath + "/", "").replaceAll("/", ".");
+        return folderPath.replace(moduleSourcePath + SLASH, EMPTY).replaceAll(SLASH, DOT);
     }
 
     private void writeJavaInner(JavaClass rootClass) {
@@ -132,7 +134,7 @@ public class JavaClassByJsonAction extends AnAction {
         Collection<JavaClass> javaFileList = objectMap.values();
         if (AssertUtils.isNotEmpty(javaFileList)) {
             javaFileList.forEach(javaFile -> {
-                File writeFile = new File(folderPath + "/" + javaFile.getFullClassName());
+                File writeFile = new File(folderPath + SLASH + javaFile.getFullClassName());
                 try (OutputStreamWriter java = new OutputStreamWriter(Files.newOutputStream(writeFile.toPath()), StandardCharsets.UTF_8)) {
                     java.write(javaFile.toJavaFileStr());
                 } catch (IOException e) {
@@ -154,7 +156,7 @@ public class JavaClassByJsonAction extends AnAction {
         } else if (tempMap.containsKey(uniqueCode)){
             return tempMap.get(uniqueCode);
         } else {
-            tempMap.put(uniqueCode, new JavaClass(className, ""));
+            tempMap.put(uniqueCode, new JavaClass(className, EMPTY));
         }
 
         JavaClass javaClass = new JavaClass(className, packageName);
@@ -200,7 +202,7 @@ public class JavaClassByJsonAction extends AnAction {
 
     private String appendRandomStr(String className) {
         StringBuilder builder = new StringBuilder();
-        builder.append(className).append("_");
+        builder.append(className).append(UNDERSCORE);
         for (int i = 0; i < LENGTH; i++) {
             int index = (int) (RANDOM.nextFloat() * CHARACTERS.length());
             builder.append(CHARACTERS.charAt(index));
@@ -224,7 +226,7 @@ public class JavaClassByJsonAction extends AnAction {
         }
 
         String valueStr = String.valueOf(value);
-        if (valueStr.contains(".")) {
+        if (valueStr.contains(DOT)) {
             return "BigDecimal";
         }
 
@@ -233,9 +235,9 @@ public class JavaClassByJsonAction extends AnAction {
 
     public static String generateUniqueCode(Collection<String> collection) {
         if (AssertUtils.isEmpty(collection)) {
-            return "";
+            return EMPTY;
         }
-        String appendValue = String.join(",", collection);
+        String appendValue = String.join(COMMA, collection);
         StringBuilder builder = null;
         try {
             builder = new StringBuilder();

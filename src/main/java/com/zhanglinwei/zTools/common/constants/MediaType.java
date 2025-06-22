@@ -5,6 +5,8 @@ import com.zhanglinwei.zTools.util.AssertUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.DOT;
+
 public final class MediaType {
 
     private MediaType() {}
@@ -41,7 +43,7 @@ public final class MediaType {
     }
 
     public static String getValue(String key, String dftValue) {
-        if (key.contains(".")) {
+        if (key.contains(DOT)) {
             String[] split = key.split("\\.");
             key = split[1];
         }

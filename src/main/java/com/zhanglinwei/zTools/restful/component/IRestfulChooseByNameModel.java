@@ -19,6 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public class IRestfulChooseByNameModel extends FilteringGotoByModel<HttpMethod> implements DumbAware, CustomMatcherModel {
 
     private final String CURRENT_MODULE_PERSISTENT_KEY = "CURRENT_MODULE_PERSISTENT_KEY";
@@ -72,7 +74,7 @@ public class IRestfulChooseByNameModel extends FilteringGotoByModel<HttpMethod> 
 
     @Override
     public String @NotNull [] getSeparators() {
-        return new String[]{"/", "?"};
+        return new String[]{SLASH, QUESTION_MARK};
     }
 
     @Override
@@ -87,11 +89,11 @@ public class IRestfulChooseByNameModel extends FilteringGotoByModel<HttpMethod> 
 
     @Override
     public boolean matches(@NotNull String item, @NotNull String input) {
-        if(input.equals("/")) {
+        if(input.equals(SLASH)) {
             return true;
         }
 
-        MinusculeMatcher matcher = NameUtil.buildMatcher("*" + input, NameUtil.MatchingCaseSensitivity.NONE);
+        MinusculeMatcher matcher = NameUtil.buildMatcher(STAR + input, NameUtil.MatchingCaseSensitivity.NONE);
         boolean matches = matcher.matches(item);
         if (!matches) {
             AntPathMatcher pathMatcher = new AntPathMatcher();

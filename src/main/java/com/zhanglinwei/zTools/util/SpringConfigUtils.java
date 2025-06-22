@@ -10,6 +10,8 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.util.*;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public final class SpringConfigUtils {
 
     private SpringConfigUtils() {}
@@ -51,7 +53,7 @@ public final class SpringConfigUtils {
 
     private static Map<String, Object> flattenMap(Map<String, Object> sourceMap) {
         Map<String, Object> flatMap = new LinkedHashMap<>();
-        flattenMapRecursive("", sourceMap, flatMap);
+        flattenMapRecursive(EMPTY, sourceMap, flatMap);
         return flatMap;
     }
 
@@ -67,7 +69,7 @@ public final class SpringConfigUtils {
             Map<?, ?> map = (Map<?, ?>) source;
             map.forEach((key, value) -> {
                 String kebabKey = CamelUtils.camelToKebabCase(key.toString());
-                String newPrefix = prefix.isEmpty() ? kebabKey : prefix + "." + kebabKey;
+                String newPrefix = prefix.isEmpty() ? kebabKey : prefix + DOT + kebabKey;
                 flattenMapRecursive(newPrefix, value, result);
             });
         }
@@ -97,7 +99,7 @@ public final class SpringConfigUtils {
         Object object = property(project, configProperties);
         if (object != null) {
             if (object instanceof Iterable) {
-                StringJoiner joiner = new StringJoiner(",", "[", "]");
+                StringJoiner joiner = new StringJoiner(COMMA, LEFT_SQ_BRACKET, RIGHT_SQ_BRACKET);
                 for (Object item : ((Iterable<?>) object)) {
                     joiner.add(item.toString());
                 }
@@ -111,7 +113,7 @@ public final class SpringConfigUtils {
 
     public static boolean propertyAsBoolean(Project project, SpringConfigProperties configProperties) {
         String value = propertyAsString(project, configProperties);
-        return "true".equalsIgnoreCase(value);
+        return TRUE.equalsIgnoreCase(value);
     }
 
     public static Long propertyAsLong(Project project, SpringConfigProperties configProperties) {

@@ -1,29 +1,14 @@
 package com.zhanglinwei.zTools.util;
 
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 /**
  * 通用工具类
  */
 public class CommonUtils {
 
     private CommonUtils(){}
-
-    public static final String SLASH = "/";
-    public static final String BACK_SLASH = "\\";
-    public static final String COMMA = "、";
-    public static final String YES = "Y";
-    public static final String NO = "N";
-    public static final String NULL = "N/A";
-    public static final String FOLD = "└";
-    public static final String VERTICAL = "|";
-    public static final String HORIZONTAL4 = "----";
-    public static final String SEMICOLON = ";";
-    public static final String STAR = "*";
-    public static final String COLON = ":";
-
-    private static final String[] UNITS = {"", "十", "百", "千"};
-    private static final String[] NUMBERS = {"", "一", "二", "三", "四", "五", "六", "七", "八", "九"};
-
 
     public static String replace(String text, String searchString, String replacement, int max) {
         if (AssertUtils.isNotBlank(text) && AssertUtils.isNotBlank(searchString) && replacement != null && max != 0) {
@@ -83,7 +68,7 @@ public class CommonUtils {
         if (AssertUtils.isBlank(path)) {
             return "";
         }
-        String p = path.replaceAll("/{2,}", "/");
+        String p = path.replaceAll("/{2,}", SLASH);
         if (!path.startsWith(SLASH)) {
             p = SLASH + path;
         }
@@ -97,11 +82,11 @@ public class CommonUtils {
      * 转换必填
      */
     public static String convertRequired(boolean required) {
-        return required ? YES : NO;
+        return required ? Y : N;
     }
 
     public static String getRange(String range) {
-        return AssertUtils.isEmpty(range) ? NULL : range;
+        return AssertUtils.isEmpty(range) ? NA : range;
     }
 
     /**
@@ -112,10 +97,10 @@ public class CommonUtils {
     }
 
     public static String buildPath(String path) {
-        if (AssertUtils.isBlank(path) || AssertUtils.isBlank(path.replaceAll(SLASH, ""))) {
-            return "";
+        if (AssertUtils.isBlank(path) || AssertUtils.isBlank(path.replaceAll(SLASH, EMPTY))) {
+            return EMPTY;
         }
-        path = path.replaceAll("/+$", "");
+        path = path.replaceAll("/+$", EMPTY);
         return path.startsWith(SLASH) ? path : SLASH + path;
     }
 

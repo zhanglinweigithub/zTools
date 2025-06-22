@@ -7,14 +7,17 @@ public interface SpringPool {
     String AT = "@";
     String ASTERISK = "*";
     String STAR = ASTERISK;
+    String STAR_STAR = "**";
+    String DOT_STAR = ".*";
     String BACK_SLASH = "\\";
     String COLON = ":";
     String COMMA = ",";
     String COMMA_SPACE = ", ";
     String DASH = "-";
     String DOLLAR = "$";
+    String DUN = "、";
     String DOT = ".";
-    String DOTDOT = "..";
+    String DOT_DOT = "..";
     String DOT_CLASS = ".class";
     String DOT_JAVA = ".java";
     String DOT_XML = ".xml";
@@ -23,6 +26,7 @@ public interface SpringPool {
     String FALSE = "false";
     String SLASH = "/";
     String DOUBLE_SLASH = "//";
+    String SPACE_SLASH_SLASH_SPACE = " // ";
     String HASH = "#";
     String HAT = "^";
     String LEFT_BRACE = "{";
@@ -30,9 +34,11 @@ public interface SpringPool {
     String LEFT_CHEV = "<";
     String DOT_NEWLINE = ",\n";
     String NEWLINE = "\n";
-    String N = "n";
+    String n = "n";
+    String N = "N";
     String NO = "no";
     String NULL = "null";
+    String NA = "N/A";
     String NUM = "NUM";
     String OFF = "off";
     String ON = "on";
@@ -44,6 +50,7 @@ public interface SpringPool {
     String QUOTE = "\"";
     String RETURN = "\r";
     String TAB = "\t";
+    String FOLD = "└";
     String RIGHT_BRACE = "}";
     String RIGHT_BRACKET = ")";
     String RIGHT_CHEV = ">";
@@ -60,7 +67,8 @@ public interface SpringPool {
     String UTF_8 = "UTF-8";
     String US_ASCII = "US-ASCII";
     String ISO_8859_1 = "ISO-8859-1";
-    String Y = "y";
+    String y = "y";
+    String Y = "Y";
     String YES = "yes";
     String ONE = "1";
     String ZERO = "0";

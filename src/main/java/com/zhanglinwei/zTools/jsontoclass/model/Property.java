@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.jsontoclass.model;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.SPACE;
+
 /**
  * 成员
  */
@@ -23,7 +25,7 @@ public class Property {
     }
 
     public String toJavaStr() {
-        return this.type + " " + this.name + ";\n\n";
+        return this.type + SPACE + this.name + ";\n\n";
     }
 
     public String getName() {

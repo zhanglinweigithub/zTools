@@ -13,13 +13,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.zhanglinwei.zTools.util.CommonUtils.SEMICOLON;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 
 @State(name = "DocConfig")
 public class DocConfig implements PersistentStateComponent<DocConfig> {
 
     private boolean overwriteDoc = true;
-    private String saveDir = "";
+    private String saveDir = EMPTY;
     private String docType = "MarkDown";
 
 
@@ -71,8 +71,8 @@ public class DocConfig implements PersistentStateComponent<DocConfig> {
     }
 
     public void setSaveDir(String saveDir) {
-        if (AssertUtils.isNotBlank(saveDir) && !saveDir.endsWith("/")) {
-            this.saveDir = saveDir + "/";
+        if (AssertUtils.isNotBlank(saveDir) && !saveDir.endsWith(SLASH)) {
+            this.saveDir = saveDir + SLASH;
             return;
         }
         this.saveDir = saveDir;
@@ -89,7 +89,7 @@ public class DocConfig implements PersistentStateComponent<DocConfig> {
 
 
     public static class ApiDocConfig {
-        private String prefix = "└";
+        private String prefix = FOLD;
         private Set<String> excludeFieldList = new HashSet<>();
         private String excludeFields = "serialVersionUID";
 

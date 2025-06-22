@@ -6,8 +6,7 @@ import com.zhanglinwei.zTools.util.AssertUtils;
 
 import java.util.Collection;
 
-import static com.zhanglinwei.zTools.common.constants.SpringPool.COLON;
-import static com.zhanglinwei.zTools.common.constants.SpringPool.DOUBLE_SLASH;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 
 public class HtmlDocHandler extends AbstractDocHandler {
 
@@ -65,13 +64,13 @@ public class HtmlDocHandler extends AbstractDocHandler {
         StringBuilder builder = new StringBuilder();
 
         // 分隔JSON为行
-        String[] jsonSplit = prettyString.split("\n");
+        String[] jsonSplit = prettyString.split(NEWLINE);
 
         for (int i = 0; i < jsonSplit.length; i++) {
             String lineJson = jsonSplit[i];
 
             // 提取注释
-            String comments = "";
+            String comments = EMPTY;
             if (lineJson.contains(DOUBLE_SLASH)) {
                 int commentIndexOf = lineJson.lastIndexOf(DOUBLE_SLASH);
                 comments = lineJson.substring(commentIndexOf);
@@ -91,7 +90,7 @@ public class HtmlDocHandler extends AbstractDocHandler {
                 String afterStr = split[1];
 
                 // 是否需要添加逗号
-                boolean needsComma = afterStr.endsWith(",");
+                boolean needsComma = afterStr.endsWith(COMMA);
                 if (needsComma) {
                     // 移除末尾的逗号，但不设置颜色（因为后面会单独处理）
                     afterStr = afterStr.substring(0, afterStr.length() - 1);
@@ -102,12 +101,12 @@ public class HtmlDocHandler extends AbstractDocHandler {
 
                 // 如果需要添加逗号
                 if (needsComma) {
-                    builder.append(",");
+                    builder.append(COMMA);
                 }
 
                 // 写入注释并设置颜色
                 if (AssertUtils.isNotBlank(comments)) {
-                    builder.append(buildSpanColor(JSON_GREEN, " " + comments));
+                    builder.append(buildSpanColor(JSON_GREEN, SPACE + comments));
                 }
             } else {
                 builder.append(buildSpanColor(lineJson));
@@ -138,14 +137,14 @@ public class HtmlDocHandler extends AbstractDocHandler {
     private String buildColor(String afterStr) {
         String trimmed = afterStr.trim();
 
-        if (trimmed.startsWith("\"") || trimmed.startsWith("'") || trimmed.startsWith("true") || trimmed.startsWith("false")) {
+        if (trimmed.startsWith("\"") || trimmed.startsWith(SINGLE_QUOTE) || trimmed.startsWith(TRUE) || trimmed.startsWith(FALSE)) {
             return JSON_BLUE;
         }
-        if (trimmed.startsWith("0") || trimmed.startsWith("1")) {
+        if (trimmed.startsWith(ZERO) || trimmed.startsWith(ONE)) {
             return JSON_GREEN;
         }
 
-        return "";
+        return EMPTY;
     }
 
     @Override

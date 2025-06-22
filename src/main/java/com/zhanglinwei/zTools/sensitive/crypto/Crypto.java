@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.sensitive.crypto;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 public abstract class Crypto {
 
     public abstract String encrypt(String content, String secretKey, String iv) throws Exception;
@@ -10,7 +11,7 @@ public abstract class Crypto {
     public abstract String getExpression();
 
     protected static byte[] hexStringToBytes(String hexString) {
-        if (hexString != null && !hexString.equals("")) {
+        if (hexString != null && !hexString.equals(EMPTY)) {
             hexString = hexString.toUpperCase();
             int length = hexString.length() / 2;
             char[] hexChars = hexString.toCharArray();
@@ -42,7 +43,7 @@ public abstract class Crypto {
             int j = 0;
 
             for (int l = hex.length(); i < l; ++j) {
-                String swap = "" + arr[i++] + arr[i];
+                String swap = EMPTY + arr[i++] + arr[i];
                 int byteint = Integer.parseInt(swap, 16) & 255;
                 b[j] = (byte) byteint;
                 ++i;

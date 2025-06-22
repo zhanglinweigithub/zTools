@@ -5,6 +5,7 @@ import com.zhanglinwei.zTools.common.constants.MediaType;
 import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.config.DocConfig;
 import com.zhanglinwei.zTools.util.*;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -123,7 +124,7 @@ public class ApiInfo {
                     TableRowInfo rowInfo = new TableRowInfo(body.getOriginName(), body.getTypeName(), body.isRequired(), body.getComment(), body.getExample());
                     rowList.add(rowInfo);
                 } else {
-                    List<TableRowInfo> infoList = createTableRow("", realBody.getChildren());
+                    List<TableRowInfo> infoList = createTableRow(EMPTY, realBody.getChildren());
                     rowList.addAll(infoList);
                 }
                 return new ApiTableInfo(rowList);

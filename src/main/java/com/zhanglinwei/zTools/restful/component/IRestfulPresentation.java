@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public class IRestfulPresentation implements ItemPresentation {
 
     private final IRestful iRestful;
@@ -37,8 +39,8 @@ public class IRestfulPresentation implements ItemPresentation {
             return null;
         }
 
-        String fileLocation = className.concat("#").concat(psiMethod.getName());
-        return "(" + fileLocation + ")";
+        String fileLocation = className.concat(HASH).concat(psiMethod.getName());
+        return LEFT_BRACKET + fileLocation + RIGHT_BRACKET;
     }
 
     @Override

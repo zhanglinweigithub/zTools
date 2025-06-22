@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.util;
 
+import com.zhanglinwei.zTools.common.constants.CharacterPool;
+
 public final class CamelUtils {
 
     private CamelUtils(){}
@@ -19,7 +21,7 @@ public final class CamelUtils {
         for (int i = 1; i < camelCase.length(); i++) {
             char currentChar = camelCase.charAt(i);
             if (Character.isUpperCase(currentChar)) {
-                result.append('-');
+                result.append(CharacterPool.DASH);
                 result.append(Character.toLowerCase(currentChar));
             } else {
                 result.append(currentChar);

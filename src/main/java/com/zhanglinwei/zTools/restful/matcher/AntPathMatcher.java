@@ -1,15 +1,19 @@
 package com.zhanglinwei.zTools.restful.matcher;
 
+import com.zhanglinwei.zTools.common.constants.CharacterPool;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+
 public class AntPathMatcher implements PathMatcher {
 
-    public static final String DEFAULT_PATH_SEPARATOR = "/";
+    public static final String DEFAULT_PATH_SEPARATOR = SLASH;
     private static final String[] EMPTY_STRING_ARRAY = {};
-    private static final char[] WILDCARD_CHARS = {'*', '?', '{'};
+    private static final char[] WILDCARD_CHARS = {CharacterPool.STAR, CharacterPool.QUESTION_MARK, CharacterPool.LEFT_BRACE};
 
     private boolean caseSensitive = true;
     private boolean trimTokens = false;
@@ -46,7 +50,7 @@ public class AntPathMatcher implements PathMatcher {
 
         while (pattIdxStart <= pattIdxEnd && pathIdxStart <= pathIdxEnd) {
             String pattDir = pattDirs[pattIdxStart];
-            if ("**".equals(pattDir)) {
+            if (STAR_STAR.equals(pattDir)) {
                 break;
             }
             if (!matchStrings(pattDir, pathDirs[pathIdxStart], uriTemplateVariables)) {
@@ -63,11 +67,11 @@ public class AntPathMatcher implements PathMatcher {
             if (!fullMatch) {
                 return true;
             }
-            if (pattIdxStart == pattIdxEnd && pattDirs[pattIdxStart].equals("*") && path.endsWith(this.pathSeparator)) {
+            if (pattIdxStart == pattIdxEnd && pattDirs[pattIdxStart].equals(STAR) && path.endsWith(this.pathSeparator)) {
                 return true;
             }
             for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
-                if (!pattDirs[i].equals("**")) {
+                if (!pattDirs[i].equals(STAR_STAR)) {
                     return false;
                 }
             }
@@ -76,13 +80,13 @@ public class AntPathMatcher implements PathMatcher {
         else if (pattIdxStart > pattIdxEnd) {
             return false;
         }
-        else if (!fullMatch && "**".equals(pattDirs[pattIdxStart])) {
+        else if (!fullMatch && STAR_STAR.equals(pattDirs[pattIdxStart])) {
             return true;
         }
 
         while (pattIdxStart <= pattIdxEnd && pathIdxStart <= pathIdxEnd) {
             String pattDir = pattDirs[pattIdxEnd];
-            if (pattDir.equals("**")) {
+            if (pattDir.equals(STAR_STAR)) {
                 break;
             }
             if (!matchStrings(pattDir, pathDirs[pathIdxEnd], uriTemplateVariables)) {
@@ -93,7 +97,7 @@ public class AntPathMatcher implements PathMatcher {
         }
         if (pathIdxStart > pathIdxEnd) {
             for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
-                if (!pattDirs[i].equals("**")) {
+                if (!pattDirs[i].equals(STAR_STAR)) {
                     return false;
                 }
             }
@@ -103,7 +107,7 @@ public class AntPathMatcher implements PathMatcher {
         while (pattIdxStart != pattIdxEnd && pathIdxStart <= pathIdxEnd) {
             int patIdxTmp = -1;
             for (int i = pattIdxStart + 1; i <= pattIdxEnd; i++) {
-                if (pattDirs[i].equals("**")) {
+                if (pattDirs[i].equals(STAR_STAR)) {
                     patIdxTmp = i;
                     break;
                 }
@@ -139,7 +143,7 @@ public class AntPathMatcher implements PathMatcher {
         }
 
         for (int i = pattIdxStart; i <= pattIdxEnd; i++) {
-            if (!pattDirs[i].equals("**")) {
+            if (!pattDirs[i].equals(STAR_STAR)) {
                 return false;
             }
         }
@@ -304,23 +308,23 @@ public class AntPathMatcher implements PathMatcher {
             while (matcher.find()) {
                 patternBuilder.append(quote(pattern, end, matcher.start()));
                 String match = matcher.group();
-                if ("?".equals(match)) {
-                    patternBuilder.append('.');
+                if (QUESTION_MARK.equals(match)) {
+                    patternBuilder.append(CharacterPool.DOT);
                 }
-                else if ("*".equals(match)) {
-                    patternBuilder.append(".*");
+                else if (STAR.equals(match)) {
+                    patternBuilder.append(DOT_STAR);
                 }
-                else if (match.startsWith("{") && match.endsWith("}")) {
-                    int colonIdx = match.indexOf(':');
+                else if (match.startsWith(LEFT_BRACE) && match.endsWith(RIGHT_BRACE)) {
+                    int colonIdx = match.indexOf(CharacterPool.COLON);
                     if (colonIdx == -1) {
                         patternBuilder.append(DEFAULT_VARIABLE_PATTERN);
                         this.variableNames.add(matcher.group(1));
                     }
                     else {
                         String variablePattern = match.substring(colonIdx + 1, match.length() - 1);
-                        patternBuilder.append('(');
+                        patternBuilder.append(CharacterPool.LEFT_BRACKET);
                         patternBuilder.append(variablePattern);
-                        patternBuilder.append(')');
+                        patternBuilder.append(CharacterPool.RIGHT_BRACKET);
                         String variableName = match.substring(1, colonIdx);
                         this.variableNames.add(variableName);
                     }
@@ -342,7 +346,7 @@ public class AntPathMatcher implements PathMatcher {
 
         private String quote(String s, int start, int end) {
             if (start == end) {
-                return "";
+                return EMPTY;
             }
             return Pattern.quote(s.substring(start, end));
         }
@@ -363,7 +367,7 @@ public class AntPathMatcher implements PathMatcher {
                         }
                         for (int i = 1; i <= matcher.groupCount(); i++) {
                             String name = this.variableNames.get(i - 1);
-                            if (name.startsWith("*")) {
+                            if (name.startsWith(STAR)) {
                                 throw new IllegalArgumentException("Capturing patterns (" + name + ") are not " +
                                         "supported by the AntPathMatcher. Use the PathPatternParser instead.");
                             }
