@@ -15,6 +15,8 @@ public abstract class AbstractDocHandler implements DocHandler {
 
     @Override
     public boolean generateApiDoc(Collection<ApiInfo> apiInfos, String pathName) throws Exception {
+        customProcess(apiInfos);
+
         Configuration mdCfg = new Configuration(Configuration.VERSION_2_3_31);
         mdCfg.setTemplateLoader(new ClassTemplateLoader(getClass(), "/template"));
         mdCfg.setDefaultEncoding("UTF-8");
@@ -35,10 +37,71 @@ public abstract class AbstractDocHandler implements DocHandler {
         return true;
     }
 
+    protected abstract String templateName();
+
     @Override
     public boolean generateDataBaseDoc() {
         return false;
     }
 
-    protected abstract String templateName();
+    protected void customProcess(Collection<ApiInfo> apiInfos) {
+
+    }
+
+    protected void processEscapeCharacter(ApiInfo apiInfo) {
+        ApiInfo.ApiRequestInfo requestInfo = apiInfo.getRequestInfo();
+        if (requestInfo != null) {
+            ApiInfo.ApiTableInfo requestBody = requestInfo.getRequestBody();
+            ApiInfo.ApiTableInfo requestHeader = requestInfo.getRequestHeader();
+            ApiInfo.ApiTableInfo requestParam = requestInfo.getRequestParam();
+            ApiInfo.ApiTableInfo pathVariable = requestInfo.getPathVariable();
+            ApiInfo.ApiTableInfo formParam = requestInfo.getFormParam();
+
+            if (requestBody != null && requestBody.getRowList() != null) {
+                requestBody.getRowList().forEach(row -> {
+                    row.setType(escapeCharacter(row.getType()));
+                });
+            }
+            if (requestHeader != null && requestHeader.getRowList() != null) {
+                requestHeader.getRowList().forEach(row -> {
+                    row.setType(escapeCharacter(row.getType()));
+                });
+            }
+            if (requestParam != null && requestParam.getRowList() != null) {
+                requestParam.getRowList().forEach(row -> {
+                    row.setType(escapeCharacter(row.getType()));
+                });
+            }
+            if (pathVariable != null && pathVariable.getRowList() != null) {
+                pathVariable.getRowList().forEach(row -> {
+                    row.setType(escapeCharacter(row.getType()));
+                });
+            }
+            if (formParam != null && formParam.getRowList() != null) {
+                formParam.getRowList().forEach(row -> {
+                    row.setType(escapeCharacter(row.getType()));
+                });
+            }
+        }
+
+        ApiInfo.ApiResponseInfo responseInfo = apiInfo.getResponseInfo();
+        if (responseInfo != null) {
+            ApiInfo.ApiTableInfo responseBody = responseInfo.getResponseBody();
+
+            if (responseBody != null && responseBody.getRowList() != null) {
+                responseBody.getRowList().forEach(row -> {
+                    row.setType(escapeCharacter(row.getType()));
+                });
+            }
+        }
+    }
+
+    protected String escapeCharacter(String string) {
+        if (string != null) {
+            return string.replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;");
+        }
+        return string;
+    }
+
 }

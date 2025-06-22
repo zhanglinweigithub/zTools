@@ -2,8 +2,6 @@ package com.zhanglinwei.zTools.util;
 
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.doc.config.DocConfig;
-import com.zhanglinwei.zTools.doc.apidoc.model.ClassInfo;
-import com.zhanglinwei.zTools.doc.apidoc.model.MethodInfo;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
@@ -16,29 +14,6 @@ import java.io.FileReader;
 public class FileUtils {
 
     private FileUtils(){}
-
-    public static String getFileName(MethodInfo methodInfo, Project project) {
-        String fileName = methodInfo.getName();
-        if (AssertUtils.isNotBlank(methodInfo.getDesc())) {
-            fileName = methodInfo.getDesc().contains(" ") ? methodInfo.getDesc().split(" ")[0] : methodInfo.getDesc();
-        }
-
-        return getFileName(fileName, project);
-    }
-
-    public static String getFileName(ClassInfo classInfo, boolean forMethod, Project project) {
-        return forMethod ? getFileName(classInfo.getMethods().get(0), project) : getFileName(classInfo, project);
-    }
-
-    public static String getFileName(ClassInfo classInfo, Project project) {
-        String fileName = AssertUtils.isNotEmpty(classInfo.getClassDesc()) ? classInfo.getClassDesc() : classInfo.getClassName();
-        return getFileName(fileName, project);
-    }
-
-    public static String getFileName(String fileName, Project project) {
-        DocConfig apiDocConfig = DocConfig.getInstance(project);
-        return apiDocConfig.isOverwriteDoc() ? fileName : fileName + System.currentTimeMillis();
-    }
 
     public static String getDirPath(Project project) {
         DocConfig docConfig = DocConfig.getInstance(project);

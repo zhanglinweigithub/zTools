@@ -22,6 +22,7 @@ public interface SpringPool {
     String EQUALS = "=";
     String FALSE = "false";
     String SLASH = "/";
+    String DOUBLE_SLASH = "//";
     String HASH = "#";
     String HAT = "^";
     String LEFT_BRACE = "{";

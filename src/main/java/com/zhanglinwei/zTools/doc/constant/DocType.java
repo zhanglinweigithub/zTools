@@ -4,7 +4,7 @@ public enum DocType {
 
     MD(".md", "MarkDown"),
     HTML(".html", "Html"),
-    WORD(".docx", "Word"),
+    WORD(".doc", "Word"),
     ;
 
 

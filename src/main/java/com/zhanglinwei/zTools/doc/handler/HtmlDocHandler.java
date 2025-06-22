@@ -1,13 +1,13 @@
 package com.zhanglinwei.zTools.doc.handler;
 
-import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
+import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
 import com.zhanglinwei.zTools.doc.constant.DocType;
 import com.zhanglinwei.zTools.util.AssertUtils;
-import com.zhanglinwei.zTools.util.JsonUtil;
 
-import java.util.List;
+import java.util.Collection;
 
-import static com.zhanglinwei.zTools.util.CommonUtils.COLON;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.COLON;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.DOUBLE_SLASH;
 
 public class HtmlDocHandler extends AbstractDocHandler {
 
@@ -15,96 +15,110 @@ public class HtmlDocHandler extends AbstractDocHandler {
     private final String JSON_BLUE = "#0451a5";
     private final String JSON_GREEN = "#0a850a";
 
-    private final String API_STYLE = "<style type='text/css'>\n" +
-            "    .json-data {\n" +
-            "        white-space: pre;\n" +
-            "         " +
-            "        font-family: Consolas;\n" +
-            "        font-size: 1rem;\n" +
-            "        padding: 10px;\n" +
-            "        margin: 15px;\n" +
-            "        " +
-            "    }\n" +
-            "    body {\n" +
-            "        padding-bottom: 50px;\n" +
-            "    }\n" +
-            "    body, td {\n" +
-            "        font-family: verdana, fantasy, arial, sans-serif;\n" +
-            "        font-size: 12px;\n" +
-            "        line-height: 150%;\n" +
-            "    }\n" +
-            "    table {\n" +
-            "        width: 100%;\n" +
-            "        background-color: #ccc;\n" +
-            "        margin: 5px 0;\n" +
-            "    }\n" +
-            "    td {\n" +
-            "        background-color: #fff;\n" +
-            "        padding: 3px 3px 3px 10px;\n" +
-            "    }\n" +
-            "    thead td {\n" +
-            "        text-align: center;\n" +
-            "        font-weight: bold;\n" +
-            "        background-color: #eee;\n" +
-            "    }\n" +
-            "    a:link, a:visited, a:active {\n" +
-            "        color: #015fb6;\n" +
-            "        text-decoration: none;\n" +
-            "    }\n" +
-            "    a:hover {\n" +
-            "        color: #e33e06;\n" +
-            "    }\n" +
-            "</style>";
-
-
     @Override
     public DocType support() {
         return DocType.HTML;
     }
 
-    protected String toHtmlJson(FieldInfo fieldInfo, String jsonStr) {
+    @Override
+    protected void customProcess(Collection<ApiInfo> apiInfos) {
+        if (AssertUtils.isEmpty(apiInfos)) {
+            return;
+        }
+
+        apiInfos.forEach(apiInfo -> {
+            if (apiInfo == null) {
+                return;
+            }
+
+            // 处理JSON
+            processJson(apiInfo);
+            // 处理转义字符
+            processEscapeCharacter(apiInfo);
+
+        });
+    }
+
+    private void processJson(ApiInfo apiInfo) {
+        // 装饰 Json
+        ApiInfo.ApiRequestInfo requestInfo = apiInfo.getRequestInfo();
+        if (requestInfo != null) {
+            String requestBodyJson = requestInfo.getRequestBodyJson();
+            if (AssertUtils.isNotBlank(requestBodyJson)) {
+                String decorated = decorateJsonString(requestBodyJson);
+                requestInfo.setRequestBodyJson(decorated);
+            }
+        }
+
+        // 装饰 Json
+        ApiInfo.ApiResponseInfo responseInfo = apiInfo.getResponseInfo();
+        if (responseInfo != null) {
+            String responseBodyJson = responseInfo.getResponseBodyJson();
+            if (AssertUtils.isNotBlank(responseBodyJson)) {
+                String decorated = decorateJsonString(responseBodyJson);
+                responseInfo.setResponseBodyJson(decorated);
+            }
+        }
+    }
+
+    private String decorateJsonString(String prettyString) {
         StringBuilder builder = new StringBuilder();
 
-        // 获得注释内容
-        List<String> descList = JsonUtil.buildFieldDescList(fieldInfo.getChildren());
-        // 两个空格替换为四个空格
-        jsonStr = jsonStr.replaceAll(" {2}", "    ");
         // 分隔JSON为行
-        String[] jsonSplit = jsonStr.split("\n");
-        int descIndex = 0;
-        for (String lineJson : jsonSplit) {
+        String[] jsonSplit = prettyString.split("\n");
+
+        for (int i = 0; i < jsonSplit.length; i++) {
+            String lineJson = jsonSplit[i];
+
+            // 提取注释
+            String comments = "";
+            if (lineJson.contains(DOUBLE_SLASH)) {
+                int commentIndexOf = lineJson.lastIndexOf(DOUBLE_SLASH);
+                comments = lineJson.substring(commentIndexOf);
+                lineJson = lineJson.substring(0, commentIndexOf - 1);
+            }
+
             // 检查行是否包含冒号
             if (lineJson.contains(COLON)) {
                 // 写入key并设置颜色
                 String[] split = lineJson.split(COLON, 2);
                 builder.append(buildSpanColor(JSON_RED, split[0]));
+
                 // 写入:并设置颜色
                 builder.append(COLON);
+
                 // 处理值
                 String afterStr = split[1];
+
                 // 是否需要添加逗号
                 boolean needsComma = afterStr.endsWith(",");
                 if (needsComma) {
                     // 移除末尾的逗号，但不设置颜色（因为后面会单独处理）
                     afterStr = afterStr.substring(0, afterStr.length() - 1);
                 }
-                // 设置值和颜色
+
+                // 写入值并设置颜色
                 builder.append(buildSpanColor(afterStr));
-                // 添加逗号
+
+                // 如果需要添加逗号
                 if (needsComma) {
                     builder.append(",");
                 }
-                // 设置注释
-                if (AssertUtils.isNotBlank(descList.get(descIndex))) {
-                    String desc = descList.get(descIndex);
-                    builder.append(buildSpanColor(JSON_GREEN, " // " + desc));
+
+                // 写入注释并设置颜色
+                if (AssertUtils.isNotBlank(comments)) {
+                    builder.append(buildSpanColor(JSON_GREEN, " " + comments));
                 }
-                descIndex++;
             } else {
                 builder.append(buildSpanColor(lineJson));
             }
-            builder.append("<br>");
+
+            // 添加换行，最后一行不添加
+            if (i < jsonSplit.length - 1) {
+                builder.append("<br>");
+            }
         }
+
         return builder.toString();
     }
 
@@ -122,10 +136,12 @@ public class HtmlDocHandler extends AbstractDocHandler {
      * 其它: 默认
      */
     private String buildColor(String afterStr) {
-        if (afterStr.contains("\"") || afterStr.contains("true") || afterStr.contains("false")) {
+        String trimmed = afterStr.trim();
+
+        if (trimmed.startsWith("\"") || trimmed.startsWith("'") || trimmed.startsWith("true") || trimmed.startsWith("false")) {
             return JSON_BLUE;
         }
-        if (afterStr.contains("0") || afterStr.contains("1")) {
+        if (trimmed.startsWith("0") || trimmed.startsWith("1")) {
             return JSON_GREEN;
         }
 

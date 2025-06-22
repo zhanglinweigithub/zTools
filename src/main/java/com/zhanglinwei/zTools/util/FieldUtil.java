@@ -4,12 +4,8 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.common.constants.WebAnnotation;
-import com.zhanglinwei.zTools.doc.apidoc.constant.JacksonAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.SwaggerAnnotation;
 import com.zhanglinwei.zTools.doc.apidoc.constant.TypeEnum;
-import com.zhanglinwei.zTools.doc.apidoc.model.FieldInfo;
-import com.zhanglinwei.zTools.doc.apidoc.model.JavaProperty;
-import com.zhanglinwei.zTools.doc.apidoc.normal.RequireAndRange;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -98,116 +94,6 @@ public class FieldUtil {
         return false;
     }
 
-    /** 必填、值域范围 */
-    public static RequireAndRange getRequireAndRange(PsiAnnotation[] annotations) {
-        if (annotations.length == 0) {
-            return RequireAndRange.instance();
-        }
-        boolean require = false;
-        String min = "";
-        String max = "";
-        String range = "N/A";
-        for (PsiAnnotation annotation : annotations) {
-            if (isParamRequired(annotation)) {
-                require = true;
-            }
-            if (annotation.getText().contains(WebAnnotation.RequestPart)) {
-                range = "文件";
-                break;
-            }
-            String qualifiedName = annotation.getText();
-            if (qualifiedName.contains("Length") || qualifiedName.contains("Range") || qualifiedName.contains("Size")) {
-                PsiAnnotationMemberValue minValue = annotation.findAttributeValue("min");
-                if (minValue != null) {
-                    min = minValue.getText();
-                    break;
-                }
-            }
-            if (qualifiedName.contains("Min")) {
-                PsiAnnotationMemberValue minValue = annotation.findAttributeValue("value");
-                if (minValue != null) {
-                    min = minValue.getText();
-                    break;
-                }
-            }
-        }
-        if (AssertUtils.isNotBlank(min) || AssertUtils.isNotBlank(max)) {
-            range = "[" + min + "," + max + "]";
-        }
-        return new RequireAndRange(require, range);
-    }
-
-    /** 示例 */
-    public static Object buildExample(FieldInfo fieldInfo) {
-        if (TypeEnum.OBJECT.equals(fieldInfo.getParamType())) {
-            return " ";
-        }
-
-        return getValue(fieldInfo);
-    }
-
-    public static String example(JavaProperty javaProperty) {
-        PsiType psiType = javaProperty.getPsiType();
-        if (isIterableType(psiType)) {
-            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
-            if (type == null) {
-                return "[]";
-            }
-            if (isNormalType(type)) {
-                String value = getValue(type.getPresentableText(), Arrays.asList(javaProperty.getPsiAnnotations()));
-                if (value == null) {
-                    return "[]";
-                }
-
-                return "[" + value + "," + value + "]";
-            }
-        }
-        String value = getValue(psiType.getPresentableText(), Arrays.asList(javaProperty.getPsiAnnotations()));
-        return value == null ? " " : value;
-    }
-
-
-
-    /** 示例值 */
-    public static Object getValue(FieldInfo fieldInfo) {
-        PsiType psiType = fieldInfo.getPsiType();
-        if (isIterableType(psiType)) {
-            PsiType type = PsiUtil.extractIterableTypeParameter(psiType, false);
-            if (type == null) {
-                return "[]";
-            }
-            if (isNormalType(type)) {
-                Object value = getValue(type.getPresentableText(), fieldInfo.getAnnotations());
-                if (value == null) {
-                    return "[]";
-                }
-
-                return "[" + value + "," + value + "]";
-            }
-        }
-        Object value = getValue(psiType.getPresentableText(),fieldInfo.getAnnotations());
-        return value == null ? " " : value;
-    }
-
-    /** 示例值 */
-    private static String getValue(String typeStr,List<PsiAnnotation> annotations) {
-        if(Arrays.asList("LocalDate", "LocalDateTime", "Date").contains(typeStr)) {
-            for (PsiAnnotation annotation : annotations) {
-                if(annotation.getText().contains(JacksonAnnotation.JsonFormat)) {
-                    PsiNameValuePair[] attributes = annotation.getParameterList().getAttributes();
-                    if (attributes.length >= 1) {
-                        for (PsiNameValuePair attribute : attributes) {
-                            if ("pattern".equals(attribute.getName())) {
-                                return attribute.getLiteralValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Object value = normalTypes.get(typeStr);
-        return value == null ? "" : value.toString();
-    }
 
     /** 是否泛型 */
     public static boolean isGenericType(PsiType psiType) {
