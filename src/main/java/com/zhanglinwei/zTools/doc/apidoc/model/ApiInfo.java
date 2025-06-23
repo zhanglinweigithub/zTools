@@ -9,7 +9,7 @@ import com.zhanglinwei.zTools.util.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 
 public class ApiInfo {
 
@@ -256,7 +256,7 @@ public class ApiInfo {
                 if (valueList.size() == 1) {
                     mergedList.add(new TableRowInfo(key, "String", headers.get(0).isRequired(), headers.get(0).getDescription(), headers.get(0).getExample()));
                 } else {
-                    mergedList.add(new TableRowInfo(key, "String", headers.get(0).isRequired(), "", String.join(", ", valueList)));
+                    mergedList.add(new TableRowInfo(key, "String", headers.get(0).isRequired(), EMPTY, String.join(COMMA_SPACE, valueList)));
                 }
             }
             return mergedList;
@@ -286,16 +286,16 @@ public class ApiInfo {
                 return new ArrayList<>();
             }
             List<TableRowInfo> consumesList = new ArrayList<>();
-            text = text.replace("{", "").replace("}", "").replace("\"", "");
-            if (text.contains(",")) {
-                String[] split = text.split(",");
+            text = text.replace(LEFT_BRACE, EMPTY).replace(RIGHT_BRACE, EMPTY).replace(QUOTE, EMPTY);
+            if (text.contains(COMMA)) {
+                String[] split = text.split(COMMA);
                 for (String item : split) {
                     String trimmed = item.trim();
-                    TableRowInfo accept = new TableRowInfo("Content-Type", "String", true, "", MediaType.getValue(trimmed, trimmed));
+                    TableRowInfo accept = new TableRowInfo("Content-Type", "String", true, EMPTY, MediaType.getValue(trimmed, trimmed));
                     consumesList.add(accept);
                 }
             } else {
-                TableRowInfo accept = new TableRowInfo("Content-Type", "String", true, "", MediaType.getValue(text, text));
+                TableRowInfo accept = new TableRowInfo("Content-Type", "String", true, EMPTY, MediaType.getValue(text, text));
                 consumesList.add(accept);
             }
             return consumesList;
@@ -310,16 +310,16 @@ public class ApiInfo {
                 return new ArrayList<>();
             }
             List<TableRowInfo> producesList = new ArrayList<>();
-            text = text.replace("{\"", "").replace("\"}", "").replace("\"", "");
-            if (text.contains(",")) {
-                String[] split = text.split(",");
+            text = text.replace("{\"", EMPTY).replace("\"}", EMPTY).replace(QUOTE, EMPTY);
+            if (text.contains(COMMA)) {
+                String[] split = text.split(COMMA);
                 for (String item : split) {
                     String trimmed = item.trim();
-                    TableRowInfo accept = new TableRowInfo("Accept", "String", true, "", MediaType.getValue(trimmed, trimmed));
+                    TableRowInfo accept = new TableRowInfo("Accept", "String", true, EMPTY, MediaType.getValue(trimmed, trimmed));
                     producesList.add(accept);
                 }
             } else {
-                TableRowInfo accept = new TableRowInfo("Accept", "String", true, "", MediaType.getValue(text, text));
+                TableRowInfo accept = new TableRowInfo("Accept", "String", true, EMPTY, MediaType.getValue(text, text));
                 producesList.add(accept);
             }
             return producesList;
