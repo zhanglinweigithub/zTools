@@ -13,4 +13,9 @@ public class MarkDownDocHandler extends AbstractDocHandler {
     protected String templateName() {
         return "api-doc-md.ftl";
     }
+
+    @Override
+    protected String decorateJsonString(String prettyJson) {
+        return prettyJson;
+    }
 }

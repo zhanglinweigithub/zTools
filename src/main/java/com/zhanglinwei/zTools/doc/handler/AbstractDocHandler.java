@@ -1,6 +1,7 @@
 package com.zhanglinwei.zTools.doc.handler;
 
 import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
+import com.zhanglinwei.zTools.util.AssertUtils;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -40,6 +41,7 @@ public abstract class AbstractDocHandler implements DocHandler {
     }
 
     protected abstract String templateName();
+    protected abstract String decorateJsonString(String prettyJson);
 
     @Override
     public boolean generateDataBaseDoc() {
@@ -47,7 +49,42 @@ public abstract class AbstractDocHandler implements DocHandler {
     }
 
     protected void customProcess(Collection<ApiInfo> apiInfos) {
+        if (AssertUtils.isEmpty(apiInfos)) {
+            return;
+        }
 
+        apiInfos.forEach(apiInfo -> {
+            if (apiInfo == null) {
+                return;
+            }
+
+            // 处理JSON
+            processJson(apiInfo);
+            // 处理转义字符
+            processEscapeCharacter(apiInfo);
+        });
+    }
+
+    private void processJson(ApiInfo apiInfo) {
+        // 装饰 Json
+        ApiInfo.ApiRequestInfo requestInfo = apiInfo.getRequestInfo();
+        if (requestInfo != null) {
+            String requestBodyJson = requestInfo.getRequestBodyJson();
+            if (AssertUtils.isNotBlank(requestBodyJson)) {
+                String decorated = decorateJsonString(requestBodyJson);
+                requestInfo.setRequestBodyJson(decorated);
+            }
+        }
+
+        // 装饰 Json
+        ApiInfo.ApiResponseInfo responseInfo = apiInfo.getResponseInfo();
+        if (responseInfo != null) {
+            String responseBodyJson = responseInfo.getResponseBodyJson();
+            if (AssertUtils.isNotBlank(responseBodyJson)) {
+                String decorated = decorateJsonString(responseBodyJson);
+                responseInfo.setResponseBodyJson(decorated);
+            }
+        }
     }
 
     protected void processEscapeCharacter(ApiInfo apiInfo) {

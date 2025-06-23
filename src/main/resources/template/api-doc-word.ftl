@@ -3034,54 +3034,7 @@
                                 <w:t>示例</w:t>
                             </w:r>
                         </w:p>
-                        <w:p w14:paraId="3BA5BDD1">
-                            <w:pPr>
-                                <w:keepNext w:val="0"/>
-                                <w:keepLines w:val="0"/>
-                                <w:pageBreakBefore w:val="0"/>
-                                <w:widowControl w:val="0"/>
-                                <w:numPr>
-                                    <w:numId w:val="0"/>
-                                </w:numPr>
-                                <w:kinsoku/>
-                                <w:wordWrap/>
-                                <w:overflowPunct/>
-                                <w:topLinePunct w:val="0"/>
-                                <w:autoSpaceDE/>
-                                <w:autoSpaceDN/>
-                                <w:bidi w:val="0"/>
-                                <w:adjustRightInd/>
-                                <w:snapToGrid/>
-                                <w:spacing w:before="157" w:beforeLines="50" w:after="157" w:afterLines="50"
-                                           w:line="240"
-                                           w:lineRule="auto"/>
-                                <w:jc w:val="both"/>
-                                <w:textAlignment w:val="auto"/>
-                                <w:rPr>
-                                    <w:rFonts w:hint="default" w:ascii="Times New Roman Regular"
-                                              w:hAnsi="Times New Roman Regular" w:eastAsia="宋体"
-                                              w:cs="Times New Roman Regular"/>
-                                    <w:b w:val="0"/>
-                                    <w:bCs/>
-                                    <w:sz w:val="21"/>
-                                    <w:szCs w:val="21"/>
-                                    <w:lang w:val="en-US" w:eastAsia="zh-CN"/>
-                                </w:rPr>
-                            </w:pPr>
-                            <w:r>
-                                <w:rPr>
-                                    <w:rFonts w:hint="default" w:ascii="Times New Roman Regular"
-                                              w:hAnsi="Times New Roman Regular" w:eastAsia="宋体"
-                                              w:cs="Times New Roman Regular"/>
-                                    <w:b w:val="0"/>
-                                    <w:bCs/>
-                                    <w:sz w:val="21"/>
-                                    <w:szCs w:val="21"/>
-                                    <w:lang w:val="en-US" w:eastAsia="zh-CN"/>
-                                </w:rPr>
-                                <w:t>${api.requestInfo.requestBodyJson!''}</w:t>
-                            </w:r>
-                        </w:p>
+                        ${api.requestInfo.requestBodyJson!''}
                     </#if>
                     <#else>
                         <w:p w14:paraId="06517EF0">
@@ -3755,55 +3708,7 @@
                                     <w:t>示例</w:t>
                                 </w:r>
                             </w:p>
-                            <w:p w14:paraId="5E1EB34D">
-                                <w:pPr>
-                                    <w:keepNext w:val="0"/>
-                                    <w:keepLines w:val="0"/>
-                                    <w:pageBreakBefore w:val="0"/>
-                                    <w:widowControl w:val="0"/>
-                                    <w:numPr>
-                                        <w:ilvl w:val="0"/>
-                                        <w:numId w:val="0"/>
-                                    </w:numPr>
-                                    <w:kinsoku/>
-                                    <w:wordWrap/>
-                                    <w:overflowPunct/>
-                                    <w:topLinePunct w:val="0"/>
-                                    <w:autoSpaceDE/>
-                                    <w:autoSpaceDN/>
-                                    <w:bidi w:val="0"/>
-                                    <w:adjustRightInd/>
-                                    <w:snapToGrid/>
-                                    <w:spacing w:before="157" w:beforeLines="50" w:after="157" w:afterLines="50"
-                                               w:line="240"
-                                               w:lineRule="auto"/>
-                                    <w:jc w:val="both"/>
-                                    <w:textAlignment w:val="auto"/>
-                                    <w:rPr>
-                                        <w:rFonts w:hint="default" w:ascii="Times New Roman Regular"
-                                                  w:hAnsi="Times New Roman Regular" w:eastAsia="宋体"
-                                                  w:cs="Times New Roman Regular"/>
-                                        <w:b w:val="0"/>
-                                        <w:bCs/>
-                                        <w:sz w:val="21"/>
-                                        <w:szCs w:val="21"/>
-                                        <w:lang w:val="en-US" w:eastAsia="zh-CN"/>
-                                    </w:rPr>
-                                </w:pPr>
-                                <w:r>
-                                    <w:rPr>
-                                        <w:rFonts w:hint="default" w:ascii="Times New Roman Regular"
-                                                  w:hAnsi="Times New Roman Regular" w:eastAsia="宋体"
-                                                  w:cs="Times New Roman Regular"/>
-                                        <w:b w:val="0"/>
-                                        <w:bCs/>
-                                        <w:sz w:val="21"/>
-                                        <w:szCs w:val="21"/>
-                                        <w:lang w:val="en-US" w:eastAsia="zh-CN"/>
-                                    </w:rPr>
-                                    <w:t>${api.responseInfo.responseBodyJson!''}</w:t>
-                                </w:r>
-                            </w:p>
+                            ${api.responseInfo.responseBodyJson!''}
                         </#if>
                     <#else>
                         <w:p w14:paraId="5E6E8692">
