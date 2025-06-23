@@ -50,8 +50,8 @@ public class CopyJsonAction extends AnAction {
         try {
             PsiField[] allFields = selectedClass.getAllFields();
             if (AssertUtils.isEmpty(allFields)) {
-                NotificationUtil.errorNotify("This class file has no fields!", project);
-                return false;
+                ClipboardUtils.copyToClipboard("{}");
+                return true;
             }
 
             PsiType classType = PsiTypesUtil.getClassType(selectedClass);
