@@ -19,24 +19,34 @@ public final class SpringConfigUtils {
 
     private static Map<String, Object> findYamlToFlattenMap(Project project) {
         Collection<VirtualFile> configFileList = new ArrayList<>();
-        configFileList.addAll(FilenameIndex.getVirtualFilesByName("application.yaml", false, GlobalSearchScope.projectScope(project)));
-        configFileList.addAll(FilenameIndex.getVirtualFilesByName("application.yml", false, GlobalSearchScope.projectScope(project)));
 
-        VirtualFile configFile = configFileList.stream()
-                .filter(file -> file.getPath().contains("src/main/resources"))
-                .findFirst()
-                .orElse(null);
-
-        if (configFile != null) {
-            String yamlContent = null;
-            try {
-                yamlContent = new String(configFile.contentsToByteArray());
-            } catch (IOException ignore) {
-                // ignore exception
+        Collection<VirtualFile> yamlCfg = FilenameIndex.getVirtualFilesByName("application.yaml", false, GlobalSearchScope.projectScope(project));
+        if (AssertUtils.isNotEmpty(yamlCfg)) {
+            configFileList.addAll(yamlCfg);
+        } else {
+            Collection<VirtualFile> ymlCfg = FilenameIndex.getVirtualFilesByName("application.yml", false, GlobalSearchScope.projectScope(project));
+            if (AssertUtils.isNotEmpty(ymlCfg)) {
+                configFileList.addAll(ymlCfg);
             }
+        }
 
-            if (AssertUtils.isNotBlank(yamlContent)) {
-                return yamlToFlattenMap(yamlContent);
+        if (!configFileList.isEmpty()) {
+            VirtualFile configFile = configFileList.stream()
+                    .filter(file -> file.getPath().contains("src/main/resources"))
+                    .findFirst()
+                    .orElse(null);
+
+            if (configFile != null) {
+                String yamlContent = null;
+                try {
+                    yamlContent = new String(configFile.contentsToByteArray());
+                } catch (IOException ignore) {
+                    // ignore exception
+                }
+
+                if (AssertUtils.isNotBlank(yamlContent)) {
+                    return yamlToFlattenMap(yamlContent);
+                }
             }
         }
 
@@ -113,7 +123,6 @@ public final class SpringConfigUtils {
 
             return value;
         } catch (Exception e) {
-            NotificationUtil.warnNotify("The configuration file has failed to resolve. Please check whether the configuration writing is standardized.", project);
         }
         return null;
     }
@@ -155,7 +164,7 @@ public final class SpringConfigUtils {
 
             return object.toString();
         }
-        return null;
+        return EMPTY;
     }
 
     public static boolean propertyAsBoolean(Project project, SpringConfigProperties configProperties) {

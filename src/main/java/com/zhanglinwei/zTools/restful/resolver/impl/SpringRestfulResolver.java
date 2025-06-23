@@ -15,6 +15,7 @@ import com.zhanglinwei.zTools.util.AnnotationUtil;
 import com.zhanglinwei.zTools.util.CommonUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class SpringRestfulResolver extends AbstractRestfulResolver {
@@ -22,6 +23,8 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
     private final Set<String> SUPPORT_ANNOTATION = ImmutableSet.of(
             WebAnnotation.Controller, WebAnnotation.RestController
     );
+
+    private static final Map<String, String> RESTFUL_PREFIX_CACHE = new ConcurrentHashMap<>();
 
     @Override
     public List<IRestful> searchIRestful(Project project, GlobalSearchScope globalSearchScope) {
@@ -87,8 +90,9 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
 
     private String buildRequestPath(String classRequestPath, String methodRequestPath, Project project) {
         String basePath = CommonUtils.buildPath(classRequestPath, methodRequestPath);
-        return CommonUtils.buildPath(globalRequestPrefix(project), basePath);
-//        return basePath;
+//        String prefix = RESTFUL_PREFIX_CACHE.computeIfAbsent(project.getBasePath(), key -> globalRequestPrefix(project));
+//        return CommonUtils.buildPath(prefix, basePath);
+        return basePath;
     }
 
 }
