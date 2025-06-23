@@ -44,7 +44,7 @@ public final class SpringConfigUtils {
     }
 
     private static Map<String, Object> propertiesToFlattenMap(String propertiesContent) {
-        return AssertUtils.isBlank(propertiesContent) ? Collections.emptyMap() : Arrays.stream(propertiesContent.split(CRLF))
+        return AssertUtils.isBlank(propertiesContent) ? Collections.emptyMap() : Arrays.stream(propertiesContent.split(propertiesContent.contains(CRLF) ? CRLF : NEWLINE))
                 .filter(AssertUtils::isNotBlank)
                 .collect(Collectors.toMap(
                         item -> item.split(EQUAL, 2)[0],
@@ -103,14 +103,19 @@ public final class SpringConfigUtils {
     }
 
     public static Object property(Project project, SpringConfigProperties configProperties) {
-        Map<String, Object> yamlMap = findYamlToFlattenMap(project);
-        Object value = yamlMap.get(configProperties.getValue());
-        if (value == null) {
-            Map<String, Object> propertiesMap = findPropertiesToFlattenMap(project);
-            value = propertiesMap.get(configProperties.getValue());
-        }
+        try {
+            Map<String, Object> yamlMap = findYamlToFlattenMap(project);
+            Object value = yamlMap.get(configProperties.getValue());
+            if (value == null) {
+                Map<String, Object> propertiesMap = findPropertiesToFlattenMap(project);
+                value = propertiesMap.get(configProperties.getValue());
+            }
 
-        return value;
+            return value;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 
     private static Map<String, Object> findPropertiesToFlattenMap(Project project) {
