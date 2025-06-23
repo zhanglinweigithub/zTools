@@ -22,7 +22,7 @@ public abstract class AbstractDocHandler implements DocHandler {
 
         Configuration mdCfg = new Configuration(Configuration.VERSION_2_3_31);
         mdCfg.setTemplateLoader(new ClassTemplateLoader(getClass(), "/template"));
-        mdCfg.setDefaultEncoding("UTF-8");
+        mdCfg.setDefaultEncoding(UTF_8);
 
         Template template = mdCfg.getTemplate(templateName());
         File outputFile = new File(pathName);
