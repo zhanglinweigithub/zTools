@@ -6,16 +6,26 @@ import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 /**
  * 通用工具类
  */
-public class CommonUtils {
+public final class CommonUtils {
 
     private CommonUtils(){}
 
-    public static String replace(String text, String searchString, String replacement, int max) {
-        if (AssertUtils.isNotBlank(text) && AssertUtils.isNotBlank(searchString) && replacement != null && max != 0) {
+    /**
+     * 将字符串中指定的子串替换为新的字符串，支持控制最大替换次数
+     * @param origin 原始字符串
+     * @param searchString 需要被替换的子串
+     * @param replacement 用于替换的新字符串
+     * @param max 最大替换次数（负数表示不限制次数）
+     * @return
+     * replace("aabaa", "a", "z", 2)  // 返回 "zzbaa"
+     * replace("hello", "l", "L", -1) // 返回 "heLLo"
+     */
+    public static String replace(String origin, String searchString, String replacement, int max) {
+        if (AssertUtils.isNotBlank(origin) && AssertUtils.isNotBlank(searchString) && replacement != null && max != 0) {
             int start = 0;
-            int end = text.indexOf(searchString, start);
+            int end = origin.indexOf(searchString, start);
             if (end == -1) {
-                return text;
+                return origin;
             } else {
                 int replLength = searchString.length();
                 int increase = replacement.length() - replLength;
@@ -23,8 +33,8 @@ public class CommonUtils {
                 increase *= max < 0 ? 16 : (Math.min(max, 64));
 
                 StringBuffer buf;
-                for(buf = new StringBuffer(text.length() + increase); end != -1; end = text.indexOf(searchString, start)) {
-                    buf.append(text, start, end).append(replacement);
+                for(buf = new StringBuffer(origin.length() + increase); end != -1; end = origin.indexOf(searchString, start)) {
+                    buf.append(origin, start, end).append(replacement);
                     start = end + replLength;
                     --max;
                     if (max == 0) {
@@ -32,21 +42,30 @@ public class CommonUtils {
                     }
                 }
 
-                buf.append(text.substring(start));
+                buf.append(origin.substring(start));
                 return buf.toString();
             }
         } else {
-            return text;
+            return origin;
         }
     }
 
-    public static String substringBetween(String str, String open, String close) {
-        if (str != null && open != null && close != null) {
-            int start = str.indexOf(open);
+    /**
+     * 提取字符串中两个标记之间的子串
+     * @param origin 原始字符串
+     * @param open 开始标记
+     * @param close 结束标记
+     * @return
+     * substringBetween(" abc[def]ghi ", " [ ", " ] ") // 返回 "def"
+     * substringBetween("abc", "[", "]")         // 返回 null
+     */
+    public static String substringBetween(String origin, String open, String close) {
+        if (origin != null && open != null && close != null) {
+            int start = origin.indexOf(open);
             if (start != -1) {
-                int end = str.indexOf(close, start + open.length());
+                int end = origin.indexOf(close, start + open.length());
                 if (end != -1) {
-                    return str.substring(start + open.length(), end);
+                    return origin.substring(start + open.length(), end);
                 }
             }
 
@@ -54,11 +73,6 @@ public class CommonUtils {
         } else {
             return null;
         }
-    }
-
-    public static String convertCamelToSnake(String camelCase) {
-        String snakeCase = camelCase.replaceAll("([a-z])([A-Z])", "$1_$2");
-        return snakeCase.toLowerCase();
     }
 
     /**
@@ -79,17 +93,6 @@ public class CommonUtils {
     }
 
     /**
-     * 转换必填
-     */
-    public static String convertRequired(boolean required) {
-        return required ? Y : N;
-    }
-
-    public static String getRange(String range) {
-        return AssertUtils.isEmpty(range) ? NA : range;
-    }
-
-    /**
      * 构建请求路径
      */
     public static String buildPath(String classPath, String methodPath) {
@@ -102,10 +105,6 @@ public class CommonUtils {
         }
         path = path.replaceAll("/+$", EMPTY);
         return path.startsWith(SLASH) ? path : SLASH + path;
-    }
-
-    public static String getPrefix() {
-        return FOLD;
     }
 
 }

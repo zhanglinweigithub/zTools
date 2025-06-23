@@ -14,7 +14,13 @@ import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
  */
 public final class AnnotationUtil {
 
-    private static List<String> REQUIRED_ANNOTATION_LIST = Arrays.asList("@NotNull", "@NotBlank", "@NotEmpty");
+    private static final Set<String> REQUIRED_ANNOTATION_SET = new HashSet<>();
+
+    static {
+        REQUIRED_ANNOTATION_SET.add("@NotNull");
+        REQUIRED_ANNOTATION_SET.add("@NotBlank");
+        REQUIRED_ANNOTATION_SET.add("@NotEmpty");
+    }
 
     private AnnotationUtil(){}
 
@@ -206,7 +212,7 @@ public final class AnnotationUtil {
         if (required != null && TRUE.equals(required.getText())) {
             return true;
         }
-        if (REQUIRED_ANNOTATION_LIST.contains(psiAnnotation.getText().split("\\(")[0])) {
+        if (REQUIRED_ANNOTATION_SET.contains(psiAnnotation.getText().split("\\(")[0])) {
             return true;
         }
 

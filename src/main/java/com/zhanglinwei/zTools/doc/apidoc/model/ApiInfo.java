@@ -5,10 +5,11 @@ import com.zhanglinwei.zTools.common.constants.MediaType;
 import com.zhanglinwei.zTools.common.constants.WebAnnotation;
 import com.zhanglinwei.zTools.doc.config.DocConfig;
 import com.zhanglinwei.zTools.util.*;
-import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 
 public class ApiInfo {
 
@@ -43,7 +44,7 @@ public class ApiInfo {
 
         // 方法标题: 优先使用方法注释
         String methodName = psiMethod.getName();
-        String methodDescription = DesUtil.getDescription(psiMethod.getDocComment(), psiMethod.getAnnotations());
+        String methodDescription = CommentsUtil.extractComments(psiMethod);
         apiInfo.setTitle(AssertUtils.isBlank(methodDescription) ? methodName : methodDescription);
 
         // 方法注释
@@ -202,7 +203,7 @@ public class ApiInfo {
             headerList.addAll(resolveConsumesAndProducesByMappingAnnotation(classMappingAnnotation));
 
             // 解析 RequestHeader、RequestPart、RequestBody 注解、MultipartFile
-            Map<String, String> paramDescMap = DesUtil.paramDescMapForDocComment(psiMethod.getDocComment());
+            Map<String, String> paramDescMap = CommentsUtil.extractParamCommentsMap(psiMethod.getDocComment());
             for (PsiParameter parameter : parameterList.getParameters()) {
                 String typeName = parameter.getType().getPresentableText();
                 String parameterName = parameter.getName();

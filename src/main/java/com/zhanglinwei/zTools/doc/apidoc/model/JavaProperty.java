@@ -14,6 +14,7 @@ import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.doc.config.DocConfig;
 import com.zhanglinwei.zTools.util.*;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,7 +76,7 @@ public class JavaProperty {
 
     public static List<JavaProperty> create(PsiMethod psiMethod) {
         PsiDocComment docComment = psiMethod.getDocComment();
-        Map<String, String> paranDescMap = DesUtil.paramDescMapForDocComment(docComment);
+        Map<String, String> paranDescMap = CommentsUtil.extractParamCommentsMap(docComment);
         return Arrays.stream(psiMethod.getParameterList().getParameters())
                 .map(item -> create(item, paranDescMap))
                 .collect(Collectors.toList());
@@ -92,7 +93,7 @@ public class JavaProperty {
         property.setParent(parent);
         property.setName(AnnotationUtil.extractParamName(psiField.getName(), psiField.getAnnotations()));
         property.setOriginName(psiField.getName());
-        property.setComment(DesUtil.getDescription(psiField.getDocComment(), psiField.getAnnotations()));
+        property.setComment(CommentsUtil.extractComments(psiField));
         property.setGenericTypeMap(resolveGenerics(fieldType));
         property.setRequired(AnnotationUtil.isRequired(psiField.getAnnotations()));
         property.setExample(ExampleUtils.createNormalExample(fieldType, psiField.getAnnotations()));
@@ -267,8 +268,8 @@ public class JavaProperty {
         return new ArrayList<>(
                 Arrays.stream(psiClass.getAllFields())
                         .filter(field -> !config.getExcludeFieldList().contains(field.getName())) // 过滤配置忽略的字段
-                        .filter(field -> !FieldUtil.isStaticField(field)) // 过滤静态字段
-                        .filter(field -> !FieldUtil.isIgnoredField(field)) // 过滤需要忽略的字段
+                        .filter(field -> !ModifierUtils.isStatic(field)) // 过滤静态字段
+                        .filter(field -> !ModifierUtils.isIgnored(field)) // 过滤需要忽略的字段
                         .collect(
                                 Collectors.toMap(
                                         PsiField::getName,

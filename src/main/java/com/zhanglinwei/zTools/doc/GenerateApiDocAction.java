@@ -14,7 +14,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
 import com.zhanglinwei.zTools.doc.facade.DocFacade;
 import com.zhanglinwei.zTools.util.AnnotationUtil;
-import com.zhanglinwei.zTools.util.DesUtil;
+import com.zhanglinwei.zTools.util.CommentsUtil;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class GenerateApiDocAction extends AnAction {
         }
 
         ApiInfo apiInfo = ApiInfo.create(selectedMethod);
-        return DocFacade.generateApiDoc(Collections.singletonList(apiInfo), project, DesUtil.obtainDescription(selectedMethod));
+        return DocFacade.generateApiDoc(Collections.singletonList(apiInfo), project, CommentsUtil.extractComments(selectedMethod));
     }
 
     private boolean generateApiDocForAllMethods(Project project, PsiClass selectedClass) throws Exception {
@@ -92,7 +92,7 @@ public class GenerateApiDocAction extends AnAction {
         }
 
         List<ApiInfo> apiInfos = ApiInfo.create(selectedClass);
-        return DocFacade.generateApiDoc(apiInfos, project, DesUtil.obtainDescription(selectedClass));
+        return DocFacade.generateApiDoc(apiInfos, project, CommentsUtil.extractComments(selectedClass));
     }
 
 }
