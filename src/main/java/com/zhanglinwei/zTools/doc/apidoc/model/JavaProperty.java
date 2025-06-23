@@ -14,9 +14,10 @@ import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.doc.config.DocConfig;
 import com.zhanglinwei.zTools.util.*;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 
 public class JavaProperty {
 
@@ -93,7 +94,7 @@ public class JavaProperty {
         property.setParent(parent);
         property.setName(AnnotationUtil.extractParamName(psiField.getName(), psiField.getAnnotations()));
         property.setOriginName(psiField.getName());
-        property.setComment(CommentsUtil.extractComments(psiField));
+        property.setComment(CommentsUtil.extractComments(psiField, EMPTY));
         property.setGenericTypeMap(resolveGenerics(fieldType));
         property.setRequired(AnnotationUtil.isRequired(psiField.getAnnotations()));
         property.setExample(ExampleUtils.createNormalExample(fieldType, psiField.getAnnotations()));

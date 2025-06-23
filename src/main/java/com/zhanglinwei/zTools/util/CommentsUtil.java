@@ -69,19 +69,19 @@ public final class CommentsUtil {
         return source;
     }
 
-    public static String extractComments(PsiClass psiClass) {
+    public static String extractComments(PsiClass psiClass, String dft) {
         String description = extractComments(psiClass.getDocComment(), psiClass.getAnnotations());
-        return AssertUtils.isBlank(description) ? psiClass.getName() : description;
+        return AssertUtils.isBlank(description) ? dft : description;
     }
 
-    public static String extractComments(PsiMethod psiMethod) {
+    public static String extractComments(PsiMethod psiMethod, String dft) {
         String description = extractComments(psiMethod.getDocComment(), psiMethod.getAnnotations());
-        return AssertUtils.isBlank(description) ? psiMethod.getName() : description;
+        return AssertUtils.isBlank(description) ? dft : description;
     }
 
-    public static String extractComments(PsiField psiField) {
+    public static String extractComments(PsiField psiField, String dft) {
         String description = extractComments(psiField.getDocComment(), psiField.getAnnotations());
-        return AssertUtils.isBlank(description) ? psiField.getName() : description;
+        return AssertUtils.isBlank(description) ? dft : description;
     }
 
     private static String extractComments(PsiDocComment docComment, PsiAnnotation[] annotations) {

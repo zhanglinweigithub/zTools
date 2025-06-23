@@ -20,7 +20,6 @@ repositories {
 
 dependencies {
     implementation fileTree(dir:'lib', include: ['*.jar'])
-//    implementation 'org.apache.poi:poi-ooxml:5.2.2'
 }
 
 intellij {

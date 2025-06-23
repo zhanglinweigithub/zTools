@@ -82,7 +82,7 @@ public class GenerateApiDocAction extends AnAction {
         }
 
         ApiInfo apiInfo = ApiInfo.create(selectedMethod);
-        return DocFacade.generateApiDoc(Collections.singletonList(apiInfo), project, CommentsUtil.extractComments(selectedMethod));
+        return DocFacade.generateApiDoc(Collections.singletonList(apiInfo), project, CommentsUtil.extractComments(selectedMethod, selectedMethod.getName()));
     }
 
     private boolean generateApiDocForAllMethods(Project project, PsiClass selectedClass) throws Exception {
@@ -92,7 +92,7 @@ public class GenerateApiDocAction extends AnAction {
         }
 
         List<ApiInfo> apiInfos = ApiInfo.create(selectedClass);
-        return DocFacade.generateApiDoc(apiInfos, project, CommentsUtil.extractComments(selectedClass));
+        return DocFacade.generateApiDoc(apiInfos, project, CommentsUtil.extractComments(selectedClass, selectedClass.getName()));
     }
 
 }

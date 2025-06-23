@@ -31,7 +31,7 @@ public class ApiInfo {
         ApiInfo apiInfo = new ApiInfo();
 
         // 忽略未标注xxxMapping注解的方法
-        if (psiMethod == null || !AnnotationUtil.hasMappingAnnotation(psiMethod)) {
+        if (!AnnotationUtil.hasMappingAnnotation(psiMethod)) {
             apiInfo.setEmpty(true);
             return apiInfo;
         }
@@ -43,9 +43,8 @@ public class ApiInfo {
         }
 
         // 方法标题: 优先使用方法注释
-        String methodName = psiMethod.getName();
-        String methodDescription = CommentsUtil.extractComments(psiMethod);
-        apiInfo.setTitle(AssertUtils.isBlank(methodDescription) ? methodName : methodDescription);
+        String methodDescription = CommentsUtil.extractComments(psiMethod, psiMethod.getName());
+        apiInfo.setTitle(methodDescription);
 
         // 方法注释
         apiInfo.setDescription(methodDescription);
