@@ -266,4 +266,12 @@ public final class JsonUtil {
 
         return pretty ? PRETTY_GSON.toJson(object) : FLATTEN_GSON.toJson(object);
     }
+
+    public static <T> T parseObject(String jsonString, Class<T> aClass) {
+        if (AssertUtils.isBlank(jsonString) || aClass == null) {
+            return null;
+        }
+
+        return PRETTY_GSON.fromJson(jsonString, aClass);
+    }
 }

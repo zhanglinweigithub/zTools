@@ -22,7 +22,8 @@ public interface SpringPool {
     String DOT_JAVA = ".java";
     String DOT_XML = ".xml";
     String EMPTY = "";
-    String EQUALS = "=";
+    String EQUAL = "=";
+    String EQUALS = "==";
     String FALSE = "false";
     String SLASH = "/";
     String DOUBLE_SLASH = "//";
