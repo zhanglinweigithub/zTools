@@ -10,8 +10,6 @@ public final class NotificationUtil {
 
     private NotificationUtil(){}
 
-    private static final NotificationGroup notificationGroup =  NotificationGroupManager.getInstance().getNotificationGroup("com.zhanglinwei.zTools.NotificationGroup");
-
     public static void warnNotify(String message, Project project) {
         notify(message, NotificationType.WARNING, project);
     }

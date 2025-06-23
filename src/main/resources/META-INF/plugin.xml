@@ -48,7 +48,7 @@
             <em>2025.06.11</em><br>
             <ul>
                 <li>fix bug | 修复了一些已知问题</li>
-                <li>Add feature: restful search | 新增 RestFul 接口搜索功能</li>
+                <li>feat: add restful search | 新增 RestFul 接口搜索功能</li>
             </ul>
             <em>2025.06.13</em><br>
             <ul>
@@ -56,6 +56,11 @@
             </ul>
             <em>2025.06.16</em><br>
             <ul>
+                <li>fix bug | 修复了一些已知问题</li>
+            </ul>
+            <em>2025.xx.xx</em><br>
+            <ul>
+                <li>feat: restful support global request prefix | RestFul 接口搜索支持全局请求前缀</li>
                 <li>fix bug | 修复了一些已知问题</li>
             </ul>
     ]]>

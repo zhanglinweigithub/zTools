@@ -113,7 +113,7 @@ public final class SpringConfigUtils {
 
             return value;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            NotificationUtil.warnNotify("The configuration file has failed to resolve. Please check whether the configuration writing is standardized.", project);
         }
         return null;
     }
