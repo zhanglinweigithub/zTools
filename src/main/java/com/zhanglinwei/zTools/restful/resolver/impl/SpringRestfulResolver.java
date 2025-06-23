@@ -87,8 +87,8 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
 
     private String buildRequestPath(String classRequestPath, String methodRequestPath, Project project) {
         String basePath = CommonUtils.buildPath(classRequestPath, methodRequestPath);
-//        return CommonUtils.buildPath(globalRequestPrefix(project), basePath);
-        return basePath;
+        return CommonUtils.buildPath(globalRequestPrefix(project), basePath);
+//        return basePath;
     }
 
 }

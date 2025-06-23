@@ -9,6 +9,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 
@@ -42,16 +43,27 @@ public final class SpringConfigUtils {
         return Collections.emptyMap();
     }
 
+    private static Map<String, Object> propertiesToFlattenMap(String propertiesContent) {
+        return AssertUtils.isBlank(propertiesContent) ? Collections.emptyMap() : Arrays.stream(propertiesContent.split(CRLF))
+                .filter(AssertUtils::isNotBlank)
+                .collect(Collectors.toMap(
+                        item -> item.split(EQUAL, 2)[0],
+                        item -> item.split(EQUAL, 2)[1],
+                        (oldVal, newVal) -> oldVal,
+                        LinkedHashMap::new
+                ));
+    }
+
     private static Map<String, Object> yamlToFlattenMap(String yamlContent) {
         if (AssertUtils.isBlank(yamlContent)) {
             return Collections.emptyMap();
         }
 
         Map<String, Object> yamlMap = new Yaml().load(yamlContent);
-        return flattenMap(yamlMap);
+        return yamlToFlattenMap(yamlMap);
     }
 
-    private static Map<String, Object> flattenMap(Map<String, Object> sourceMap) {
+    private static Map<String, Object> yamlToFlattenMap(Map<String, Object> sourceMap) {
         Map<String, Object> flatMap = new LinkedHashMap<>();
         flattenMapRecursive(EMPTY, sourceMap, flatMap);
         return flatMap;
@@ -92,7 +104,37 @@ public final class SpringConfigUtils {
 
     public static Object property(Project project, SpringConfigProperties configProperties) {
         Map<String, Object> yamlMap = findYamlToFlattenMap(project);
-        return yamlMap.get(configProperties.getValue());
+        Object value = yamlMap.get(configProperties.getValue());
+        if (value == null) {
+            Map<String, Object> propertiesMap = findPropertiesToFlattenMap(project);
+            value = propertiesMap.get(configProperties.getValue());
+        }
+
+        return value;
+    }
+
+    private static Map<String, Object> findPropertiesToFlattenMap(Project project) {
+        Collection<VirtualFile> configFileList = new ArrayList<>(FilenameIndex.getVirtualFilesByName("application.properties", false, GlobalSearchScope.projectScope(project)));
+
+        VirtualFile configFile = configFileList.stream()
+                .filter(file -> file.getPath().contains("src/main/resources"))
+                .findFirst()
+                .orElse(null);
+
+        if (configFile != null) {
+            String propertiesContent = null;
+            try {
+                propertiesContent = new String(configFile.contentsToByteArray());
+            } catch (IOException ignore) {
+                // ignore exception
+            }
+
+            if (AssertUtils.isNotBlank(propertiesContent)) {
+                return propertiesToFlattenMap(propertiesContent);
+            }
+        }
+
+        return Collections.emptyMap();
     }
 
     public static String propertyAsString(Project project, SpringConfigProperties configProperties) {

@@ -258,6 +258,23 @@ public class TeacherInfo_drvE {
 
 ![image-20250613210838452](./img/image-20250613210838452.png)
 
+> 注意：
+>
+> 1. 如果修改了相关配置，需要重启项目才能生效，否则读取的还是旧的配置
+> 2. 配置请规范书写，否则可能无法解析
+
+全局请求前缀说明:
+
+- 支持 `server.servlet.context-path`、`spring.mvc.servlet.path` 属性
+- 优先级 `server.servlet.context-path > spring.mvc.servlet.path`
+
+配置文件读取说明：
+
+- 支持`application.yaml`、`application.yml`、`application.properties`
+- 优先级`application.yaml > application.yml > application.properties`
+
+
+
 ## 三、配置说明
 
 ### 1、生成文档配置
