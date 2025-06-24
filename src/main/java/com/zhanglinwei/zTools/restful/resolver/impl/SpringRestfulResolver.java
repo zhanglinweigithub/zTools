@@ -65,7 +65,7 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
 
         String classRequestPath = AnnotationUtil.extractPathFromAnnotation(classXxxMappingAnnotation);
         String methodRequestPath = AnnotationUtil.extractPathFromAnnotation(methodXxxMappingAnnotation);
-        String requestPath = buildRequestPath(classRequestPath, methodRequestPath, psiMethod.getProject());
+        String requestPath = buildRequestPath(classRequestPath, methodRequestPath);
 
         Set<String> requestTypes = AnnotationUtil.extractRequestTypeListFromAnnotation(classXxxMappingAnnotation, methodXxxMappingAnnotation);
         if (requestTypes.isEmpty()) {
@@ -88,11 +88,10 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
                 }).collect(Collectors.toList());
     }
 
-    private String buildRequestPath(String classRequestPath, String methodRequestPath, Project project) {
-        String basePath = CommonUtils.buildPath(classRequestPath, methodRequestPath);
+    private String buildRequestPath(String prefixPath, String suffixPath) {
 //        String prefix = RESTFUL_PREFIX_CACHE.computeIfAbsent(project.getBasePath(), key -> globalRequestPrefix(project));
 //        return CommonUtils.buildPath(prefix, basePath);
-        return basePath;
+        return CommonUtils.buildPath(prefixPath, suffixPath);
     }
 
 }

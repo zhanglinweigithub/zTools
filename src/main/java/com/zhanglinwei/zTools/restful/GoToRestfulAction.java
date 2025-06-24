@@ -13,10 +13,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameFilter;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameModel;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import com.zhanglinwei.zTools.restful.resolver.RestfulResolver;
+import com.zhanglinwei.zTools.util.AssertUtils;
+import com.zhanglinwei.zTools.util.CommonUtils;
+import com.zhanglinwei.zTools.util.SpringConfigUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,8 +37,9 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
             return;
         }
 
+        String requestPrefix = globalRequestPrefix(project);
         Module module = actionEvent.getData(PlatformCoreDataKeys.MODULE);
-        ChooseByNameContributor chooseByNameContributor = createChooseByNameContributor(module);
+        ChooseByNameContributor chooseByNameContributor = createChooseByNameContributor(module, requestPrefix);
         IRestfulChooseByNameModel chooseByNameModel = new IRestfulChooseByNameModel(project, chooseByNameContributor);
 
         GotoActionBase.GotoActionCallback<HttpMethod> iRestfulCallback = new GotoActionBase.GotoActionCallback<HttpMethod>() {
@@ -61,13 +66,14 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
         );
     }
 
-    private ChooseByNameContributor createChooseByNameContributor(Module module) {
+    private ChooseByNameContributor createChooseByNameContributor(Module module, String requestPrefix) {
         return new ChooseByNameContributor() {
             List<IRestful> restfulList = new ArrayList<>();
 
             @Override
             public String @NotNull [] getNames(Project project, boolean onlyThisModule) {
                 restfulList = onlyThisModule && module != null ? createRestfulByModule(module) : createRestfulByProject(project);
+                appendGlobalRequestPrefix(restfulList, requestPrefix);
                 return restfulList.stream().map(IRestful::getName).toArray(String[]::new);
             }
 
@@ -76,6 +82,18 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
                 return restfulList.stream()
                         .filter(restful -> name.equals(restful.getName()))
                         .toArray(NavigationItem[]::new);
+            }
+
+            private void appendGlobalRequestPrefix(List<IRestful> restfulList, String requestPrefix) {
+                if (AssertUtils.isEmpty(requestPrefix) || AssertUtils.isBlank(requestPrefix)) {
+                    return;
+                }
+
+                restfulList.forEach(restful -> {
+                    String fullPath = CommonUtils.buildPath(requestPrefix, restful.getName());
+                    restful.setName(fullPath);
+                    restful.setRequestPath(fullPath);
+                });
             }
 
             public List<IRestful> getRestfulList() {
@@ -94,5 +112,13 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
         return RestfulResolver.createResolver().stream()
                 .flatMap(resolver -> resolver.resolverByModule(module).stream())
                 .collect(Collectors.toList());
+    }
+
+    private String globalRequestPrefix(Project project) {
+        String prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
+        if (AssertUtils.isBlank(prefix)) {
+            prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
+        }
+        return prefix;
     }
 }
