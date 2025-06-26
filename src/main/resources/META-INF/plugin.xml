@@ -101,10 +101,15 @@
             <add-to-group group-id="EditorLangPopupMenu" anchor="first"/>
         </action>
 
+        <!-- 拷贝CURL -->
+        <action id="copy-curl.ID" icon="/icons/curl.svg" class="com.zhanglinwei.zTools.copycurl.CopyCurlAction" text="Copy CURL">
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
+        </action>
+
         <!-- 生成API文档 -->
         <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateApiDocAction"
                 text="Generate Api Doc">
-            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-curl.ID"/>
         </action>
 
         <!-- 生成数据库文档 -->

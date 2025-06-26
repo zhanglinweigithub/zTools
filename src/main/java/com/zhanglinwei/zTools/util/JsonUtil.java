@@ -33,7 +33,7 @@ public final class JsonUtil {
         }
 
         // 格式化后的Json
-        String prettyJson = prettyJsonString(property);
+        String prettyJson = toJsonString(property, true);
         if (AssertUtils.isBlank(prettyJson)) {
             return prettyJson;
         }
@@ -132,18 +132,6 @@ public final class JsonUtil {
         }
 
         return String.join(COMMA_SPACE, commentParts);
-    }
-
-    /**
-     * 格式化的 Json
-     */
-    public static String prettyJsonString(JavaProperty property) {
-        if (property == null) {
-            return EMPTY;
-        }
-
-        Object object = convertPropertyToJsonObject(property);
-        return PRETTY_GSON.toJson(object);
     }
 
     public static String flattenJsonString(JavaProperty property) {
@@ -257,6 +245,13 @@ public final class JsonUtil {
             NotificationUtil.errorNotify("json format error, Caused by: " + e.getMessage(), project);
         }
         return EMPTY;
+    }
+
+    /**
+     * 格式化的 Json
+     */
+    public static String toJsonString(JavaProperty property, boolean pretty) {
+        return toJsonString(convertPropertyToJsonObject(property), pretty);
     }
 
     public static String toJsonString(Object object, boolean pretty) {

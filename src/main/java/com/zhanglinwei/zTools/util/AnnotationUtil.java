@@ -43,6 +43,21 @@ public final class AnnotationUtil {
     /**
      * 获得请求类型
      */
+    public static List<String> extractRequestTypeAsList(PsiAnnotation[] annotations) {
+        PsiAnnotation xxxMappingAnnotation = findXxxMappingAnnotation(annotations);
+        return extractRequestTypeListByMappingAnnotation(xxxMappingAnnotation);
+    }
+
+    /**
+     * 获得请求类型
+     */
+    public static String extractRequestTypeAsString(PsiAnnotation[] annotations) {
+        return String.join(COMMA_SPACE, extractRequestTypeAsList(annotations));
+    }
+
+    /**
+     * 获得请求类型
+     */
     public static String extractRequestTypeFromAnnotation(PsiAnnotation classMapping, PsiAnnotation methodMapping) {
         Set<String> requestTypeList = extractRequestTypeListFromAnnotation(classMapping, methodMapping);
         return String.join(COMMA_SPACE, requestTypeList);

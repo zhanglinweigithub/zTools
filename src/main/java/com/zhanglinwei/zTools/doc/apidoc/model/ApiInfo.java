@@ -145,6 +145,8 @@ public class ApiInfo {
         private ApiTableInfo requestBody;
         private String requestBodyJson;
 
+        private JavaProperty originRequestBody;
+
         public ApiRequestInfo(PsiMethod psiMethod, PsiClass psiClass) {
             List<JavaProperty> requestList = JavaProperty.create(psiMethod);
             this.requestHeader = createRequestHeader(psiMethod, psiClass);
@@ -153,6 +155,7 @@ public class ApiInfo {
             this.formParam = createFormParam(psiMethod, requestList);
 
             JavaProperty requestBody = requestList.stream().filter(property -> property.hasAnnotation(WebAnnotation.RequestBody)).findFirst().orElse(null);
+            this.originRequestBody = requestBody;
             this.requestBody = createBody(requestBody);
             this.requestBodyJson = createBodyJson(requestBody);
         }
@@ -323,6 +326,14 @@ public class ApiInfo {
                 producesList.add(accept);
             }
             return producesList;
+        }
+
+        public JavaProperty getOriginRequestBody() {
+            return originRequestBody;
+        }
+
+        public void setOriginRequestBody(JavaProperty originRequestBody) {
+            this.originRequestBody = originRequestBody;
         }
 
         public ApiTableInfo getRequestHeader() {

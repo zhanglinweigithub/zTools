@@ -11,6 +11,7 @@ public interface SpringPool {
     String DOT_STAR = ".*";
     String BACK_SLASH = "\\";
     String COLON = ":";
+    String COLON_SPACE = ": ";
     String COMMA = ",";
     String COMMA_SPACE = ", ";
     String DASH = "-";
