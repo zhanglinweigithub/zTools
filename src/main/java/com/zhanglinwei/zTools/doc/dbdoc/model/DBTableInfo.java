@@ -20,6 +20,10 @@ public class DBTableInfo {
     private String tableComment;
     private List<DBTableColumnInfo> columns = new ArrayList<>();
 
+    public List<DBTableColumnInfo> getColumns() {
+        return columns;
+    }
+
     public void addColumns(DBTableColumnInfo columnInfo) {
         columns.add(columnInfo);
     }
@@ -44,13 +48,14 @@ public class DBTableInfo {
         this.tableName = tableName;
     }
 
-    public static List<DBTableInfo> create(DSCfg dsCfg) throws SQLException {
+    public static List<DBTableInfo> create(DSCfg dsCfg) throws SQLException, ClassNotFoundException {
         Connection connection = getConnection(dsCfg);
         ResultSet resultSet = connection.createStatement().executeQuery(GENERATE_DATABASE_DOC_SQL.replaceAll(DATABASE_NAME_EXPRESSION, "'" + dsCfg.getDatabaseName() + "'"));
         return parseResult(resultSet);
     }
 
-    private static Connection getConnection(DSCfg dsCfg) throws SQLException {
+    private static Connection getConnection(DSCfg dsCfg) throws SQLException, ClassNotFoundException {
+        Class.forName(dsCfg.getDriverClassName());
         return DriverManager.getConnection(
                 dsCfg.getUrl(), dsCfg.getUsername(), dsCfg.getPassword()
         );

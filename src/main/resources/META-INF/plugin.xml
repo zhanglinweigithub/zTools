@@ -31,17 +31,38 @@
                     <li>JSON to Class</li>
                     <li>Encrypting and Decrypting Sensitive data, Supported Algorithms [SM4_CBC, SM4_ECB, AES]</li>
                     <li>Quick search jump to Restful interface [Ctrl + \]</li>
+                    <li>RestFul to CURL</li>
+                    <li>Generate database documents, supporting three formats: Html, MarkDown, and Word</li>
                 </ul>
         ]]>
     </description>
 
     <change-notes>
         <![CDATA[
-            <em>1.0-RELEASE</em><br>
+            <em>2025.xx.xx</em><br>
             <ul>
-                <li>The first version | 第一个版本</li>
+                <li>feat: restful to curl | RestFul 接口复制为 CURL</li>
+                <li>feat: generate db doc | 生成数据库文档</li>
+                <li>fix bug | 修复了一些已知问题</li>
             </ul>
-            <em>2025.01.18</em><br>
+            <em>2025.06.25</em><br>
+            <ul>
+                <li>feat: restful support global request prefix | RestFul 接口搜索支持全局请求前缀</li>
+                <li>fix bug | 修复了一些已知问题</li>
+            </ul>
+            <em>2025.06.24</em><br>
+            <ul>
+                <li>fix bug | 修复了一些已知问题</li>
+            </ul>
+            <em>2025.06.23</em><br>
+            <ul>
+                <li>fix bug | 修复了一些已知问题</li>
+            </ul>
+            <em>2025.06.16</em><br>
+            <ul>
+                <li>fix bug | 修复了一些已知问题</li>
+            </ul>
+            <em>2025.06.13</em><br>
             <ul>
                 <li>fix bug | 修复了一些已知问题</li>
             </ul>
@@ -50,26 +71,13 @@
                 <li>fix bug | 修复了一些已知问题</li>
                 <li>feat: add restful search | 新增 RestFul 接口搜索功能</li>
             </ul>
-            <em>2025.06.13</em><br>
+            <em>2025.01.18</em><br>
             <ul>
                 <li>fix bug | 修复了一些已知问题</li>
             </ul>
-            <em>2025.06.16</em><br>
+            <em>1.0-RELEASE</em><br>
             <ul>
-                <li>fix bug | 修复了一些已知问题</li>
-            </ul>
-            <em>2025.06.23</em><br>
-            <ul>
-                <li>fix bug | 修复了一些已知问题</li>
-            </ul>
-            <em>2025.06.24</em><br>
-            <ul>
-                <li>fix bug | 修复了一些已知问题</li>
-            </ul>
-            <em>2025.06.25</em><br>
-            <ul>
-                <li>feat: restful support global request prefix | RestFul 接口搜索支持全局请求前缀</li>
-                <li>fix bug | 修复了一些已知问题</li>
+                <li>The first version | 第一个版本</li>
             </ul>
     ]]>
     </change-notes>
@@ -113,7 +121,7 @@
         </action>
 
         <!-- 生成数据库文档 -->
-        <action id="generate-db-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">
+        <action id="generate-db-doc.ID" icon="/icons/db.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">
             <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
         </action>
 
