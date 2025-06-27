@@ -113,9 +113,9 @@
         </action>
 
         <!-- 生成数据库文档 -->
-<!--        <action id="generate-db-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">-->
-<!--            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID"/>-->
-<!--        </action>-->
+        <action id="generate-db-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">
+            <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
+        </action>
 
         <!-- 生成SQL操作组 -->
 <!--        <group id="GenerateSQLGroup.ID" text="Generate SQL" popup="true">-->

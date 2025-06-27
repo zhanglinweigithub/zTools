@@ -107,8 +107,13 @@ public class WordDocHandler extends AbstractDocHandler {
     }
 
     @Override
-    protected String templateName() {
+    protected String apiTemplateName() {
         return "api-doc-word.ftl";
+    }
+
+    @Override
+    protected String dbTemplateName() {
+        return "db-doc-word.ftl";
     }
 
     @Override

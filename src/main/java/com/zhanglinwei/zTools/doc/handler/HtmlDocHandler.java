@@ -17,6 +17,16 @@ public class HtmlDocHandler extends AbstractDocHandler {
     }
 
     @Override
+    protected String apiTemplateName() {
+        return "api-doc-html.ftl";
+    }
+
+    @Override
+    protected String dbTemplateName() {
+        return "db-doc-html.ftl";
+    }
+
+    @Override
     protected String decorateJsonString(String prettyString) {
         StringBuilder builder = new StringBuilder();
 
@@ -104,8 +114,4 @@ public class HtmlDocHandler extends AbstractDocHandler {
         return EMPTY;
     }
 
-    @Override
-    protected String templateName() {
-        return "api-doc-html.ftl";
-    }
 }

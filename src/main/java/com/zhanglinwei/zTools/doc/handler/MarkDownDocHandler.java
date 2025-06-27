@@ -10,8 +10,13 @@ public class MarkDownDocHandler extends AbstractDocHandler {
     }
 
     @Override
-    protected String templateName() {
+    protected String apiTemplateName() {
         return "api-doc-md.ftl";
+    }
+
+    @Override
+    protected String dbTemplateName() {
+        return "db-doc-md.ftl";
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.zhanglinwei.zTools.doc.handler;
 
 import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
+import com.zhanglinwei.zTools.doc.dbdoc.model.DBTableInfo;
 import com.zhanglinwei.zTools.util.AssertUtils;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
@@ -21,10 +22,10 @@ public abstract class AbstractDocHandler implements DocHandler {
         customProcess(apiInfos);
 
         Configuration mdCfg = new Configuration(Configuration.VERSION_2_3_31);
-        mdCfg.setTemplateLoader(new ClassTemplateLoader(getClass(), "/template"));
+        mdCfg.setTemplateLoader(new ClassTemplateLoader(getClass(), "/template/api"));
         mdCfg.setDefaultEncoding(UTF_8);
 
-        Template template = mdCfg.getTemplate(templateName());
+        Template template = mdCfg.getTemplate(apiTemplateName());
         File outputFile = new File(pathName);
         if (!outputFile.getParentFile().exists()) {
             if (!outputFile.getParentFile().mkdirs()) {
@@ -40,13 +41,31 @@ public abstract class AbstractDocHandler implements DocHandler {
         return true;
     }
 
-    protected abstract String templateName();
-    protected abstract String decorateJsonString(String prettyJson);
-
     @Override
-    public boolean generateDataBaseDoc() {
-        return false;
+    public boolean generateDataBaseDoc(Collection<DBTableInfo> dbTableInfos, String pathName) throws Exception {
+        Configuration mdCfg = new Configuration(Configuration.VERSION_2_3_31);
+        mdCfg.setTemplateLoader(new ClassTemplateLoader(getClass(), "/template/db"));
+        mdCfg.setDefaultEncoding(UTF_8);
+
+        Template template = mdCfg.getTemplate(dbTemplateName());
+        File outputFile = new File(pathName);
+        if (!outputFile.getParentFile().exists()) {
+            if (!outputFile.getParentFile().mkdirs()) {
+                return false;
+            }
+        }
+
+        Map<String, Object> dataModel = new HashMap<>();
+        dataModel.put("tableList", dbTableInfos);
+        try (FileWriter out = new FileWriter(outputFile)) {
+            template.process(dataModel, out);
+        }
+        return true;
     }
+
+    protected abstract String apiTemplateName();
+    protected abstract String dbTemplateName();
+    protected abstract String decorateJsonString(String prettyJson);
 
     protected void customProcess(Collection<ApiInfo> apiInfos) {
         if (AssertUtils.isEmpty(apiInfos)) {
