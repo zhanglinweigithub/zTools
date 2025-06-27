@@ -102,9 +102,10 @@
         <projectService serviceImplementation="com.zhanglinwei.zTools.restful.config.IRestfulModalConfig"/>
     </extensions>
 
+    <!-- icon (only supports AllIcons.*): https://intellij-icons.jetbrains.design/ -->
     <actions>
         <!-- 拷贝JSON -->
-        <action id="copy-json.ID" icon="/icons/json.svg" class="com.zhanglinwei.zTools.copyjson.CopyJsonAction"
+        <action id="copy-json.ID" icon="/json/object.svg" class="com.zhanglinwei.zTools.copyjson.CopyJsonAction"
                 text="Copy Json">
             <add-to-group group-id="EditorLangPopupMenu" anchor="first"/>
         </action>
@@ -121,7 +122,7 @@
         </action>
 
         <!-- 生成数据库文档 -->
-        <action id="generate-db-doc.ID" icon="/icons/db.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">
+        <action id="generate-db-doc.ID" icon="/debugger/db_db_object.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">
             <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
         </action>
 
@@ -137,7 +138,7 @@
 <!--        </group>-->
 
         <!-- JSON 转 Java -->
-        <action id="java-class-by-json.ID" icon="/icons/javaClass.svg" class="com.zhanglinwei.zTools.jsontoclass.JavaClassByJsonAction" text="Java Class By Json">
+        <action id="java-class-by-json.ID" icon="/expui/nodes/class.svg" class="com.zhanglinwei.zTools.jsontoclass.JavaClassByJsonAction" text="Java Class By Json">
             <add-to-group group-id="NewGroup1" anchor="after" relative-to-action="NewClass"/>
         </action>
 

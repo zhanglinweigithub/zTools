@@ -66,30 +66,29 @@ public class CopyCurlAction extends AnAction {
         String requestUrl = resolveRequestUrl(apiInfo, project);
 
         // 4. 构建CURL
-        StringBuilder builder = new StringBuilder("curl ");
-        builder.append("-X ").append(requestType.name()).append(requestUrl).append(" \\\n");
+        StringBuilder builder = new StringBuilder("curl --location ");
+        builder.append("--request ").append(requestType.name()).append(requestUrl).append(" \\\n");
 
         // 5. 拼接请求头
         ApiInfo.ApiTableInfo requestHeader = requestInfo.getRequestHeader();
         if (requestHeader != null && AssertUtils.isNotEmpty(requestHeader.getRowList())) {
             requestHeader.getRowList().forEach(header -> {
-                builder.append("-H \"").append(header.getName()).append(COLON_SPACE).append(header.getExample()).append("\" \\\n");
+                builder.append("--header '").append(header.getName()).append(COLON_SPACE).append(header.getExample()).append("' \\\n");
             });
         }
 
         // 6. 拼接表单参数
         ApiInfo.ApiTableInfo formParam = requestInfo.getFormParam();
         if (formParam != null && AssertUtils.isNotEmpty(formParam.getRowList())) {
-            String formString = formParam.getRowList().stream()
-                    .map(row -> row.getName() + EQUAL + CommonUtils.trimFirstAndLastChar(String.valueOf(row.getExample()), CharacterPool.QUOTE, 1))
-                    .collect(Collectors.joining(AMPERSAND, QUOTE, QUOTE));
-            builder.append("-d ").append(formString).append(" \\\n");
+            formParam.getRowList().forEach(form -> {
+                builder.append("--form '").append(form.getName()).append(EQUAL).append(CommonUtils.trimFirstAndLastChar(String.valueOf(form.getExample()), CharacterPool.QUOTE, 1)).append("' \\\n");
+            });
         }
 
         // 7. 拼接请求体参数
         JavaProperty requestBody = requestInfo.getOriginRequestBody();
         if (requestBody != null) {
-            builder.append("-d ").append(SINGLE_QUOTE).append(JsonUtil.toJsonString(requestBody, false)).append(SINGLE_QUOTE);
+            builder.append("--data '").append(JsonUtil.toJsonString(requestBody, true)).append(SINGLE_QUOTE);
         }
 
         // 8. 拷贝到剪贴板
