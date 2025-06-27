@@ -1,7 +1,8 @@
 package com.zhanglinwei.zTools.util;
 
 
-import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constants.SpringPool.SLASH;
 
 /**
  * 通用工具类
@@ -9,6 +10,30 @@ import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 public final class CommonUtils {
 
     private CommonUtils(){}
+
+    /**
+     * 去除字符串首尾出现的某个字符.
+     *
+     * @param source  源字符串.
+     * @param element 需要去除的字符.
+     * @return String.
+     */
+    public static String trimFirstAndLastChar(String source, char element, int max) {
+        if (AssertUtils.isBlank(source) || max <= 0) {
+            return source;
+        }
+
+        for (int i = 0; i < max; i++) {
+            if (AssertUtils.isBlank(source) || source.equals(String.valueOf(element))) {
+                return EMPTY;
+            }
+            int beginIndex = source.indexOf(element) == 0 ? 1 : 0;
+            int endIndex = source.lastIndexOf(element) + 1 == source.length() ? source.lastIndexOf(element) : source.length();
+            source = source.substring(beginIndex, endIndex);
+        }
+
+        return source;
+    }
 
     /**
      * 将字符串中指定的子串替换为新的字符串，支持控制最大替换次数

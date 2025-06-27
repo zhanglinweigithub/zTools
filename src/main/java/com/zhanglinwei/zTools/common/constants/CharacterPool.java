@@ -5,6 +5,7 @@ public interface CharacterPool {
     char AMPERSAND = '&';
     char AT = '@';
     char STAR = '*';
+    char QUOTE = '"';
     char COLON = ':';
     char COMMA = ',';
     char DASH = '-';

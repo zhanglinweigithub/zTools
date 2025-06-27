@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.zhanglinwei.zTools.common.constants.CharacterPool;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
@@ -38,15 +39,19 @@ public class CopyCurlAction extends AnAction {
             return;
         }
 
-        PsiElement referenceAt = psiFile.findElementAt(editor.getCaretModel().getOffset());
-        PsiMethod selectedMethod = PsiTreeUtil.getContextOfType(referenceAt, PsiMethod.class);
+        try {
+            PsiElement referenceAt = psiFile.findElementAt(editor.getCaretModel().getOffset());
+            PsiMethod selectedMethod = PsiTreeUtil.getContextOfType(referenceAt, PsiMethod.class);
 
-        if (!isAllow(project, selectedMethod)) {
-            return;
-        }
+            if (!isAllow(project, selectedMethod)) {
+                return;
+            }
 
-        if (generateCURL(selectedMethod, project)) {
-            NotificationUtil.infoNotify("Copy CURL successfully!", project);
+            if (generateCURL(selectedMethod, project)) {
+                NotificationUtil.infoNotify("Copy CURL successfully!", project);
+            }
+        } catch (Exception ex) {
+            NotificationUtil.infoNotify("Copy CURL failed, Caused by: " + ex.getMessage(), project);
         }
     }
 
@@ -76,7 +81,7 @@ public class CopyCurlAction extends AnAction {
         ApiInfo.ApiTableInfo formParam = requestInfo.getFormParam();
         if (formParam != null && AssertUtils.isNotEmpty(formParam.getRowList())) {
             String formString = formParam.getRowList().stream()
-                    .map(row -> row.getName() + EQUAL + String.valueOf(row.getExample()).replaceAll(QUOTE, EMPTY))
+                    .map(row -> row.getName() + EQUAL + CommonUtils.trimFirstAndLastChar(String.valueOf(row.getExample()), CharacterPool.QUOTE, 1))
                     .collect(Collectors.joining(AMPERSAND, QUOTE, QUOTE));
             builder.append("-d ").append(formString).append(" \\\n");
         }
@@ -99,7 +104,7 @@ public class CopyCurlAction extends AnAction {
         ApiInfo.ApiTableInfo requestParam = apiInfo.getRequestInfo().getRequestParam();
         if (requestParam != null && AssertUtils.isNotEmpty(requestParam.getRowList())) {
             String queryString = requestParam.getRowList().stream()
-                    .map(row -> row.getName() + EQUAL + String.valueOf(row.getExample()).replaceAll(QUOTE, EMPTY))
+                    .map(row -> row.getName() + EQUAL + CommonUtils.trimFirstAndLastChar(String.valueOf(row.getExample()), CharacterPool.QUOTE, 1))
                     .collect(Collectors.joining(AMPERSAND));
             requestPath = requestPath + QUESTION_MARK + queryString;
         }

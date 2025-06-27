@@ -1,6 +1,5 @@
 package com.zhanglinwei.zTools.util;
 
-import com.google.common.base.Strings;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
@@ -56,7 +55,7 @@ public final class CommentsUtil {
         boolean beginIndexFlag;
         boolean endIndexFlag;
         do {
-            if (Strings.isNullOrEmpty(source.trim()) || source.equals(String.valueOf(element))) {
+            if (AssertUtils.isBlank(source.trim()) || source.equals(String.valueOf(element))) {
                 source = EMPTY;
                 break;
             }
