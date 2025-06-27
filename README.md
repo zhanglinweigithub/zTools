@@ -18,7 +18,7 @@
 
 1. 将鼠标定位至 **接口范围内** 或 **类名** 上
 2. 鼠标右键单机，在弹出的页面选择 `Generate Api Doc`
-3. 若未配置文档保存路径，默认在项目根目录 `/target/_doc` 内
+3. 若未配置文档保存路径，默认在项目根目录 `/target/_doc` 内（若未显示，请前往本地磁盘内查看，IDEA有时不会实时刷新）
 
 ![image-20240704223846481](./img/image-20240704223846481.png)
 
@@ -73,7 +73,7 @@
 
 #### 注意事项
 
-1. 默认会忽略 `static`、`final` 字段
+1. 默认会忽略 `static` 字段
 2. 默认会忽略 `serialVersionUID` 字段
 3. 自引用的嵌套类型会标注 **同外层** 
 
@@ -258,26 +258,85 @@ public class TeacherInfo_drvE {
 
 ![image-20250613210838452](./img/image-20250613210838452.png)
 
-> 注意：
->
-> 1. 如果修改了相关配置，需要重启项目才能生效，否则读取的还是旧的配置
-> 2. 配置请规范书写，否则可能无法解析
+#### 注意事项
 
-全局请求前缀说明:
+1. 如果修改了相关配置，需要重启项目（重新构建）才能生效，否则读取的还是旧的配置
 
-- 支持 `server.servlet.context-path`、`spring.mvc.servlet.path` 属性
-- 优先级 `server.servlet.context-path > spring.mvc.servlet.path`
+2. 配置请规范书写，否则可能无法解析
 
-配置文件读取说明：
+3. 全局请求前缀说明:
 
-- 支持`application.yaml`、`application.yml`、`application.properties`
-- 优先级`application.yaml > application.yml > application.properties`
+   - 支持 `server.servlet.context-path`、`spring.mvc.servlet.path` 属性
+
+   - 优先级 `server.servlet.context-path > spring.mvc.servlet.path`
 
 
+4. 配置文件读取说明：
+
+   - 支持`application.yaml`、`application.yml`、`application.properties`
+
+   - 优先级`application.yaml > application.yml > application.properties`
+
+
+### 6、拷贝 cURL
+
+将 `Restful` 接口复制为 `cURL` 命令，可直接导入`Postman`
+
+**使用方式：**
+
+1. 光标定位至方法区域内
+2. 鼠标右键单机
+3. 选择 `Copy CURL`
+
+![image-20250628002934543](./img/image-20250628002934543.png)
+
+### 7、生成数据库文档
+
+支持三种格式：`Word`、`MarkDown`、`Html`
+
+**使用方式：**
+
+1. 鼠标左键单击菜单栏 `Tools ==> Generate DB Doc`
+2. 若未配置文档保存路径，默认在项目根目录 `/target/_doc` 内（若未显示，请前往本地磁盘内查看，IDEA有时不会实时刷新）
+
+![image-20250628003550713](./img/image-20250628003550713.png)
+
+#### 注意事项
+
+1. 会自动读取配置文件内的数据库配置，如果修改了相关配置，需要重启项目（重新构建）才能生效，否则读取的还是旧的配置
+
+2. 配置请规范书写，否则可能无法解析
+
+3. 读取配置项说明:
+
+```yaml
+# yaml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/todo-manager?serverTimezone=Asia/Shanghai&useTimezone=true&charset=utf8mb4&useSSL=false&allowPublicKeyRetrieval=true
+    password: xxxxxxx
+    username: root
+
+# properties
+spring.datasource.driver-class-name: com.mysql.cj.jdbc.Driver
+spring.datasource.url: jdbc:mysql://127.0.0.1:3306/todo-manager?serverTimezone=Asia/Shanghai&useTimezone=true&charset=utf8mb4&useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.password: xxxxxxx
+spring.datasource.username: root
+```
+
+4. 配置文件读取说明：
+
+   - 支持`application.yaml`、`application.yml`、`application.properties`
+
+   - 优先级`application.yaml > application.yml > application.properties`
 
 ## 三、配置说明
 
-### 1、生成文档配置
+### 1、生成文档配置（接口文档、数据库文档）
+
+- 其中 `Save Directory`、`Doc Type`、`Overwrite exists docs` 为文档通用配置
+- `Api Document Settings` 下的为接口文档专属配置
 
 ![image-20250104194754846](./img/image-20250104194754846.png)
 
