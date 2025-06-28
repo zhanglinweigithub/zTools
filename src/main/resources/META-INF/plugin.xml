@@ -116,13 +116,13 @@
         </action>
 
         <!-- 生成API文档 -->
-        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.GenerateApiDocAction"
+        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.doc.apidoc.GenerateApiDocAction"
                 text="Generate Api Doc">
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-curl.ID"/>
         </action>
 
         <!-- 生成数据库文档 -->
-        <action id="generate-db-doc.ID" icon="/debugger/db_db_object.svg" class="com.zhanglinwei.zTools.doc.GenerateDBDocAction" text="Generate DB Doc">
+        <action id="generate-db-doc.ID" icon="/debugger/db_db_object.svg" class="com.zhanglinwei.zTools.doc.dbdoc.GenerateDBDocAction" text="Generate DB Doc">
             <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
         </action>
 

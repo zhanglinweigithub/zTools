@@ -1,4 +1,4 @@
-package com.zhanglinwei.zTools.doc;
+package com.zhanglinwei.zTools.doc.apidoc;
 
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.AnAction;

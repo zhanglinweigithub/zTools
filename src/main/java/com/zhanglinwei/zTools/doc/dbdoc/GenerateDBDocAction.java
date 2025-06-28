@@ -1,4 +1,4 @@
-package com.zhanglinwei.zTools.doc;
+package com.zhanglinwei.zTools.doc.dbdoc;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

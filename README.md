@@ -301,6 +301,10 @@ public class TeacherInfo_drvE {
 
 ![image-20250628003550713](./img/image-20250628003550713.png)
 
+#### 支持数据库
+
+1. MySQL
+
 #### 注意事项
 
 1. 会自动读取配置文件内的数据库配置，如果修改了相关配置，需要重启项目（重新构建）才能生效，否则读取的还是旧的配置
@@ -310,7 +314,7 @@ public class TeacherInfo_drvE {
 3. 读取配置项说明:
 
 ```yaml
-# yaml
+# yaml、yml
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver

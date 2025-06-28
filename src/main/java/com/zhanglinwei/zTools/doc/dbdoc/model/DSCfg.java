@@ -1,11 +1,13 @@
 package com.zhanglinwei.zTools.doc.dbdoc.model;
 
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.doc.dbdoc.common.DBType;
 import com.zhanglinwei.zTools.util.AssertUtils;
 import com.zhanglinwei.zTools.util.SpringConfigUtils;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +16,9 @@ import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 public class DSCfg {
 
     private static final String ERROR_MSG_EXPRESSION = "The 【\"%s\"】 config not found in file [ application.yaml | application.yml | application.properties ]";
+    private static final Set<String> SUPPORTS_DRIVERS = ImmutableSet.of(
+            "com.mysql.cj.jdbc.Driver", "com.mysql.jdbc.Driver"
+    );
 
     private String driverClassName;
     private String url;
@@ -40,10 +45,16 @@ public class DSCfg {
         if (AssertUtils.isBlank(driverClassName)) {
             return new DSCfg(String.format(ERROR_MSG_EXPRESSION, SpringConfigProperties.DATASOURCE_DRIVER.getValue()));
         }
+        if (!SUPPORTS_DRIVERS.contains(driverClassName)) {
+            return new DSCfg("Only support MySQL database");
+        }
 
         String url = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_URL);
         if (AssertUtils.isBlank(driverClassName)) {
             return new DSCfg(String.format(ERROR_MSG_EXPRESSION, SpringConfigProperties.DATASOURCE_URL.getValue()));
+        }
+        if (!url.contains("mysql")) {
+            return new DSCfg("Only support MySQL database");
         }
 
         String username = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_USERNAME);
