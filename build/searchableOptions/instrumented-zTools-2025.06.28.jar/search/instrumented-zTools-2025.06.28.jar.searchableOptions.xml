@@ -1,0 +1,61 @@
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="" path="ActionManager" hit="" />
+    <option name="copy" path="ActionManager" hit="Copy CURL" />
+    <option name="curl" path="ActionManager" hit="Copy CURL" />
+    <option name="copy" path="ActionManager" hit="Copy Json" />
+    <option name="json" path="ActionManager" hit="Copy Json" />
+    <option name="decrypt" path="ActionManager" hit="Decrypt" />
+    <option name="clipboard" path="ActionManager" hit="Decrypt To Clipboard" />
+    <option name="decrypt" path="ActionManager" hit="Decrypt To Clipboard" />
+    <option name="to" path="ActionManager" hit="Decrypt To Clipboard" />
+    <option name="encrypt" path="ActionManager" hit="Encrypt" />
+    <option name="api" path="ActionManager" hit="Generate Api Doc" />
+    <option name="doc" path="ActionManager" hit="Generate Api Doc" />
+    <option name="generate" path="ActionManager" hit="Generate Api Doc" />
+    <option name="db" path="ActionManager" hit="Generate DB Doc" />
+    <option name="doc" path="ActionManager" hit="Generate DB Doc" />
+    <option name="generate" path="ActionManager" hit="Generate DB Doc" />
+    <option name="by" path="ActionManager" hit="Java Class By Json" />
+    <option name="class" path="ActionManager" hit="Java Class By Json" />
+    <option name="java" path="ActionManager" hit="Java Class By Json" />
+    <option name="json" path="ActionManager" hit="Java Class By Json" />
+  </configurable>
+  <configurable id="com.zhanglinwei.zTools.config.ZToolsConfigSettings" configurable_name="z-tools">
+    <option name="" path="Doc Setting" hit=" Api Document Settings " />
+    <option name="api" path="Doc Setting" hit=" Api Document Settings " />
+    <option name="document" path="Doc Setting" hit=" Api Document Settings " />
+    <option name="settings" path="Doc Setting" hit=" Api Document Settings " />
+    <option name="aes" path="Sensitive Data" hit="AES" />
+    <option name="crypto" path="Sensitive Data" hit="Crypto Type" />
+    <option name="type" path="Sensitive Data" hit="Crypto Type" />
+    <option name="doc" path="Doc Setting" hit="Doc Setting" />
+    <option name="setting" path="Doc Setting" hit="Doc Setting" />
+    <option name="doc" path="Doc Setting" hit="Doc Type" />
+    <option name="type" path="Doc Setting" hit="Doc Type" />
+    <option name="a" path="Doc Setting" hit="Exclude Fields (a;b): " />
+    <option name="b" path="Doc Setting" hit="Exclude Fields (a;b): " />
+    <option name="exclude" path="Doc Setting" hit="Exclude Fields (a;b): " />
+    <option name="fields" path="Doc Setting" hit="Exclude Fields (a;b): " />
+    <option name="html" path="Doc Setting" hit="Html" />
+    <option name="iv" path="Sensitive Data" hit="IV Offset" />
+    <option name="offset" path="Sensitive Data" hit="IV Offset" />
+    <option name="markdown" path="Doc Setting" hit="MarkDown" />
+    <option name="docs" path="Doc Setting" hit="Overwrite exists docs" />
+    <option name="exists" path="Doc Setting" hit="Overwrite exists docs" />
+    <option name="overwrite" path="Doc Setting" hit="Overwrite exists docs" />
+    <option name="cbc" path="Sensitive Data" hit="SM4_CBC" />
+    <option name="sm" path="Sensitive Data" hit="SM4_CBC" />
+    <option name="ecb" path="Sensitive Data" hit="SM4_ECB" />
+    <option name="sm" path="Sensitive Data" hit="SM4_ECB" />
+    <option name="directory" path="Doc Setting" hit="Save Directory" />
+    <option name="save" path="Doc Setting" hit="Save Directory" />
+    <option name="key" path="Sensitive Data" hit="Secret Key" />
+    <option name="secret" path="Sensitive Data" hit="Secret Key" />
+    <option name="data" path="Sensitive Data" hit="Sensitive Data" />
+    <option name="sensitive" path="Sensitive Data" hit="Sensitive Data" />
+    <option name="word" path="Doc Setting" hit="Word" />
+    <option name="tools" hit="z-tools" />
+    <option name="z" hit="z-tools" />
+  </configurable>
+</options>
