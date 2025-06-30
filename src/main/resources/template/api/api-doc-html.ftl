@@ -11,13 +11,14 @@
             font-size: 1.2em;
             padding: 10px 8px 10px 8px;
             line-height: 1.6;
+            font-family: "Consolas", "Microsoft YaHei", "SimHei", "Helvetica Neue", Arial, sans-serif, "PingFang SC"; /* 优化字体栈 */
         }
         body {
             background-color: #fff;
             font-size: 14px; /* 基础字体大小调整为14px */
             line-height: 1.6; /* 行高调整为1.6倍 */
             color: #333; /* 文字颜色调整为深灰色 */
-            font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif; /* 优化字体栈 */
+            font-family: "Consolas", "Microsoft YaHei", "SimHei", "Helvetica Neue", Arial, sans-serif, "PingFang SC"; /* 优化字体栈 */
             margin: 0;
             padding: 0;
             display: flex;

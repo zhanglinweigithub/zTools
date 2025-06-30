@@ -12,7 +12,7 @@
             /* 行高调整为1.6倍 */
             color: #333;
             /* 文字颜色调整为深灰色 */
-            font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            font-family: "Consolas", "Microsoft YaHei", "SimHei", "Helvetica Neue", Arial, sans-serif, "PingFang SC"; /* 优化字体栈 */
             /* 优化字体栈 */
             margin: 0;
             padding: 0;
