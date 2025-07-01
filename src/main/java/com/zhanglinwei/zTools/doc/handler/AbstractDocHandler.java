@@ -1,8 +1,11 @@
 package com.zhanglinwei.zTools.doc.handler;
 
+import com.intellij.ide.impl.ProjectUtil;
 import com.zhanglinwei.zTools.doc.apidoc.model.ApiInfo;
 import com.zhanglinwei.zTools.doc.dbdoc.model.DBTableInfo;
 import com.zhanglinwei.zTools.util.AssertUtils;
+import com.zhanglinwei.zTools.util.CommonUtils;
+import com.zhanglinwei.zTools.util.SpringConfigUtils;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -32,9 +35,10 @@ public abstract class AbstractDocHandler implements DocHandler {
                 return false;
             }
         }
-
+        String requestPrefix = SpringConfigUtils.globalRequestPrefix(ProjectUtil.getActiveProject());
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("apiList", apiInfos);
+        dataModel.put("requestPrefix", CommonUtils.buildPath(requestPrefix));
         try (FileWriter out = new FileWriter(outputFile)) {
             template.process(dataModel, out);
         }

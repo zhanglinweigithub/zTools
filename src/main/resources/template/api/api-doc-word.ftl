@@ -307,7 +307,7 @@
                                 <w:szCs w:val="18"/>
                                 <w:lang w:val="en-US" w:eastAsia="zh-CN"/>
                             </w:rPr>
-                            <w:t>${api.baseInfo.requestPath!''}</w:t>
+                            <w:t>${api.requestPrefix!''}${api.baseInfo.requestPath!''}</w:t>
                         </w:r>
                     </w:p>
                     <w:p w14:paraId="6A1B0C49">

@@ -193,4 +193,16 @@ public final class SpringConfigUtils {
 
         return null;
     }
+
+    public static String globalRequestPrefix(Project project) {
+        if (project == null) {
+            return EMPTY;
+        }
+
+        String prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
+        if (AssertUtils.isBlank(prefix)) {
+            prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
+        }
+        return prefix == null ? EMPTY : prefix;
+    }
 }

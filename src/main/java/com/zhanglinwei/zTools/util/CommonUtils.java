@@ -132,4 +132,8 @@ public final class CommonUtils {
         return path.startsWith(SLASH) ? path : SLASH + path;
     }
 
+    public static void main(String[] args) {
+        System.out.println(buildPath("/xxx/xx/"));
+    }
+
 }

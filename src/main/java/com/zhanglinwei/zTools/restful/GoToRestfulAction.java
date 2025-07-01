@@ -13,7 +13,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
-import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameFilter;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameModel;
 import com.zhanglinwei.zTools.restful.model.IRestful;
@@ -37,7 +36,7 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
             return;
         }
 
-        String requestPrefix = globalRequestPrefix(project);
+        String requestPrefix = SpringConfigUtils.globalRequestPrefix(project);
         Module module = actionEvent.getData(PlatformCoreDataKeys.MODULE);
         ChooseByNameContributor chooseByNameContributor = createChooseByNameContributor(module, requestPrefix);
         IRestfulChooseByNameModel chooseByNameModel = new IRestfulChooseByNameModel(project, chooseByNameContributor);
@@ -114,11 +113,4 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
                 .collect(Collectors.toList());
     }
 
-    private String globalRequestPrefix(Project project) {
-        String prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
-        if (AssertUtils.isBlank(prefix)) {
-            prefix = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
-        }
-        return prefix;
-    }
 }
