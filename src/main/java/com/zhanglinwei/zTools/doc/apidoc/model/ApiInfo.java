@@ -120,10 +120,14 @@ public class ApiInfo {
                 PsiType realType = realBody.getPsiType();
                 List<TableRowInfo> rowList = new ArrayList<>();
 
-                if (TypeUtils.isNormalType(realType)) {
+                if (TypeUtils.isMapType(realType)) {
+                    rowList.add(new TableRowInfo("KEY", "VALUE", false, "MAP_ITEM", ""));
+                }
+                else if (TypeUtils.isNormalType(realType)) {
                     TableRowInfo rowInfo = new TableRowInfo(body.getOriginName(), body.getTypeName(), body.isRequired(), body.getComment(), body.getExample());
                     rowList.add(rowInfo);
-                } else {
+                }
+                else {
                     List<TableRowInfo> infoList = createTableRow(EMPTY, realBody.getChildren());
                     rowList.addAll(infoList);
                 }
@@ -384,9 +388,6 @@ public class ApiInfo {
             this.requestBodyJson = requestBodyJson;
         }
     }
-
-
-
 
     public static class ApiResponseInfo extends AbstractBody {
         private ApiTableInfo responseBody;
