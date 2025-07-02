@@ -10,8 +10,8 @@ import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +26,7 @@ public abstract class AbstractDocHandler implements DocHandler {
 
         Configuration mdCfg = new Configuration(Configuration.VERSION_2_3_31);
         mdCfg.setTemplateLoader(new ClassTemplateLoader(getClass(), "/template/api"));
-        mdCfg.setDefaultEncoding(UTF_8);
+        mdCfg.setDefaultEncoding(StandardCharsets.UTF_8.name());
 
         Template template = mdCfg.getTemplate(apiTemplateName());
         File outputFile = new File(pathName);
@@ -39,7 +39,7 @@ public abstract class AbstractDocHandler implements DocHandler {
         Map<String, Object> dataModel = new HashMap<>();
         dataModel.put("apiList", apiInfos);
         dataModel.put("requestPrefix", CommonUtils.buildPath(requestPrefix));
-        try (FileWriter out = new FileWriter(outputFile)) {
+        try (Writer out =  new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
             template.process(dataModel, out);
         }
         return true;

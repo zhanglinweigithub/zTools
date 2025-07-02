@@ -9,7 +9,7 @@
 ### 接口信息
 
 - 请求方式： `${api.baseInfo.requestType!''}`
-- 接口路径： `${api.requestPrefix!''}${api.baseInfo.requestPath!''}`
+- 接口路径： `${requestPrefix!''}${api.baseInfo.requestPath!''}`
 
 ### 请求参数
 

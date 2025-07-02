@@ -121,7 +121,7 @@ public class ApiInfo {
                 List<TableRowInfo> rowList = new ArrayList<>();
 
                 if (TypeUtils.isMapType(realType)) {
-                    rowList.add(new TableRowInfo("KEY", "VALUE", false, "MAP_ITEM", ""));
+                    rowList.add(new TableRowInfo("KEY", "VALUE", false, "这是一个 Map 参数", ""));
                 }
                 else if (TypeUtils.isNormalType(realType)) {
                     TableRowInfo rowInfo = new TableRowInfo(body.getOriginName(), body.getTypeName(), body.isRequired(), body.getComment(), body.getExample());

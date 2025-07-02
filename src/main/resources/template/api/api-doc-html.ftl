@@ -285,7 +285,7 @@
             <h3>基本信息</h3>
             <ul>
                 <li>请求方式： <code>${api.baseInfo.requestType!''}</code></li>
-                <li>接口路径： <code>${api.requestPrefix!''}${api.baseInfo.requestPath!''}</code></li>
+                <li>接口路径： <code>${requestPrefix!''}${api.baseInfo.requestPath!''}</code></li>
                 <li>接口描述： ${api.baseInfo.description!''}</li>
             </ul>
 
