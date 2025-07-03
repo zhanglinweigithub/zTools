@@ -106,6 +106,16 @@
         <projectService serviceImplementation="com.zhanglinwei.zTools.doc.config.DocConfig"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig"/>
         <projectService serviceImplementation="com.zhanglinwei.zTools.restful.config.IRestfulModalConfig"/>
+
+        <!--
+            secondary 是否次要窗口: 次要窗口不会在 IDE 启动时自动显示，需用户手动打开
+            canCloseContents 内容关闭控制: 禁止用户关闭工具窗口的内容区域（但窗口本身仍可通过 IDE 操作隐藏），常用于核心功能窗口以避免误操作
+            doNotActivateOnStart 启动激活: IDE 启动时自动激活该工具窗口
+        -->
+        <toolWindow id="zTools"
+                    factoryClass="com.zhanglinwei.zTools.tools.ZToolsToolWindowFactory"
+                    anchor="right" secondary="false" canCloseContents="false" doNotActivateOnStart="false"
+                    icon="/icons/pluginIcon.svg"/>
     </extensions>
 
     <!-- icon (only supports AllIcons.*): https://intellij-icons.jetbrains.design/ -->
