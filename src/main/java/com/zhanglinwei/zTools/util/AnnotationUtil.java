@@ -280,4 +280,18 @@ public final class AnnotationUtil {
         return null;
     }
 
+    public static boolean noMarkedWebAnnotation(PsiAnnotation[] annotations) {
+        if (AssertUtils.isEmpty(annotations)) {
+            return true;
+        }
+
+        Set<String> webAnnotation = WebAnnotation.webParamAnnotation();
+        for (PsiAnnotation annotation : annotations) {
+            if (webAnnotation.contains(annotation.getText())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

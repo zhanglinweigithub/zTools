@@ -98,7 +98,8 @@ public class CopyCurlAction extends AnAction {
 
     private String resolveRequestUrl(ApiInfo apiInfo, Project project) {
         String serverPort = resolveServerPort(project, "80");
-        String requestPath = apiInfo.getBaseInfo().getRequestPath();
+        String requestPrefix = SpringConfigUtils.globalRequestPrefix(project);
+        String requestPath = CommonUtils.buildPath(requestPrefix + apiInfo.getBaseInfo().getRequestPath());
 
         ApiInfo.ApiTableInfo requestParam = apiInfo.getRequestInfo().getRequestParam();
         if (requestParam != null && AssertUtils.isNotEmpty(requestParam.getRowList())) {

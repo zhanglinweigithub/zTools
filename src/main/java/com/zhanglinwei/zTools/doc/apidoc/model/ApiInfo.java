@@ -169,8 +169,8 @@ public class ApiInfo {
                 return null;
             }
             List<TableRowInfo> rowList = requestList.stream()
-                    .filter(property -> property.hasAnnotation(WebAnnotation.RequestPart))
-                    .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), JsonUtil.flattenJsonString(property)))
+                    .filter(property -> property.hasAnnotation(WebAnnotation.RequestPart) || TypeUtils.isMultipartType(property.getPsiType()))
+                    .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), TypeUtils.isMultipartType(property.getPsiType()) ? "文件" : JsonUtil.flattenJsonString(property)))
                     .collect(Collectors.toList());
             return new ApiTableInfo(rowList);
         }
@@ -180,7 +180,8 @@ public class ApiInfo {
                 return null;
             }
             List<TableRowInfo> rowList = requestList.stream()
-                    .filter(property -> property.hasAnnotation(WebAnnotation.RequestParam))
+                    .filter(property -> property.hasAnnotation(WebAnnotation.RequestParam) || AnnotationUtil.noMarkedWebAnnotation(property.getPsiAnnotations()))
+                    .filter(property -> !TypeUtils.isMultipartType(property.getPsiType()))
                     .map(property -> new TableRowInfo(property.getName(), property.getTypeName(), property.isRequired(), property.getComment(), property.getExample()))
                     .collect(Collectors.toList());
             return new ApiTableInfo(rowList);

@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.3.8</version>
+    <version>1.3.9</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -39,6 +39,12 @@
 
     <change-notes>
         <![CDATA[
+            <em>2025.07.10</em><br>
+            <ul>
+                <li>fix bug: Handle the MultipartFile separately | 单独处理 MultipartFile 类型</li>
+                <li>fix bug: Unannotated parameters are defaulted to RequestParam | 无注解参数默认按 RequestParam 处理</li>
+                <li>fix bug: cURL Identify the global request prefix | cURL 识别全局请求前缀</li>
+            </ul>
             <em>2025.07.02</em><br>
             <ul>
                 <li>feat: Added request prefix for Api documents | API文档增加请求前缀</li>
@@ -112,10 +118,10 @@
             canCloseContents 内容关闭控制: 禁止用户关闭工具窗口的内容区域（但窗口本身仍可通过 IDE 操作隐藏），常用于核心功能窗口以避免误操作
             doNotActivateOnStart 启动激活: IDE 启动时自动激活该工具窗口
         -->
-        <toolWindow id="zTools"
-                    factoryClass="com.zhanglinwei.zTools.tools.ZToolsToolWindowFactory"
-                    anchor="right" secondary="false" canCloseContents="false" doNotActivateOnStart="false"
-                    icon="/icons/pluginIcon.svg"/>
+<!--        <toolWindow id="zTools"-->
+<!--                    factoryClass="com.zhanglinwei.zTools.tools.ZToolsToolWindowFactory"-->
+<!--                    anchor="right" secondary="false" canCloseContents="false" doNotActivateOnStart="false"-->
+<!--                    icon="/icons/pluginIcon.svg"/>-->
     </extensions>
 
     <!-- icon (only supports AllIcons.*): https://intellij-icons.jetbrains.design/ -->

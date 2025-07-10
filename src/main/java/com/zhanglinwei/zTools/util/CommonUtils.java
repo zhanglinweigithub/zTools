@@ -133,7 +133,7 @@ public final class CommonUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println(buildPath("/xxx/xx/"));
+        System.out.println(buildPath("xxx//xx/"));
     }
 
 }
