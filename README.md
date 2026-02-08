@@ -308,11 +308,13 @@ public class TeacherInfo_drvE {
 
 #### 注意事项
 
-1. 会自动读取配置文件内的数据库配置，如果修改了相关配置，需要重启项目（重新构建）才能生效，否则读取的还是旧的配置
+1. 会自动读取配置文件内的数据库配置，如果修改了相关配置，需要（手动 `ctrl + s` 保存 | 重启项目 | 重新构建）才能生效，否则读取的还是旧的配置
 
-2. 配置请规范书写，否则可能无法解析
+2. 如果项目内多个模块同时存在配置文件，读取到的配置不一定是哪个模块下的
 
-3. 读取配置项说明:
+3. 配置请规范书写，否则可能无法解析
+
+4. 读取配置项说明:
 
 ```yaml
 # yaml、yml
@@ -335,6 +337,125 @@ spring.datasource.username: root
    - 支持`application.yaml`、`application.yml`、`application.properties`
 
    - 优先级`application.yaml > application.yml > application.properties`
+
+
+
+### 8、生成 Builder
+
+- 支持 `record` 类
+- `record` 类会包含所有字段, 不支持选择
+
+**使用方式：**
+
+1. 在需要生成的类中 `鼠标右键 ==> Generate ==> Builder` 或 `ALT + Insert ==> Builder`
+
+![image-20260208224952556](./img/image-20260208224952556.png)
+
+
+
+**生成效果**
+
+普通类：
+
+```java
+/**
+ * 生成前
+ */
+public class IPhone17 {
+    
+    private String name;
+    private Integer age;
+    private Boolean die;
+
+}
+
+/**
+ * 生成后
+ */
+public class IPhone17 {
+    
+    private String name;
+    private Integer age;
+    private Boolean die;
+
+    public IPhone17(String name, Integer age, Boolean die) {
+        this.name = name;
+        this.age = age;
+        this.die = die;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+    
+    public static class Builder {
+        private String name;
+        private Integer age;
+        private Boolean die;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder age(Integer age) {
+            this.age = age;
+            return this;
+        }
+
+        public Builder die(Boolean die) {
+            this.die = die;
+            return this;
+        }
+
+        public IPhone17 build() {
+            return new IPhone17(name, age, die);
+        }
+    }
+}
+```
+
+record 类：
+
+```java
+/**
+ * 生成前
+ */
+public record Apple(String name, String age) {
+}
+
+/**
+ * 生成后
+ */
+public record Apple(String name, String age) {
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String name;
+        private String age;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder age(String age) {
+            this.age = age;
+            return this;
+        }
+
+        public Apple build() {
+            return new Apple(name, age);
+        }
+    }
+  
+}
+```
+
+
 
 ## 三、配置说明
 
