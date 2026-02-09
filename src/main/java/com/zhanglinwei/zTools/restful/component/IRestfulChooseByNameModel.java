@@ -93,7 +93,10 @@ public class IRestfulChooseByNameModel extends FilteringGotoByModel<HttpMethod> 
             return true;
         }
 
-        MinusculeMatcher matcher = NameUtil.buildMatcher(STAR + input, NameUtil.MatchingCaseSensitivity.NONE);
+        MinusculeMatcher matcher = new NameUtil.MatcherBuilder(STAR + input)
+//                .withCaseSensitivity(NameUtil.MatchingCaseSensitivity.NONE)
+                .build();
+//        MinusculeMatcher matcher = NameUtil.buildMatcher(STAR + input, NameUtil.MatchingCaseSensitivity.NONE);
         boolean matches = matcher.matches(item);
         if (!matches) {
             AntPathMatcher pathMatcher = new AntPathMatcher();
