@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -40,6 +40,10 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.03.15</em><br>
+            <ul>
+                <li>feat: inner builder support extend | 内部 Builder 类支持继承</li>
+            </ul>
             <em>2026.02.08</em><br>
             <ul>
                 <li>feat: Generate an inner builder class | 生成内部 Builder 类</li>
