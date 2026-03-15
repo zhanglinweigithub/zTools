@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.zhanglinwei"
-version = "2026.03.15"
+version = "2026.03.16"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

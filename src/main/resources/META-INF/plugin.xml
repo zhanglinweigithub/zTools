@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -40,6 +40,10 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.03.16</em><br>
+            <ul>
+                <li>feat: config param are read from zTools file | 配置参数将从 zTools 配置文件读取</li>
+            </ul>
             <em>2026.03.15</em><br>
             <ul>
                 <li>feat: inner builder support extend | 内部 Builder 类支持继承</li>
