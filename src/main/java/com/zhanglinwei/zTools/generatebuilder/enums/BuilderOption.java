@@ -2,7 +2,7 @@ package com.zhanglinwei.zTools.generatebuilder.enums;
 
 public enum BuilderOption {
 
-    USE_LITE_BUILDER("useLiteBuilder", "轻量级Builder（无泛型/继承，适配Record/简单类）", true),
+    USE_LITE_BUILDER("use lite builder", "轻量级Builder（无泛型/继承，适配Record/简单类）", true),
 
     ;
 

@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.doc.dbdoc.common.DBType;
 import com.zhanglinwei.zTools.util.AssertUtils;
-import com.zhanglinwei.zTools.util.SpringConfigUtils;
+import com.zhanglinwei.zTools.util.ZToolsConfigUtils;
 
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -15,7 +15,7 @@ import static com.zhanglinwei.zTools.common.constants.SpringPool.EMPTY;
 
 public class DSCfg {
 
-    private static final String ERROR_MSG_EXPRESSION = "The 【\"%s\"】 config not found in file [ application.yaml | application.yml | application.properties ]";
+    private static final String ERROR_MSG_EXPRESSION = "The 【\"%s\"】 config not found in file [ zTools.yaml ]";
     private static final Set<String> SUPPORTS_DRIVERS = ImmutableSet.of(
             "com.mysql.cj.jdbc.Driver", "com.mysql.jdbc.Driver"
     );
@@ -41,7 +41,8 @@ public class DSCfg {
     }
 
     public static DSCfg newInstance(Project project) {
-        String driverClassName = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_DRIVER);
+        String driverClassName = ZToolsConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_DRIVER);
+//        String driverClassName = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_DRIVER);
         if (AssertUtils.isBlank(driverClassName)) {
             return new DSCfg(String.format(ERROR_MSG_EXPRESSION, SpringConfigProperties.DATASOURCE_DRIVER.getValue()));
         }
@@ -49,7 +50,8 @@ public class DSCfg {
             return new DSCfg("Only support MySQL database");
         }
 
-        String url = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_URL);
+        String url = ZToolsConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_URL);
+//        String url = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_URL);
         if (AssertUtils.isBlank(driverClassName)) {
             return new DSCfg(String.format(ERROR_MSG_EXPRESSION, SpringConfigProperties.DATASOURCE_URL.getValue()));
         }
@@ -57,12 +59,14 @@ public class DSCfg {
             return new DSCfg("Only support MySQL database");
         }
 
-        String username = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_USERNAME);
+        String username = ZToolsConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_USERNAME);
+//        String username = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_USERNAME);
         if (AssertUtils.isBlank(driverClassName)) {
             return new DSCfg(String.format(ERROR_MSG_EXPRESSION, SpringConfigProperties.DATASOURCE_USERNAME.getValue()));
         }
 
-        String password = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_PASSWORD);
+        String password = ZToolsConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_PASSWORD);
+//        String password = SpringConfigUtils.propertyAsString(project, SpringConfigProperties.DATASOURCE_PASSWORD);
         if (AssertUtils.isBlank(driverClassName)) {
             return new DSCfg(String.format(ERROR_MSG_EXPRESSION, SpringConfigProperties.DATASOURCE_PASSWORD.getValue()));
         }

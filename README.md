@@ -300,7 +300,7 @@ public class TeacherInfo_drvE {
 1. 鼠标左键单击菜单栏 `Tools ==> Generate DB Doc`
 2. 若未配置文档保存路径，默认在项目根目录 `/target/_doc` 内（若未显示，请前往本地磁盘内查看，IDEA有时不会实时刷新）
 
-![image-20250628003550713](./img/image-20250628003550713.png)
+![image-20250628003550713](./img/Snipaste_2026-03-15_22-55-19.png)
 
 #### 支持数据库
 
@@ -334,9 +334,9 @@ spring.datasource.username: root
 
 4. 配置文件读取说明：
 
-   - 支持`application.yaml`、`application.yml`、`application.properties`
+   - 支持`zTools.yaml`、`zTools.yml`、`zTools.properties`
 
-   - 优先级`application.yaml > application.yml > application.properties`
+   - 优先级`zTools.yaml > zTools.yml > zTools.properties`
 
 
 
@@ -344,6 +344,14 @@ spring.datasource.username: root
 
 - 支持 `record` 类
 - `record` 类会包含所有字段, 不支持选择
+
+
+
+**选项：**
+
+- `use lite builder`：轻量级 Builder（不带泛型）
+
+
 
 **使用方式：**
 
@@ -361,37 +369,37 @@ spring.datasource.username: root
 /**
  * 生成前
  */
-public class IPhone17 {
+public class Student {
     
-    private String name;
+   	private String name;
     private Integer age;
-    private Boolean die;
+    private Boolean password;
 
 }
 
 /**
- * 生成后
+ * 生成后 - 轻量级 Builder
  */
-public class IPhone17 {
-    
+public class Student {
+
     private String name;
     private Integer age;
-    private Boolean die;
+    private Boolean password;
 
-    public IPhone17(String name, Integer age, Boolean die) {
+    public Student(String name, Integer age, Boolean password) {
         this.name = name;
         this.age = age;
-        this.die = die;
+        this.password = password;
     }
 
     public static Builder builder() {
         return new Builder();
     }
-    
+
     public static class Builder {
         private String name;
         private Integer age;
-        private Boolean die;
+        private Boolean password;
 
         public Builder name(String name) {
             this.name = name;
@@ -403,13 +411,58 @@ public class IPhone17 {
             return this;
         }
 
-        public Builder die(Boolean die) {
-            this.die = die;
+        public Builder password(Boolean password) {
+            this.password = password;
             return this;
         }
 
-        public IPhone17 build() {
-            return new IPhone17(name, age, die);
+        public Student build() {
+            return new Student(name, age, password);
+        }
+    }
+}
+
+/**
+ * 生成后 - 带泛型的 Builder，支持父子继承
+ */
+public class Student {
+
+    private String name;
+    private Integer age;
+    private Boolean password;
+
+    public Student(String name, Integer age, Boolean password) {
+        this.name = name;
+        this.age = age;
+        this.password = password;
+    }
+
+    public static Builder<?, ?> builder() {
+        return new Builder<>();
+    }
+    
+    public static class Builder<C extends Student, B extends Builder<C, B>> {
+        protected String name;
+        protected Integer age;
+        protected Boolean password;
+
+        public B name(String name) {
+            this.name = name;
+            return (B) this;
+        }
+
+        public B age(Integer age) {
+            this.age = age;
+            return (B) this;
+        }
+
+        public B password(Boolean password) {
+            this.password = password;
+            return (B) this;
+        }
+
+        public C build() {
+            return (C) new Student(name, age, password);
         }
     }
 }
@@ -450,6 +503,127 @@ public record Apple(String name, String age) {
         public Apple build() {
             return new Apple(name, age);
         }
+    }
+  
+}
+```
+
+#### 继承 Builder
+
+- 父类的代码直接生成即可
+- 子类的代码生成后需要修改一下
+
+```java
+/**
+ * 父类
+ */
+public class Student {
+
+    private String name;
+    private Integer age;
+    private Boolean password;
+
+    public Student(String name, Integer age, Boolean password) {
+        this.name = name;
+        this.age = age;
+        this.password = password;
+    }
+
+    public static Builder<?, ?> builder() {
+        return new Builder<>();
+    }
+    
+    public static class Builder<C extends Student, B extends Builder<C, B>> {
+        protected String name;
+        protected Integer age;
+        protected Boolean password;
+
+        public B name(String name) {
+            this.name = name;
+            return (B) this;
+        }
+
+        public B age(Integer age) {
+            this.age = age;
+            return (B) this;
+        }
+
+        public B password(Boolean password) {
+            this.password = password;
+            return (B) this;
+        }
+
+        public C build() {
+            return (C) new Student(name, age, password);
+        }
+    }
+}
+
+
+/**
+ * 子类
+ */
+public class ChildStudent extends Student { // 1.继承父类
+
+    private String nikeName;
+    private String city;
+    private String phone;
+
+    public ChildStudent(String name, Integer age, Boolean password,
+                        String nikeName, String city, String phone) {
+        super(name, age, password); // 2.调用父类构造器
+        this.nikeName = nikeName;
+        this.city = city;
+        this.phone = phone;
+    }
+
+    public static Builder<?, ?> builder() {
+        return new Builder<>();
+    }
+
+    public static class Builder<C extends ChildStudent, B extends Builder<C, B>>
+            extends Student.Builder<C, B> { // 3.继承父类 Builder
+        protected String nikeName;
+        protected String city;
+        protected String phone;
+
+        public B nikeName(String nikeName) {
+            this.nikeName = nikeName;
+            return (B) this;
+        }
+
+        public B city(String city) {
+            this.city = city;
+            return (B) this;
+        }
+
+        public B phone(String phone) {
+            this.phone = phone;
+            return (B) this;
+        }
+
+        @Override
+        public C build() { // 4.build
+            return (C) new ChildStudent(super.name, super.age, super.password,
+                    nikeName, city, phone);
+        }
+    }
+}
+
+
+/**
+ * 测试
+ */
+public class A {
+
+    public static void main(String[] args) {
+        ChildStudent childStudent = ChildStudent.builder()
+                .city("city") 				// 子类属性
+                .password(false) 			// 父类属性
+                .nikeName("nikeName") // 子类属性
+                .city("city") 				// 子类属性
+                .age(10)							// 父类属性
+                .build();
     }
   
 }

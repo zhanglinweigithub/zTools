@@ -13,18 +13,18 @@ import java.util.stream.Collectors;
 
 import static com.zhanglinwei.zTools.common.constants.SpringPool.*;
 
-public final class SpringConfigUtils {
+public final class ZToolsConfigUtils {
 
-    private SpringConfigUtils() {}
+    private ZToolsConfigUtils() {}
 
     private static Map<String, Object> findYamlToFlattenMap(Project project) {
         Collection<VirtualFile> configFileList = new ArrayList<>();
 
-        Collection<VirtualFile> yamlCfg = FilenameIndex.getVirtualFilesByName("application.yaml", false, GlobalSearchScope.projectScope(project));
+        Collection<VirtualFile> yamlCfg = FilenameIndex.getVirtualFilesByName("zTools.yaml", false, GlobalSearchScope.projectScope(project));
         if (AssertUtils.isNotEmpty(yamlCfg)) {
             configFileList.addAll(yamlCfg);
         } else {
-            Collection<VirtualFile> ymlCfg = FilenameIndex.getVirtualFilesByName("application.yml", false, GlobalSearchScope.projectScope(project));
+            Collection<VirtualFile> ymlCfg = FilenameIndex.getVirtualFilesByName("zTools.yml", false, GlobalSearchScope.projectScope(project));
             if (AssertUtils.isNotEmpty(ymlCfg)) {
                 configFileList.addAll(ymlCfg);
             }
@@ -128,7 +128,7 @@ public final class SpringConfigUtils {
     }
 
     private static Map<String, Object> findPropertiesToFlattenMap(Project project) {
-        Collection<VirtualFile> configFileList = new ArrayList<>(FilenameIndex.getVirtualFilesByName("application.properties", false, GlobalSearchScope.projectScope(project)));
+        Collection<VirtualFile> configFileList = new ArrayList<>(FilenameIndex.getVirtualFilesByName("zTools.properties", false, GlobalSearchScope.projectScope(project)));
 
         VirtualFile configFile = configFileList.stream()
                 .filter(file -> file.getPath().contains("src/main/resources"))
@@ -199,9 +199,9 @@ public final class SpringConfigUtils {
             return EMPTY;
         }
 
-        String prefix = propertyAsString(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
+        String prefix = ZToolsConfigUtils.propertyAsString(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
         if (AssertUtils.isBlank(prefix)) {
-            prefix = propertyAsString(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
+            prefix = ZToolsConfigUtils.propertyAsString(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
         }
         return prefix == null ? EMPTY : prefix;
     }
