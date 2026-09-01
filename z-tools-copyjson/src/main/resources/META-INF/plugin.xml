@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-copyjson</id>
+    <name>z-tools-copyjson</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

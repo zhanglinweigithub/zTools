@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-apidoc</id>
+    <name>z-tools-apidoc</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

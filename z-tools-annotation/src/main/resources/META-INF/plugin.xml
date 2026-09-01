@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-annotation</id>
+    <name>z-tools-annotation</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

@@ -13,8 +13,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.FormBuilder;
-import com.zhanglinwei.zTools.doc.config.DocConfig;
-import com.zhanglinwei.zTools.doc.constant.DocType;
+import com.zhanglinwei.zTools.doc.config.DocumentConfig;
+import com.zhanglinwei.zTools.enums.DocumentType;
 import com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig;
 import com.zhanglinwei.zTools.sensitive.constant.SensitiveDataConstant;
 import org.jdesktop.swingx.JXTextField;
@@ -31,7 +31,7 @@ public class ZToolsConfigSettings implements Configurable {
      * ===================================================== Doc Setting =====================================================
      */
 
-    private final DocConfig docConfig;
+    private final DocumentConfig documentConfig;
     private JXTextField excludeFields;
     private TextFieldWithBrowseButton saveDirectory;
     private JBCheckBox overwriteBox;
@@ -48,7 +48,7 @@ public class ZToolsConfigSettings implements Configurable {
 
 
     public ZToolsConfigSettings(Project project) {
-        docConfig = project.getService(DocConfig.class);
+        documentConfig = project.getService(DocumentConfig.class);
         sensitiveDataConfig = SensitiveDataConfig.getInstance(project);
     }
 
@@ -97,17 +97,17 @@ public class ZToolsConfigSettings implements Configurable {
 
     private JPanel createDocSettingPanel() {
         saveDirectory = new TextFieldWithBrowseButton();
-        saveDirectory.setText(docConfig.getSaveDir());
+        saveDirectory.setText(documentConfig.getSaveDir());
         saveDirectory.addActionListener(e -> chooseFolder());
 
         docTypeBox = new ComboBox<>();
-        for (DocType doc : DocType.values()) {
+        for (DocumentType doc : DocumentType.values()) {
             docTypeBox.addItem(doc.getType());
         }
-        docTypeBox.setSelectedItem(docConfig.getDocType());
+        docTypeBox.setSelectedItem(documentConfig.getDocType());
 
         overwriteBox = new JBCheckBox();
-        overwriteBox.setSelected(docConfig.isOverwriteDoc());
+        overwriteBox.setSelected(documentConfig.isOverwriteDoc());
 
         return FormBuilder.createFormBuilder()
                 .addLabeledComponent(new JLabel("Save Directory"), saveDirectory, 1, false)
@@ -126,7 +126,7 @@ public class ZToolsConfigSettings implements Configurable {
         excludeFields = new JXTextField();
         excludeFields.setPrompt("Patterns should be separated with \";\"");
         excludeFields.setPromptForeground(JBColor.GRAY);
-        excludeFields.setText(docConfig.getApiDocConfig().getExcludeFields());
+        excludeFields.setText(documentConfig.getApiDocConfig().getExcludeFields());
 
         JPanel docPanel = FormBuilder.createFormBuilder()
                 .setVerticalGap(10) // 设置行间距为 10px
@@ -173,10 +173,10 @@ public class ZToolsConfigSettings implements Configurable {
     }
 
     private boolean isDocModified() {
-        return !docConfig.getApiDocConfig().getExcludeFields().equals(excludeFields.getText()) ||
-                !docConfig.getSaveDir().equals(saveDirectory.getText()) ||
-                docConfig.isOverwriteDoc() != overwriteBox.isSelected() ||
-                !docConfig.getDocType().equals(docTypeBox.getSelectedItem())
+        return !documentConfig.getApiDocConfig().getExcludeFields().equals(excludeFields.getText()) ||
+                !documentConfig.getSaveDir().equals(saveDirectory.getText()) ||
+                documentConfig.isOverwriteDoc() != overwriteBox.isSelected() ||
+                !documentConfig.getDocType().equals(docTypeBox.getSelectedItem())
                 ;
     }
 
@@ -198,10 +198,10 @@ public class ZToolsConfigSettings implements Configurable {
     }
 
     private void docApply() {
-        docConfig.getApiDocConfig().setExcludeFields(excludeFields.getText());
-        docConfig.setSaveDir(saveDirectory.getText());
-        docConfig.setOverwriteDoc(overwriteBox.isSelected());
-        docConfig.setDocType(String.valueOf(docTypeBox.getSelectedItem()));
+        documentConfig.getApiDocConfig().setExcludeFields(excludeFields.getText());
+        documentConfig.setSaveDir(saveDirectory.getText());
+        documentConfig.setOverwriteDoc(overwriteBox.isSelected());
+        documentConfig.setDocType(String.valueOf(docTypeBox.getSelectedItem()));
     }
 
 }

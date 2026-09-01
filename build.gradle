@@ -1,33 +1,130 @@
+// 根工程既是 Gradle 聚合点，也是最终打成 IDEA 插件的模块
 plugins {
     id 'java'
+    // 用于下载 IDEA SDK、runIde、buildPlugin 等插件开发任务
     id 'org.jetbrains.intellij' version '1.13.3'
 }
 
 group = "com.zhanglinwei"
 version = "2026.03.16"
 
+// 按 Java 8 语法编译，并生成 Java 8 字节码，以兼容 IDEA 2022.1（自带 JDK 11）
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-repositories {
-    maven { url 'https://maven.aliyun.com/repository/central/'}
-    maven { url 'https://maven.aliyun.com/repository/public/' }
-    maven { url 'https://maven.aliyun.com/repository/google/' }
-    maven { url 'https://maven.aliyun.com/repository/jcenter/'}
-    maven { url 'https://maven.aliyun.com/repository/gradle-plugin'}
-    //    mavenCentral()
+ext {
+    // 调试/编译所基于的 IDEA 平台版本，须 >= sinceBuild 对应的 IDE
+    ideaVersion = '2022.1.1'
+    // 插件最低支持的 IDEA 构建号：221 = 2022.1
+    ideaSinceBuild = '221'
 }
 
-dependencies {
-    implementation fileTree(dir:'lib', include: ['*.jar'])
+// 所有工程（根 + 子模块）共用坐标和仓库
+allprojects {
+    group = rootProject.group
+    version = rootProject.version
+
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/central/' }
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/google/' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter/' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    }
 }
 
+// 子模块通用 Java 配置。java-library 提供 api / implementation 两种依赖范围
+subprojects {
+    apply plugin: 'java-library'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        // -parameters：保留方法参数名，便于 PSI / 反射场景
+        options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation', '-parameters']
+    }
+}
+
+// 子模块需要 IntelliJ API，但只作为库参与编译，不单独打成插件
+configure(subprojects) {
+    apply plugin: 'org.jetbrains.intellij'
+
+    intellij {
+        // 依赖 IDEA 自带的 Java 插件（PSI、Java PSI 等）
+        plugins = ['com.intellij.java']
+        version = ideaVersion
+        // false：不把 until-build 写死，避免高版本 IDEA 无法安装
+        updateSinceUntilBuild = false
+        downloadSources = false
+    }
+
+    patchPluginXml {
+        sinceBuild = ideaSinceBuild
+    }
+
+    // 子模块只当库用，禁止各自打包/启动/发布成独立插件
+    buildPlugin.enabled = false
+    runIde.enabled = false
+    publishPlugin.enabled = false
+    verifyPlugin.enabled = false
+    buildSearchableOptions.enabled = false
+
+    // 子模块里的 plugin.xml 只是给 gradle-intellij-plugin 用的占位，不要打进 jar
+    jar {
+        exclude 'META-INF/plugin.xml'
+    }
+}
+
+project(':z-tools-common') {
+    dependencies {
+        // 仅编译期需要；运行时由 IDEA 提供 Freemarker。离线构建若报错，关掉 Gradle Offline 再同步一次
+        compileOnly 'org.freemarker:freemarker:2.3.31'
+    }
+}
+
+// 各功能模块依赖 common，模块之间互不依赖
+['z-tools-copyjson', 'z-tools-copycurl', 'z-tools-sensitive',
+ 'z-tools-restful', 'z-tools-apidoc', 'z-tools-dbdoc', 'z-tools-generatebuilder',
+ 'z-tools-annotation'].each { moduleName ->
+    project(":${moduleName}") {
+        dependencies {
+            api project(':z-tools-common')
+        }
+    }
+}
+
+project(':z-tools-copycurl') {
+    dependencies {
+        api project(':z-tools-annotation')
+    }
+}
+
+project(':z-tools-restful') {
+    dependencies {
+        api project(':z-tools-annotation')
+    }
+}
+
+project(':z-tools-apidoc') {
+    dependencies {
+        api project(':z-tools-annotation')
+    }
+}
+
+project(':z-tools-copyjson') {
+    dependencies {
+        api project(':z-tools-annotation')
+    }
+}
+
+// 根工程作为真正的插件：runIde / buildPlugin 从这里执行
 intellij {
     plugins = ['com.intellij.java']
-    //https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html#intellij-extension-version
-    //选择基于2022.1.1版本进行插件调试验证
-    version = '2022.1.1'
-    intellij.updateSinceUntilBuild = false
+    version = ideaVersion
+    updateSinceUntilBuild = false
+    downloadSources = false
 }
 
 tasks.withType(JavaCompile) {
@@ -36,7 +133,19 @@ tasks.withType(JavaCompile) {
 }
 
 patchPluginXml {
-    // 这个版本号不能高于上面intellij的version, 否则runIde会报错
-    sinceBuild = '221' // 最低版本
-//    untilBuild = '*.*.*' // 上不封顶
+    sinceBuild = ideaSinceBuild
+}
+
+// 把所有模块打进最终插件；lib/ 下的本地 jar 也会一起打包
+dependencies {
+    implementation project(':z-tools-common')
+    implementation project(':z-tools-copyjson')
+    implementation project(':z-tools-copycurl')
+    implementation project(':z-tools-sensitive')
+    implementation project(':z-tools-restful')
+    implementation project(':z-tools-apidoc')
+    implementation project(':z-tools-dbdoc')
+    implementation project(':z-tools-generatebuilder')
+    implementation project(':z-tools-annotation')
+    implementation fileTree(dir: 'lib', include: ['*.jar'])
 }

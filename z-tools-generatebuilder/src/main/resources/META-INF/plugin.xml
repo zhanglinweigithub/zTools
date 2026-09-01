@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-generatebuilder</id>
+    <name>z-tools-generatebuilder</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

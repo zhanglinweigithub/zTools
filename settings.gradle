@@ -6,3 +6,15 @@ pluginManagement {
 }
 
 rootProject.name = "zTools"
+
+include(
+        'z-tools-common',
+        'z-tools-copyjson',
+        'z-tools-copycurl',
+        'z-tools-sensitive',
+        'z-tools-restful',
+        'z-tools-apidoc',
+        'z-tools-dbdoc',
+        'z-tools-generatebuilder',
+        'z-tools-annotation'
+)

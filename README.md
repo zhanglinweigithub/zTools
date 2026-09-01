@@ -104,142 +104,7 @@ public class Student {
 }
 ~~~
 
-### 3、JSON 转 Java类
-
-根据 `JSON` 字符串生成 `Java` 类，支持 **内部类、新文件** 两种方式
-
-**使用方式：**
-
-1. 选中要生成的包
-2. 右键 `==> new ==> Java Class by Json`
-3. 在弹出的对话框输入 `JSON`
-
-![image-20240704224530462](./img/image-20240704224530462.png)
-
-![image-20240704224742656](./img/image-20240704224742656.png)
-
-#### 注意事项
-
-**1、嵌套形式**
-
-~~~json
-// Student
-{
-  "studentName": "stringValue",
-  "age": 0,
-  "address": "stringValue",
-  "studnetInfo": {
-    "studentName": "stringValue",
-    "age": 0,
-    "address": "stringValue",
-    "studnetInfo": {}
-  }
-}
-~~~
-
-生成的类为
-
-~~~java
-@Data
-public class Student {
-
-    private String studentName;
-
-    private Long age;
-
-    private String address;
-
-    private Student studnetInfo; // 自引用
-
-}
-~~~
-
-**2、空对象**
-
-~~~json
-// Student
-{
-  "studentName": "stringValue",
-  "age": 0,
-  "address": "stringValue",
-  "studnetInfo": {}
-}
-~~~
-
-生成的类为
-
-~~~java
-@Data
-public class Student {
-
-    private String studentName;
-
-    private Long age;
-
-    private String address;
-
-    private Map<String, Object> studnetInfo; // 注意这里
-
-}
-~~~
-
-**3、重复 key**
-
-~~~json
-// Student
-{
-  "studentName": "stringValue",
-  "age": 0,
-  "address": "stringValue",
-  "teacherInfo": { // 这里重复, 但对象内的key不同
-    "teacherName": "stringValue",
-    "teacherInfo": { // 这里重复, 但对象内的key不同
-      "teacherName": "stringValue",
-      "age": 1
-    }
-  }
-}
-~~~
-
-生成的类为
-
-~~~java
-// 类一
-@Data
-public class Student {
-
-    private String studentName;
-
-    private Long age;
-
-    private String address;
-
-    private TeacherInfo teacherInfo;
-
-}
-
-// 类二
-@Data
-public class TeacherInfo {
-
-    private String teacherName;
-
-    private TeacherInfo_drvE teacherInfo; // 看这里
-
-}
-
-// 类三
-@Data
-public class TeacherInfo_drvE {
-
-    private String teacherName;
-
-    private Long age;
-
-}
-~~~
-
-### 4、加解/密敏感数据
+### 3、加解/密敏感数据
 
 将选中的文本加 / 解密，配套项目 [crypto-tools](https://gitee.com/linwei-zhang/crypto-tools)
 
@@ -253,7 +118,7 @@ public class TeacherInfo_drvE {
 
 ![image-20250104194331714](./img/image-20250104194331714.png)
 
-### 5、搜索并跳转 Restful 接口
+### 4、搜索并跳转 Restful 接口
 
 快捷键 `Ctrl + \`
 
@@ -279,7 +144,7 @@ public class TeacherInfo_drvE {
    - 优先级`application.yaml > application.yml > application.properties`
 
 
-### 6、拷贝 cURL
+### 5、拷贝 cURL
 
 将 `Restful` 接口复制为 `cURL` 命令，可直接导入`Postman`
 
@@ -291,7 +156,7 @@ public class TeacherInfo_drvE {
 
 ![image-20250628002934543](./img/image-20250628002934543.png)
 
-### 7、生成数据库文档
+### 6、生成数据库文档
 
 支持三种格式：`Word`、`MarkDown`、`Html`
 
@@ -340,7 +205,7 @@ spring.datasource.username: root
 
 
 
-### 8、生成 Builder
+### 7、生成 Builder
 
 - 支持 `record` 类
 - `record` 类会包含所有字段, 不支持选择

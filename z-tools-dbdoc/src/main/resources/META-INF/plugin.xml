@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-dbdoc</id>
+    <name>z-tools-dbdoc</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>
