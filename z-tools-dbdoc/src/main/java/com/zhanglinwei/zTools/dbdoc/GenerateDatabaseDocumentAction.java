@@ -35,7 +35,7 @@ public class GenerateDatabaseDocumentAction extends AnAction {
             }
 
             DocumentConfig documentConfig = DocumentConfig.getInstance(project);
-            String outputPath = DocOutput.resolveDir(project)
+            String outputPath = DocOutput.resolveDir(project, documentConfig.getSaveDir())
                     + dataSourceConfig.getDatabaseName()
                     + DatabaseDocumentGenerator.suffixOf(documentConfig.getDocType());
 

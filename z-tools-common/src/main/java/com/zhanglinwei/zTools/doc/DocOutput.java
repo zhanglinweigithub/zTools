@@ -1,7 +1,6 @@
 package com.zhanglinwei.zTools.doc;
 
 import com.intellij.openapi.project.Project;
-import com.zhanglinwei.zTools.doc.config.DocumentConfig;
 import com.zhanglinwei.zTools.util.NotificationUtil;
 import com.zhanglinwei.zTools.util.StringUtils;
 
@@ -13,9 +12,7 @@ public final class DocOutput {
 
     private DocOutput() {}
 
-    public static String resolveDir(Project project) {
-        DocumentConfig documentConfig = DocumentConfig.getInstance(project);
-        String saveDir = documentConfig.getSaveDir();
+    public static String resolveDir(Project project, String saveDir) {
         String dirPath = StringUtils.isNotBlank(saveDir) ? saveDir : project.getBasePath() + DFT_SAVE_DIR;
         File dir = new File(dirPath);
         if (!dir.exists() && !dir.mkdirs()) {

@@ -16,5 +16,7 @@ include(
         'z-tools-apidoc',
         'z-tools-dbdoc',
         'z-tools-generatebuilder',
-        'z-tools-annotation'
+        'z-tools-annotation',
+        'z-tools-yapi',
+        'z-tools-config'
 )

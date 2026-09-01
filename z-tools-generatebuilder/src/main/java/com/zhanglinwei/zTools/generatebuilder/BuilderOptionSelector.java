@@ -43,7 +43,7 @@ public final class BuilderOptionSelector {
         for (int i = 0; i < builderOptions.length; i++) {
             BuilderOption builderOption = builderOptions[i];
 
-            if (builderOption.checkBox) {
+            if (builderOption.checkBox()) {
                 components[i] = buildCheckbox(propertiesComponent, builderOption);
             }
         }
@@ -52,8 +52,8 @@ public final class BuilderOptionSelector {
     }
 
     private static JComponent buildCheckbox(PropertiesComponent propertiesComponent, BuilderOption builderOption) {
-        JCheckBox optionCheckBox = new NonFocusableCheckBox(builderOption.title);
-        optionCheckBox.setToolTipText(builderOption.tooltip);
+        JCheckBox optionCheckBox = new NonFocusableCheckBox(builderOption.title());
+        optionCheckBox.setToolTipText(builderOption.tooltip());
 
         optionCheckBox.setSelected(propertiesComponent.isTrueValue(builderOption.name()));
         optionCheckBox.addItemListener(event -> propertiesComponent.setValue(builderOption.name(), Boolean.toString(optionCheckBox.isSelected())));

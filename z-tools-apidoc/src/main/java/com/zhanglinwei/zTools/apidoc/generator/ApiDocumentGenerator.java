@@ -42,8 +42,9 @@ public final class ApiDocumentGenerator {
      * @param fileName 输出文件名（不含后缀），一般来自方法/类注释
      */
     public static boolean write(Collection<ApiInfo> apiInfos, Project project, String fileName) throws Exception {
-        ApiDocumentFormatter format = ApiDocumentFormatterHolder.ofDocType(DocumentConfig.getInstance(project).getDocType());
-        String path = DocOutput.resolveDir(project) + fileName + format.documentType().getSuffix();
+        DocumentConfig documentConfig = DocumentConfig.getInstance(project);
+        ApiDocumentFormatter format = ApiDocumentFormatterHolder.ofDocType(documentConfig.getDocType());
+        String path = DocOutput.resolveDir(project, documentConfig.getSaveDir()) + fileName + format.documentType().getSuffix();
         prepare(apiInfos, format);
 
         Map<String, Object> dataModel = new HashMap<>();

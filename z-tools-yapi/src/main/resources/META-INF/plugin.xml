@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-yapi</id>
+    <name>z-tools-yapi</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

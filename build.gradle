@@ -1,4 +1,5 @@
-// 根工程既是 Gradle 聚合点，也是最终打成 IDEA 插件的模块
+// 根工程既是 Gradle 聚合点，也是最终打成 IDEA 插件的模块。
+// 描述文件在仓库根目录 plugin.xml，不使用 src/。
 plugins {
     id 'java'
     // 用于下载 IDEA SDK、runIde、buildPlugin 等插件开发任务
@@ -87,7 +88,7 @@ project(':z-tools-common') {
 // 各功能模块依赖 common，模块之间互不依赖
 ['z-tools-copyjson', 'z-tools-copycurl', 'z-tools-sensitive',
  'z-tools-restful', 'z-tools-apidoc', 'z-tools-dbdoc', 'z-tools-generatebuilder',
- 'z-tools-annotation'].each { moduleName ->
+ 'z-tools-annotation', 'z-tools-yapi', 'z-tools-config'].each { moduleName ->
     project(":${moduleName}") {
         dependencies {
             api project(':z-tools-common')
@@ -119,12 +120,41 @@ project(':z-tools-copyjson') {
     }
 }
 
+project(':z-tools-yapi') {
+    dependencies {
+        api project(':z-tools-annotation')
+        api project(':z-tools-config')
+    }
+}
+
+['z-tools-restful', 'z-tools-apidoc', 'z-tools-dbdoc'].each { moduleName ->
+    project(":${moduleName}") {
+        dependencies {
+            api project(':z-tools-config')
+        }
+    }
+}
+
+project(':z-tools-sensitive') {
+    dependencies {
+        api project(':z-tools-config')
+        compileOnly files("${rootProject.projectDir}/lib/jasypt-1.9.3.jar")
+    }
+}
+
 // 根工程作为真正的插件：runIde / buildPlugin 从这里执行
 intellij {
     plugins = ['com.intellij.java']
     version = ideaVersion
     updateSinceUntilBuild = false
     downloadSources = false
+}
+
+sourceSets {
+    main {
+        java.srcDirs = []
+        resources.srcDirs = []
+    }
 }
 
 tasks.withType(JavaCompile) {
@@ -134,6 +164,15 @@ tasks.withType(JavaCompile) {
 
 patchPluginXml {
     sinceBuild = ideaSinceBuild
+    pluginXmlFiles = [file('plugin.xml')]
+}
+
+tasks.named('processResources', Copy).configure {
+    eachFile { details ->
+        if (details.name == 'plugin.xml') {
+            details.path = 'META-INF/plugin.xml'
+        }
+    }
 }
 
 // 把所有模块打进最终插件；lib/ 下的本地 jar 也会一起打包
@@ -147,5 +186,7 @@ dependencies {
     implementation project(':z-tools-dbdoc')
     implementation project(':z-tools-generatebuilder')
     implementation project(':z-tools-annotation')
+    implementation project(':z-tools-yapi')
+    implementation project(':z-tools-config')
     implementation fileTree(dir: 'lib', include: ['*.jar'])
 }
