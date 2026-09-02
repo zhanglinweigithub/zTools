@@ -77,8 +77,8 @@ public final class RequestPaths {
     public static String join(String... segments) {
         StringBuilder builder = new StringBuilder();
         if (segments != null) {
-            for (int i = 0; i < segments.length; i++) {
-                append(builder, segments[i]);
+            for (String segment : segments) {
+                append(builder, segment);
             }
         }
         return builder.length() == 0 ? "/" : builder.toString();

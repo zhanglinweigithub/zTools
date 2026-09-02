@@ -42,9 +42,12 @@ public class JasyptCrypto {
     }
 
     /**
-     * 解密密文（不带包裹标签）
+     * 解密密文
      */
     public String decrypt(String ciphertext) {
+        if (isEncrypted(ciphertext)) {
+            ciphertext = extractEncryptedValue(ciphertext);
+        }
         return encryptor.decrypt(ciphertext);
     }
 
@@ -65,7 +68,7 @@ public class JasyptCrypto {
      */
     public String extractEncryptedValue(String text) {
         if (!isEncrypted(text)) {
-            return null;
+            return text;
         }
         String trimmed = text.trim();
         return trimmed.substring(encPrefix.length(),
@@ -77,17 +80,6 @@ public class JasyptCrypto {
      */
     public String encryptWithWrapper(String plaintext) {
         return encPrefix + encrypt(plaintext) + encSuffix;
-    }
-
-    /**
-     * 解密 prefix...suffix 格式的密文，返回明文；如果不是加密格式，原样返回
-     */
-    public String decryptIfEncrypted(String text) {
-        if (!isEncrypted(text)) {
-            return text;
-        }
-        String ciphertext = extractEncryptedValue(text);
-        return decrypt(ciphertext);
     }
 
     public String getPrefix() {

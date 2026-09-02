@@ -30,6 +30,7 @@ import com.zhanglinwei.zTools.configure.enums.JasyptOutputType;
 import com.zhanglinwei.zTools.configure.enums.JasyptSalt;
 import org.jasypt.registry.AlgorithmRegistry;
 import org.jdesktop.swingx.JXTextField;
+import org.jdesktop.swingx.prompt.PromptSupport;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -131,6 +132,8 @@ public class ZToolsConfigSettings implements Configurable {
         passwordField = new JPasswordField(20);
         passwordField.setText(jasyptCryptoConfig.getPassword());
         passwordField.setEchoChar((char) 0);
+        PromptSupport.setPrompt("Multiple passwords separated by ;", passwordField);
+        PromptSupport.setForeground(JBColor.GRAY, passwordField);
         JPanel passwordPanel = new JPanel(new BorderLayout(5, 0));
         passwordPanel.add(passwordField, BorderLayout.CENTER);
         JToggleButton togglePwdBtn = new JToggleButton("Hide");
@@ -145,7 +148,7 @@ public class ZToolsConfigSettings implements Configurable {
         });
         passwordPanel.add(togglePwdBtn, BorderLayout.EAST);
 
-        algorithmBox = new ComboBox<>(20);
+        algorithmBox = new ComboBox<>(400);
         for (Object algo : AlgorithmRegistry.getAllPBEAlgorithms()) {
             if (algo instanceof String) {
                 algorithmBox.addItem(algo.toString());
@@ -172,7 +175,7 @@ public class ZToolsConfigSettings implements Configurable {
 
         JPanel panel = FormBuilder.createFormBuilder()
                 .setVerticalGap(10)
-                .addLabeledComponent(new JLabel("Password:"), passwordPanel, 1, false)
+                .addLabeledComponent(new JLabel("Password (a;b):"), passwordPanel, 1, false)
                 .addLabeledComponent(new JLabel("Algorithm:"), algorithmBox, 2, false)
                 .addLabeledComponent(new JLabel("Iterations:"), iterationsSpinner, 3, false)
                 .addLabeledComponent(new JLabel("Output Type:"), outputTypeBox, 4, false)

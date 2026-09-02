@@ -141,6 +141,23 @@
 
     <!-- icon (only supports AllIcons.*): https://intellij-icons.jetbrains.design/ -->
     <actions>
+        <!-- 生成数据库文档 -->
+        <action id="generate-db-doc.ID" icon="/debugger/db_db_object.svg" class="com.zhanglinwei.zTools.dbdoc.GenerateDatabaseDocumentAction" text="Generate DB Doc">
+            <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
+        </action>
+
+        <!-- 搜索 Restful 接口 -->
+        <action id="go-to-restful.ID" class="com.zhanglinwei.zTools.restful.GoToRestfulAction" >
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
+        </action>
+
+        <!-- 生成 Builder -->
+        <action id="generate-builder.ID" class="com.zhanglinwei.zTools.generatebuilder.GenerateBuilderAction" text="Builder">
+            <add-to-group group-id="JavaGenerateGroup1" anchor="after" relative-to-action="GenerateGetterAndSetter"/>
+        </action>
+
+
+
         <!-- 拷贝JSON -->
         <action id="copy-json.ID" icon="/json/object.svg" class="com.zhanglinwei.zTools.copyjson.CopyJsonAction"
                 text="Copy Json">
@@ -152,37 +169,20 @@
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
         </action>
 
-        <!-- 测试：拷贝注解模块解析出的类 / 方法定义 JSON -->
-        <action id="copy-annotation-json.ID" icon="/json/object.svg" class="com.zhanglinwei.zTools.annotation.CopyAnnotationJsonAction"
-                text="Copy Annotation Json">
-            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-curl.ID"/>
-        </action>
-
         <!-- 生成API文档 -->
         <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.apidoc.GenerateApiDocAction"
                 text="Generate Api Doc">
-            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-annotation-json.ID"/>
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-curl.ID"/>
         </action>
 
-        <!-- 生成数据库文档 -->
-        <action id="generate-db-doc.ID" icon="/debugger/db_db_object.svg" class="com.zhanglinwei.zTools.dbdoc.GenerateDatabaseDocumentAction" text="Generate DB Doc">
-            <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
+        <!-- 上传至 YApi -->
+        <action id="upload-to-yapi.ID" class="com.zhanglinwei.zTools.yapi.UploadToYApiAction" text="Upload YApi">
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID"/>
         </action>
-
-        <!-- 生成SQL操作组 -->
-<!--        <group id="GenerateSQLGroup.ID" text="Generate SQL" popup="true">-->
-<!--            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID" />-->
-
-<!--            <action id="copy-ddl.ID" class="com.zhanglinwei.zTools.CopyDDLAction" text="Copy DDL" />-->
-<!--            <action id="copy-select.ID" class="com.zhanglinwei.zTools.CopySelectAction" text="Copy Select" />-->
-<!--            <action id="copy-insert.ID" class="com.zhanglinwei.zTools.CopyInsertAction" text="Copy Insert" />-->
-<!--            <action id="copy-update.ID" class="com.zhanglinwei.zTools.CopyUpdateAction" text="Copy Update" />-->
-<!--            <action id="copy-delete.ID" class="com.zhanglinwei.zTools.CopyDeleteAction" text="Copy Delete"/>-->
-<!--        </group>-->
 
         <!-- 数据加解密操作组 -->
         <group id="JasyptCryptoGroup.ID" text="Jasypt Crypto" popup="true">
-            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID" />
+            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="upload-to-yapi.ID" />
             <!-- 加密数据 -->
             <action id="encrypt.ID" class="com.zhanglinwei.zTools.jasyptcrypto.EncryptAction"
                     text="Encrypt"/>
@@ -197,15 +197,11 @@
                     text="Decrypt File" />
         </group>
 
-        <!-- 搜索 Restful 接口 -->
-        <action id="go-to-restful.ID" class="com.zhanglinwei.zTools.restful.GoToRestfulAction" >
-            <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
-        </action>
-
-        <!-- 生成 Builder -->
-        <action id="generate-builder.ID" class="com.zhanglinwei.zTools.generatebuilder.GenerateBuilderAction" text="Builder">
-            <add-to-group group-id="JavaGenerateGroup1" anchor="after" relative-to-action="GenerateGetterAndSetter"/>
-        </action>
+        <!-- 测试：拷贝注解模块解析出的类 / 方法定义 JSON -->
+<!--        <action id="copy-annotation-json.ID" icon="/json/object.svg" class="com.zhanglinwei.zTools.annotation.CopyAnnotationJsonAction"-->
+<!--                text="Copy Annotation Json">-->
+<!--            <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-curl.ID"/>-->
+<!--        </action>-->
     </actions>
 
 </idea-plugin>

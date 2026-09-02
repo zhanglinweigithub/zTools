@@ -59,6 +59,17 @@ public final class SourceParser {
         );
     }
 
+    public static List<MethodDefinition> parseMethod(PsiClass psiClass) {
+        if (psiClass == null) {
+            return null;
+        }
+
+        return Arrays.stream(psiClass.getMethods())
+                .map(SourceParser::parseMethod)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     private static ParameterDefinition parseReturn(PsiMethod method) {
         PsiType returnType = method.getReturnType();
         if (returnType == null) {

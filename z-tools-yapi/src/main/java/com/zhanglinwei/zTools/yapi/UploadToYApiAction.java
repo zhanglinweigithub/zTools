@@ -1,67 +1,87 @@
 package com.zhanglinwei.zTools.yapi;
 
 
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroupManager;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.zhanglinwei.zTools.yapi.client.YApiClient;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
+import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
+import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
+import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
+import com.zhanglinwei.zTools.annotation.parse.SourceParser;
+import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
+import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
+import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
+import com.zhanglinwei.zTools.common.constant.MediaType;
+import com.zhanglinwei.zTools.common.constant.WebTypes;
+import com.zhanglinwei.zTools.common.enums.Boolean;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+import com.zhanglinwei.zTools.common.util.NotificationUtil;
+import com.zhanglinwei.zTools.common.util.ProjectConfigs;
 import com.zhanglinwei.zTools.configure.config.YApiConfig;
+import com.zhanglinwei.zTools.yapi.client.YApiClient;
+import com.zhanglinwei.zTools.yapi.enums.ParameterType;
+import com.zhanglinwei.zTools.yapi.enums.ReqBodyType;
 import com.zhanglinwei.zTools.yapi.model.*;
 import com.zhanglinwei.zTools.yapi.ui.YApiConfigDialog;
+import com.zhanglinwei.zTools.yapi.utils.YApiFields;
+import com.zhanglinwei.zTools.yapi.utils.YApiJson;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 右键上传接口至 YApi 的 Action
+ * <p>
+ * 支持在以下 PSI 元素上触发：
+ * <ul>
+ *     <li>方法（PsiMethod）—— 仅上传当前方法对应的接口</li>
+ *     <li>类（PsiClass）—— 上传该类中所有 Web 处理方法</li>
+ * </ul>
+ * <p>
  */
 public class UploadToYApiAction extends AnAction {
 
-    /** Spring Web 请求映射注解的全限定名 */
-    private static final Set<String> MAPPING_ANNOTATIONS = new HashSet<>();
-
-    static {
-        MAPPING_ANNOTATIONS.add("org.springframework.web.bind.annotation.GetMapping");
-        MAPPING_ANNOTATIONS.add("org.springframework.web.bind.annotation.PostMapping");
-        MAPPING_ANNOTATIONS.add("org.springframework.web.bind.annotation.PutMapping");
-        MAPPING_ANNOTATIONS.add("org.springframework.web.bind.annotation.DeleteMapping");
-        MAPPING_ANNOTATIONS.add("org.springframework.web.bind.annotation.RequestMapping");
-        MAPPING_ANNOTATIONS.add("org.springframework.web.bind.annotation.PatchMapping");
-    }
-
+    /**
+     * 控制 Action 在何种 PSI 上下文中可用
+     * <p>
+     * 仅当光标位于方法、类上时启用，其他位置隐藏
+     */
     @Override
     public void update(AnActionEvent e) {
         Project project = e.getProject();
         PsiElement psiElement = e.getData(CommonDataKeys.PSI_ELEMENT);
-        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
 
         boolean enabled = false;
-        if (project != null && (psiElement != null || psiFile != null)) {
+        if (project != null && psiElement != null) {
             if (psiElement instanceof PsiMethod) {
                 enabled = true;
-            } else if (psiElement instanceof PsiClass) {
+            }
+            if (psiElement instanceof PsiClass) {
                 enabled = true;
-            } else if (psiFile != null) {
-                enabled = psiFile instanceof PsiJavaFile;
             }
         }
         e.getPresentation().setEnabledAndVisible(enabled);
     }
 
+    /**
+     * Action 执行入口
+     */
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
-        if (project == null) return;
+        if (project == null) {
+            return;
+        }
 
         // 1. 检查 YApi 是否已配置
         YApiConfig settings = YApiConfig.getInstance(project);
@@ -79,29 +99,41 @@ public class UploadToYApiAction extends AnAction {
 
         // 2. 确定选中的元素
         PsiElement psiElement = e.getData(CommonDataKeys.PSI_ELEMENT);
-        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
 
         PsiClass targetClass = null;
-        List<PsiMethod> targetMethods = new ArrayList<>();
+        List<MethodDefinition> targetMethods = new ArrayList<>();
 
         if (psiElement instanceof PsiMethod) {
-            PsiMethod method = (PsiMethod) psiElement;
-            targetMethods.add(method);
-            targetClass = method.getContainingClass();
-        } else if (psiElement instanceof PsiClass) {
-            targetClass = (PsiClass) psiElement;
-            targetMethods = collectWebMethods(targetClass);
-        } else if (psiFile instanceof PsiJavaFile) {
-            PsiJavaFile javaFile = (PsiJavaFile) psiFile;
-            PsiClass[] classes = javaFile.getClasses();
-            if (classes.length > 0) {
-                targetClass = classes[0];
-                targetMethods = collectWebMethods(targetClass);
+            // 单个方法：仅上传该方法的接口
+            PsiMethod selectedMethod = (PsiMethod) psiElement;
+            targetClass = selectedMethod.getContainingClass();
+
+            // 判断是否 Web 方法
+            MethodDefinition methodDefinition = SourceParser.parseMethod(selectedMethod);
+            if (!WebAnnotationParser.isHandlerMethod(methodDefinition)) {
+                NotificationUtil.warnNotify("Only web methods are supported!", project);
+                return;
             }
+
+            targetMethods.add(methodDefinition);
+        } else if (psiElement instanceof PsiClass) {
+            // 整个类：上传该类中所有 web 方法
+            targetClass = (PsiClass) psiElement;
+
+            // 过滤出 Web 方法
+            List<MethodDefinition> webMethodDefinitionList = SourceParser.parseMethod(targetClass).stream()
+                    .filter(WebAnnotationParser::isHandlerMethod)
+                    .collect(Collectors.toList());
+            if (webMethodDefinitionList.isEmpty()) {
+                NotificationUtil.warnNotify("The Web method was not found in the class!", project);
+                return;
+            }
+
+            targetMethods.addAll(webMethodDefinitionList);
         }
 
         if (targetMethods.isEmpty()) {
-            showNotify(project, NotificationType.WARNING, "未找到可上传的 Web 方法");
+            NotificationUtil.warnNotify("No Web method was found!", project);
             return;
         }
 
@@ -109,20 +141,25 @@ public class UploadToYApiAction extends AnAction {
         final String serverUrl = settings.getServerUrl();
         final String token = settings.getToken();
         final Number projectId = parseNumber(settings.getProjectId());
-        final String className = targetClass != null ? targetClass.getName() : "Default";
-        final List<PsiMethod> methods = new ArrayList<>(targetMethods);
+        final ClassDefinition classDef = SourceParser.parseClass(targetClass, false);
+        final String className = classDef != null ? classDef.name() : "Default";
+        final List<MethodDefinition> methods = new ArrayList<>(targetMethods);
 
         // 4. 后台执行上传
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "上传至 YApi...", true) {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Upload To YApi...", true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
+                // 表示进度条设为不确定模式——进度条会来回滚动（类似加载动画），而不是从 0% 走到 100%
                 indicator.setIndeterminate(true);
+
                 try {
-                    // 获取已有分类
-                    indicator.setText("获取分类列表...");
+                    // 获取已有分类列表
+
+                    // 设置的是进度条下方显示的文字提示
+                    indicator.setText("Load category list...");
                     List<YApiInterfaceCat> existingCats = YApiClient.getCatMenu(serverUrl, projectId, token);
 
-                    // 查找或创建分类
+                    // 以类名作为分类名称，查找已有分类或创建新分类
                     Number catId = null;
                     for (YApiInterfaceCat cat : existingCats) {
                         if (className.equals(cat.getName())) {
@@ -131,288 +168,341 @@ public class UploadToYApiAction extends AnAction {
                         }
                     }
 
+                    // 分类不存在则新增
                     if (catId == null) {
-                        indicator.setText("创建分类: " + className);
+                        indicator.setText("Create category: " + className);
                         YApiInterfaceCatAddRequest catRequest = new YApiInterfaceCatAddRequest(className, projectId);
                         YApiInterfaceCat newCat = YApiClient.addCat(serverUrl, catRequest, token);
                         catId = newCat.get_id();
                     }
 
-                    // 上传接口（save 接口：同名同分类自动覆盖，否则新增）
-                    int successCount = 0;
-                    int failCount = 0;
+                    // 逐个上传接口 同名同分类自动覆盖 否则新增
                     for (int i = 0; i < methods.size(); i++) {
-                        PsiMethod method = methods.get(i);
-                        indicator.setText("上传接口: " + method.getName() + " (" + (i + 1) + "/" + methods.size() + ")");
+                        MethodDefinition methodDef = methods.get(i);
+                        indicator.setText("Upload interface: " + methodDef.name());
+                        // 设置进度条具体进度
                         indicator.setFraction((double) (i + 1) / methods.size());
 
                         try {
-                            YApiInterfaceAddRequest request = buildMockInterface(method, projectId, catId, className);
+                            YApiInterfaceAddRequest request = buildInterface(project, classDef, methodDef, projectId, catId);
                             YApiClient.saveInterface(serverUrl, request, token);
-                            successCount++;
-                        } catch (Exception ex) {
-                            failCount++;
+                        } catch (Exception ignore) {
+                            NotificationUtil.errorNotify("Fail to upload: " + methodDef.name() + ", " + ignore.getMessage(), project);
                         }
                     }
-
-                    // 通知结果
-                    String msg;
-                    if (failCount == 0) {
-                        msg = "成功上传 " + successCount + " 个接口至分类 \"" + className + "\"";
-                        showNotify(project, NotificationType.INFORMATION, msg);
-                    } else {
-                        msg = "上传完成: 成功 " + successCount + " 个, 失败 " + failCount + " 个";
-                        showNotify(project, NotificationType.WARNING, msg);
-                    }
                 } catch (Exception ex) {
-                    showNotify(project, NotificationType.ERROR, "上传失败: " + ex.getMessage());
+                    NotificationUtil.errorNotify("Fail to upload: " + ex.getMessage(), project);
                 }
             }
         });
     }
-
-    /**
-     * 收集类中所有带有 Web 映射注解的方法
-     */
-    private List<PsiMethod> collectWebMethods(PsiClass psiClass) {
-        List<PsiMethod> webMethods = new ArrayList<>();
-        for (PsiMethod method : psiClass.getMethods()) {
-            if (hasMappingAnnotation(method)) {
-                webMethods.add(method);
-            }
-        }
-        return webMethods;
-    }
-
-    /**
-     * 检查方法是否有 Web 映射注解
-     */
-    private boolean hasMappingAnnotation(PsiMethod method) {
-        for (PsiAnnotation annotation : method.getModifierList().getAnnotations()) {
-            String qualifiedName = annotation.getQualifiedName();
-            if (qualifiedName != null && MAPPING_ANNOTATIONS.contains(qualifiedName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 构建 Mock 接口数据（包含完整的请求头、Query、Path、Body 信息）
-     * <p>
-     * 注意：YApi 中 req_body_type="json" 和 req_body_form 互斥，
-     * 设置 json body 时不能同时设置 form 参数，否则 form 不展示。
-     */
-    private YApiInterfaceAddRequest buildMockInterface(PsiMethod method, Number projectId, Number catId, String className) {
+    
+    private YApiInterfaceAddRequest buildInterface(Project project, ClassDefinition classDefinition, MethodDefinition methodDefinition,
+                                                   Number projectId, Number catId) {
         YApiInterfaceAddRequest request = new YApiInterfaceAddRequest();
         request.setProject_id(projectId);
         request.setCatid(catId);
-        request.setTitle(method.getName());
-        request.setPath("/" + camelToHyphen(className) + "/" + camelToHyphen(method.getName()));
-        request.setMethod(resolveHttpMethod(method));
-        request.setMarkdown("<pre>\n" +
-                "/**\n" +
-                " * xxxx\n" +
-                " * @param form xxx\n" +
-                " * @return wwww\n" +
-                " */\n" +
-                "@PostMapping(\"/xxxx\")\n" +
-                "public PageResult<xxx> queryPage(@RequestBody xxxx form) {\n" +
-                "   // something.....\n" +
-                "   return xxxx;\n" +
-                "}\n" +
-                "</pre>");
+
+        // 标题与描述
+        // 优先级：OpenAPI @Operation → Swagger @ApiOperation → 方法注释
+        request.setTitle(YApiFields.titleOf(methodDefinition));
+        request.setDesc(YApiFields.descriptionOf(methodDefinition));
         request.setStatus("undone");
 
-        // ---- 请求头 ----
-        YApiHeader contentTypeHeader = new YApiHeader();
-        contentTypeHeader.setName("Content-Type");
-        contentTypeHeader.setValue("application/json");
-        contentTypeHeader.setRequired("1");
-        contentTypeHeader.setDesc("请求体内容类型");
-        contentTypeHeader.setExample("application/json");
+        // HTTP 请求方式
+        // @GetMapping 等组合注解自带动词；@RequestMapping 未写 method 时默认 GET
+        MappingAnnotation methodMapping = WebAnnotationParser.mapping(methodDefinition);
+        request.setMethod(resolveHttpMethod(methodMapping));
 
-        YApiHeader authHeader = new YApiHeader();
-        authHeader.setName("Authorization");
-        authHeader.setValue("Bearer {{token}}");
-        authHeader.setRequired("1");
-        authHeader.setDesc("用户认证Token");
-        authHeader.setExample("Bearer eyJhbGciOiJIUzI1NiJ9.xxx");
+        // 请求路径（全局 × 类级别 × 方法级别）
+        MappingAnnotation classMapping = WebAnnotationParser.mapping(classDefinition);
+        String requestPath = RequestPaths.join(
+                ProjectConfigs.globalRequestPrefix(project),
+                classMapping == null ? null : classMapping.firstPath(),
+                methodMapping == null ? null : methodMapping.firstPath()
+        );
+        request.setPath(requestPath);
 
-        YApiHeader traceHeader = new YApiHeader();
-        traceHeader.setName("X-Request-Id");
-        traceHeader.setValue("");
-        traceHeader.setRequired("0");
-        traceHeader.setDesc("请求链路追踪ID");
-        traceHeader.setExample("a1b2c3d4-e5f6-7890");
+        // 遍历方法参数，通过 YApiFields.kind() 判断绑定类型，分别收集
+        List<YApiQueryParam> queryList = new ArrayList<>();   // @RequestParam → Query 参数
+        List<YApiPathParam> pathList = new ArrayList<>();     // @PathVariable → Path 参数
+        List<YApiHeader> headerList = new ArrayList<>();      // @RequestHeader → Header
+        List<YApiFormParam> formList = new ArrayList<>();     // @RequestPart → Form 参数
+        ParameterDefinition bodyParam = null;                 // @RequestBody → JSON Body
+        boolean hasForm = false;
 
-        request.setReq_headers(Arrays.asList(contentTypeHeader, authHeader, traceHeader));
+        for (ParameterDefinition parameter : methodDefinition.parameters()) {
+            WebParameterAnnotation.Kind kind = YApiFields.kind(parameter);
+            // 跳过无绑定注解的参数（如 HttpServletRequest 等框架注入类型）和需要忽略的参数
+            if (kind == null || YApiFields.skip(parameter)) {
+                continue;
+            }
 
-        // ---- Query 参数 ----
-        YApiQueryParam pageQuery = new YApiQueryParam();
-        pageQuery.setName("page");
-        pageQuery.setValue("1");
-        pageQuery.setRequired("0");
-        pageQuery.setDesc("页码");
-        pageQuery.setExample("1");
+            switch (kind) {
+                case QUERY:
+                    queryList.add(toQueryParam(parameter));
+                    break;
+                case PATH:
+                    pathList.add(toPathParam(parameter));
+                    break;
+                case HEADER:
+                    headerList.add(toHeader(parameter));
+                    break;
+                case BODY:
+                    bodyParam = parameter;
+                    break;
+                case PART:
+                    formList.add(toFormParam(parameter));
+                    hasForm = true;
+                    break;
+                default:
+                    // COOKIE, ATTRIBUTE, MODEL 等类型暂不处理
+                    break;
+            }
+        }
 
-        YApiQueryParam sizeQuery = new YApiQueryParam();
-        sizeQuery.setName("pageSize");
-        sizeQuery.setValue("20");
-        sizeQuery.setRequired("0");
-        sizeQuery.setDesc("每页条数");
-        sizeQuery.setExample("20");
+        // 请求头：consumes/produces + @RequestHeader + Content-Type
+        // 1. 从类级别和方法级别的 @RequestMapping(consumes/produces) 提取 Content-Type / Accept
+        addConsumesProduces(classMapping, headerList);
+        addConsumesProduces(methodMapping, headerList);
+        // 2. 根据 body/form 类型自动推断 Content-Type
+        if (bodyParam != null) {
+            headerList.add(contentTypeHeader(MediaType.APPLICATION_JSON_VALUE()));
+        }
+        if (hasForm) {
+            headerList.add(contentTypeHeader(MediaType.MULTIPART_FORM_DATA_VALUE()));
+        }
+        // 3. 合并同名请求头（去重，值不同时用逗号拼接）
+        headerList = mergeHeaders(headerList);
 
-        YApiQueryParam keywordQuery = new YApiQueryParam();
-        keywordQuery.setName("keyword");
-        keywordQuery.setValue("");
-        keywordQuery.setRequired("0");
-        keywordQuery.setDesc("搜索关键词");
-        keywordQuery.setExample("张三");
+        request.setReq_headers(headerList.isEmpty() ? null : headerList);
+        request.setReq_query(queryList.isEmpty() ? null : queryList);
+        request.setReq_params(pathList.isEmpty() ? null : pathList);
 
-        request.setReq_query(Arrays.asList(pageQuery, sizeQuery, keywordQuery));
+        // 请求体：json body 和 form 互斥
+        // YApi 约束：设置 req_body_type="json" 时不能同时设置 req_body_form，否则 form 不展示
+        if (bodyParam != null) {
+            request.setReq_body_type(ReqBodyType.JSON.getCode());
+            request.setReq_body_is_json_schema(false);
+            request.setReq_body_other(YApiJson.prettyWithComments(bodyParam));
+        } else if (!formList.isEmpty()) {
+            request.setReq_body_type(ReqBodyType.FORM.getCode());
+            request.setReq_body_form(formList);
+        }
 
-        // ---- Path 参数 ----
-        YApiPathParam idPath = new YApiPathParam();
-        idPath.setName("id");
-        idPath.setDesc("资源唯一标识");
-        idPath.setExample("100001");
-
-        request.setReq_params(Collections.singletonList(idPath));
-
-        // ---- 请求体（JSON 格式，is_json_schema=false 时 YApi 以原始 JSON 展示） ----
-        // 注意：req_body_type="json" 与 req_body_form 互斥，不能同时设置
-//        request.setReq_body_type("json");
-//        request.setReq_body_is_json_schema(false);
-//        request.setReq_body_other("{\n" +
-//                "  \"name\": \"张三\",           // 用户名\n" +
-//                "  \"age\": 28,                 // 年龄\n" +
-//                "  \"email\": \"zhangsan@example.com\",  // 邮箱\n" +
-//                "  \"phone\": \"13800138000\",   // 手机号\n" +
-//                "  \"enabled\": true,            // 是否启用\n" +
-//                "  \"department\": {             // 部门信息\n" +
-//                "    \"id\": 1,\n" +
-//                "    \"name\": \"研发部\"\n" +
-//                "  },\n" +
-//                "  /* 角色列表 */\n" +
-//                "  \"roles\": [\n" +
-//                "    \"admin\",\n" +
-//                "    \"developer\"\n" +
-//                "  ]\n" +
-//                "}");
-
-        // ---- Form 表单参数（与 req_body_type="json" 互斥，同时设置时 form 不展示） ----
-        request.setReq_body_type("form");
-
-        YApiFormParam fileField = new YApiFormParam();
-        fileField.setName("file");
-        fileField.setType("file");
-        fileField.setRequired("1");
-        fileField.setDesc("上传的文件");
-        fileField.setExample("");
-
-        YApiFormParam typeField = new YApiFormParam();
-        typeField.setName("fileType");
-        typeField.setType("text");
-        typeField.setRequired("0");
-        typeField.setDesc("文件类型");
-        typeField.setExample("image");
-
-        YApiFormParam nameField = new YApiFormParam();
-        nameField.setName("name");
-        nameField.setType("text");
-        nameField.setRequired("1");
-        nameField.setDesc("名称");
-        nameField.setExample("测试文件");
-
-        request.setReq_body_form(Arrays.asList(fileField, typeField, nameField));
-
-        // ---- 响应体（JSON 格式，is_json_schema=false 时 YApi 以原始 JSON 展示） ----
-        request.setRes_body_type("json");
-        request.setRes_body_is_json_schema(false);
-        request.setRes_body("{\n" +
-                "  \"errcode\": 0,              // 返回码，0表示成功\n" +
-                "  \"errmsg\": \"success\",       // 返回消息\n" +
-                "  \"server_timestamp\": 1709105208,  // 服务器时间戳\n" +
-                "  \"data\": {                   // 返回数据\n" +
-                "    \"id\": 100001,            // 记录ID\n" +
-                "    \"name\": \"张三\",          // 用户名\n" +
-                "    \"age\": 28,               // 年龄\n" +
-                "    \"email\": \"zhangsan@example.com\",  // 邮箱\n" +
-                "    \"phone\": \"13800138000\", // 手机号\n" +
-                "    \"enabled\": true,         // 是否启用\n" +
-                "    \"department\": {          // 部门信息\n" +
-                "      \"id\": 1,\n" +
-                "      \"name\": \"研发部\"\n" +
-                "    },\n" +
-                "    /* 角色列表 */\n" +
-                "    \"roles\": [\n" +
-                "      \"admin\",\n" +
-                "      \"developer\"\n" +
-                "    ],\n" +
-                "    \"createTime\": \"2024-06-01 10:30:00\",  // 创建时间\n" +
-                "    \"updateTime\": \"2024-06-15 14:20:00\"   // 更新时间\n" +
-                "  }\n" +
-                "}");
+        // 响应体
+        // 通过 YApiJson 生成带字段注释的 pretty JSON，方便在 YApi 上阅读
+        ParameterDefinition returns = methodDefinition.returns();
+        if (returns != null) {
+            request.setRes_body_type(ReqBodyType.JSON.getCode());
+            request.setRes_body_is_json_schema(false);
+            request.setRes_body(YApiJson.prettyWithComments(returns));
+        }
 
         return request;
     }
 
     /**
-     * 根据方法上的注解推断 HTTP 方法
+     * 将方法参数映射为 YApi Query 参数
+     * <p>
+     * 对应 Spring 的 {@code @RequestParam} 绑定
+     *
+     * @param parameter 方法参数定义
+     * @return YApi Query 参数对象
      */
-    private String resolveHttpMethod(PsiMethod method) {
-        for (PsiAnnotation annotation : method.getModifierList().getAnnotations()) {
-            String qualifiedName = annotation.getQualifiedName();
-            if (qualifiedName == null) continue;
-
-            if (qualifiedName.endsWith("GetMapping")) return "GET";
-            if (qualifiedName.endsWith("PostMapping")) return "POST";
-            if (qualifiedName.endsWith("PutMapping")) return "PUT";
-            if (qualifiedName.endsWith("DeleteMapping")) return "DELETE";
-            if (qualifiedName.endsWith("PatchMapping")) return "PATCH";
-            if (qualifiedName.endsWith("RequestMapping")) {
-                PsiAnnotationMemberValue methodAttr = annotation.findAttributeValue("method");
-                if (methodAttr != null) {
-                    String methodStr = methodAttr.getText();
-                    if (methodAttr instanceof PsiReference) {
-                        methodStr = ((PsiReference) methodAttr).resolve() != null
-                                ? ((PsiReference) methodAttr).resolve().getText() : methodStr;
-                    }
-                    if (methodStr.contains("POST")) return "POST";
-                    if (methodStr.contains("PUT")) return "PUT";
-                    if (methodStr.contains("DELETE")) return "DELETE";
-                    if (methodStr.contains("PATCH")) return "PATCH";
-                }
-                return "GET";
-            }
-        }
-        return "GET";
+    private YApiQueryParam toQueryParam(ParameterDefinition parameter) {
+        YApiQueryParam query = new YApiQueryParam();
+        query.setName(YApiFields.name(parameter));
+        query.setRequired(YApiFields.required(parameter) ? String.valueOf(Boolean.TRUE.getNumberValue()) : String.valueOf(Boolean.FALSE.getNumberValue()));
+        query.setDesc(YApiFields.description(parameter));
+        Object example = YApiFields.example(parameter);
+        query.setExample(example == null ? "" : String.valueOf(example));
+        return query;
     }
 
     /**
-     * camelCase 转 hyphen-case
+     * 将方法参数映射为 YApi Path 参数
+     * <p>
+     * 对应 Spring 的 {@code @PathVariable} 绑定
+     *
+     * @param parameter 方法参数定义
+     * @return YApi Path 参数对象
      */
-    private String camelToHyphen(String name) {
-        if (name == null || name.isEmpty()) return name;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) sb.append('-');
-                sb.append(Character.toLowerCase(c));
+    private YApiPathParam toPathParam(ParameterDefinition parameter) {
+        YApiPathParam path = new YApiPathParam();
+        path.setName(YApiFields.name(parameter));
+        path.setDesc(YApiFields.description(parameter));
+        Object example = YApiFields.example(parameter);
+        path.setExample(example == null ? "" : String.valueOf(example));
+        return path;
+    }
+
+    /**
+     * 将方法参数映射为 YApi 请求头
+     * <p>
+     * 对应 Spring 的 {@code @RequestHeader} 绑定
+     *
+     * @param parameter 方法参数定义
+     * @return YApi 请求头对象
+     */
+    private YApiHeader toHeader(ParameterDefinition parameter) {
+        YApiHeader header = new YApiHeader();
+        header.setName(YApiFields.name(parameter));
+        header.setRequired(YApiFields.required(parameter) ? String.valueOf(Boolean.TRUE.getNumberValue()) : String.valueOf(Boolean.FALSE.getNumberValue()));
+        header.setDesc(YApiFields.description(parameter));
+        Object example = YApiFields.example(parameter);
+        header.setExample(example == null ? "" : String.valueOf(example));
+        header.setValue("");
+        return header;
+    }
+
+    /**
+     * 将方法参数映射为 YApi Form 参数
+     * <p>
+     * 对应 Spring 的 {@code @RequestPart} 绑定
+     * MultipartFile 类型映射为 "file"，其余映射为 "text"
+     *
+     * @param parameter 方法参数定义
+     * @return YApi Form 参数对象
+     */
+    private YApiFormParam toFormParam(ParameterDefinition parameter) {
+        YApiFormParam form = new YApiFormParam();
+        form.setName(YApiFields.name(parameter));
+        // MultipartFile 类型在 YApi 中显示为文件上传控件
+        form.setType(YApiFields.isMultipart(parameter.type()) ? ParameterType.FILE.getCode() : ParameterType.TEXT.getCode());
+        form.setRequired(YApiFields.required(parameter) ? String.valueOf(Boolean.TRUE.getNumberValue()) : String.valueOf(Boolean.FALSE.getNumberValue()));
+        form.setDesc(YApiFields.description(parameter));
+        // 文件类型不需要示例值
+        Object example = YApiFields.isMultipart(parameter.type()) ? "" : YApiFields.example(parameter);
+        form.setExample(example == null ? "" : String.valueOf(example));
+        return form;
+    }
+
+    /**
+     * 从 MappingAnnotation 的 consumes/produces 属性中提取请求头
+     * <p>
+     * consumes → Content-Type 请求头，produces → Accept 请求头
+     *
+     * @param mapping     类级别或方法级别的映射注解，为 null 时跳过
+     * @param headerList  请求头收集列表，结果追加到此列表
+     */
+    private void addConsumesProduces(MappingAnnotation mapping, List<YApiHeader> headerList) {
+        if (mapping == null) {
+            return;
+        }
+        List<String> consumes = mapping.consumes();
+        if (consumes != null) {
+            for (String item : consumes) {
+                YApiHeader header = new YApiHeader();
+                header.setName(WebTypes.CONTENT_TYPE);
+                header.setRequired(String.valueOf(Boolean.TRUE.getNumberValue()));
+                header.setValue(MediaType.getValue(item, item));
+                header.setExample(MediaType.getValue(item, item));
+                headerList.add(header);
+            }
+        }
+        List<String> produces = mapping.produces();
+        if (produces != null) {
+            for (String item : produces) {
+                YApiHeader header = new YApiHeader();
+                header.setName(WebTypes.ACCEPT);
+                header.setRequired(String.valueOf(Boolean.TRUE.getNumberValue()));
+                header.setValue(MediaType.getValue(item, item));
+                header.setExample(MediaType.getValue(item, item));
+                headerList.add(header);
+            }
+        }
+    }
+
+    /**
+     * 构造 Content-Type 请求头。
+     *
+     * @param value Media Type 值，如 "application/json" 或 "multipart/form-data"
+     * @return YApi 请求头对象
+     */
+    private YApiHeader contentTypeHeader(String value) {
+        YApiHeader header = new YApiHeader();
+        header.setName(WebTypes.CONTENT_TYPE);
+        header.setRequired(String.valueOf(Boolean.TRUE.getNumberValue()));
+        header.setValue(value);
+        header.setExample(value);
+        // 描述字段：JSON 类型标记 "JSON"，其余标记 "表单"
+        header.setDesc(value.contains("json") ? "JSON" : "表单");
+        return header;
+    }
+
+    /**
+     * 合并同名请求头，去重并合并值。
+     * <p>
+     * 规则：
+     * <ul>
+     *     <li>同名请求头只有一个 → 直接保留</li>
+     *     <li>同名请求头有多个且值相同 → 保留第一个</li>
+     *     <li>同名请求头有多个且值不同 → 值用逗号拼接，描述清空</li>
+     * </ul>
+     * 例如 Content-Type 同时出现在 consumes 和 body 推断中，值相同则去重，
+     * 值不同（如同时声明了 application/json 和 multipart/form-data）则逗号拼接。
+     *
+     * @param headerList 待合并的请求头列表
+     * @return 合并后的请求头列表
+     */
+    private List<YApiHeader> mergeHeaders(List<YApiHeader> headerList) {
+        if (headerList.isEmpty()) {
+            return headerList;
+        }
+        // 按请求头名称分组，保持插入顺序
+        Map<String, List<YApiHeader>> grouped = new LinkedHashMap<>();
+        for (YApiHeader header : headerList) {
+            grouped.computeIfAbsent(header.getName(), k -> new ArrayList<>()).add(header);
+        }
+        List<YApiHeader> merged = new ArrayList<>();
+        for (Map.Entry<String, List<YApiHeader>> entry : grouped.entrySet()) {
+            List<YApiHeader> headers = entry.getValue();
+            if (headers.size() == 1) {
+                merged.add(headers.get(0));
             } else {
-                sb.append(c);
+                // 去重值（保持顺序）
+                Set<String> values = new LinkedHashSet<>();
+                for (YApiHeader h : headers) {
+                    String v = h.getExample() == null ? "" : h.getExample();
+                    values.add(v);
+                }
+                YApiHeader first = headers.get(0);
+                if (values.size() == 1) {
+                    // 值相同，只保留一个
+                    merged.add(first);
+                } else {
+                    // 值不同，逗号拼接，描述清空（无法确定单一含义）
+                    first.setExample(String.join(", ", values));
+                    first.setValue(String.join(", ", values));
+                    first.setDesc("");
+                    merged.add(first);
+                }
             }
         }
-        return sb.toString();
+        return merged;
+    }
+    
+    private String resolveHttpMethod(MappingAnnotation mapping) {
+        if (mapping == null || CollectionUtils.isEmpty(mapping.methods())) {
+            return HttpMethod.GET.name();
+        }
+        
+        return mapping.methods().get(0).toUpperCase();
     }
 
     /**
-     * 解析数字（兼容 String 和 Number）
+     * 将字符串安全地解析为数字
+     * <p>
+     * 依次尝试解析为 Integer → Long → 解析失败返回 0
+     *
+     * @param value 待解析的字符串，可能为 null 或空
+     * @return 解析后的数字，解析失败返回 0
      */
     private Number parseNumber(String value) {
-        if (value == null || value.isEmpty()) return 0;
+        if (value == null || value.isEmpty()) {
+            return 0;
+        }
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
@@ -424,15 +514,4 @@ public class UploadToYApiAction extends AnAction {
         }
     }
 
-    /**
-     * 发送通知
-     */
-    private void showNotify(Project project, NotificationType type, String message) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-            Notification notification = NotificationGroupManager.getInstance()
-                    .getNotificationGroup("com.wwww.yapi.utils.NotificationGroup")
-                    .createNotification("YApi Tools", message, type);
-            Notifications.Bus.notify(notification, project);
-        });
-    }
 }

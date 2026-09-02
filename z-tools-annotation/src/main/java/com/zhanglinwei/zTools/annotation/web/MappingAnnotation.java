@@ -41,6 +41,14 @@ public final class MappingAnnotation {
         return paths;
     }
 
+    public String firstPath() {
+        if (paths == null || paths.isEmpty()) {
+            return null;
+        }
+
+        return paths.get(0);
+    }
+
     public List<String> methods() {
         return methods;
     }
