@@ -1,10 +1,10 @@
 package com.zhanglinwei.zTools.apidoc.enums;
 
-import static com.zhanglinwei.zTools.constant.StringPool.FALSE;
-import static com.zhanglinwei.zTools.constant.StringPool.ONE;
-import static com.zhanglinwei.zTools.constant.StringPool.SINGLE_QUOTE;
-import static com.zhanglinwei.zTools.constant.StringPool.TRUE;
-import static com.zhanglinwei.zTools.constant.StringPool.ZERO;
+import static com.zhanglinwei.zTools.common.constant.StringPool.FALSE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.ONE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.SINGLE_QUOTE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.TRUE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.ZERO;
 
 /**
  * 示例 JSON「值」这一段该用哪种颜色。

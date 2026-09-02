@@ -5,7 +5,7 @@ import com.zhanglinwei.zTools.annotation.lookup.AnnotationType;
 import com.zhanglinwei.zTools.annotation.lookup.Attr;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;

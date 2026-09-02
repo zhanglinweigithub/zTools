@@ -5,7 +5,7 @@ import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
 import com.zhanglinwei.zTools.annotation.model.ClassRef;
 import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;

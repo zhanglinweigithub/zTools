@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-configure</id>
+    <name>z-tools-configure</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

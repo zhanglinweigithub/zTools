@@ -1,6 +1,6 @@
 package com.zhanglinwei.zTools.annotation.model;
 
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 /**
  * 源码里的 JavaDoc。没有注释时为 {@code null}，不把注解说明合并进来。

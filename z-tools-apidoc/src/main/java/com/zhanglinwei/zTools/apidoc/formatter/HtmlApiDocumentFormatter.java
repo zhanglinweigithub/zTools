@@ -2,12 +2,12 @@ package com.zhanglinwei.zTools.apidoc.formatter;
 
 import com.zhanglinwei.zTools.apidoc.decorator.ColoredJsonDecorator;
 import com.zhanglinwei.zTools.apidoc.enums.JsonValueKind;
-import com.zhanglinwei.zTools.enums.DocumentType;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.enums.DocumentType;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
-import static com.zhanglinwei.zTools.constant.StringPool.COLON;
-import static com.zhanglinwei.zTools.constant.StringPool.COMMA;
-import static com.zhanglinwei.zTools.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COLON;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 /**
  * HTML 导出：模板 {@code api-doc-html.ftl}。

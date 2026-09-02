@@ -10,18 +10,18 @@ import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
 import com.zhanglinwei.zTools.annotation.web.RequestPaths;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
-import com.zhanglinwei.zTools.constant.MediaType;
-import com.zhanglinwei.zTools.constant.WebTypes;
-import com.zhanglinwei.zTools.doc.config.DocumentConfig;
-import com.zhanglinwei.zTools.util.CollectionUtils;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.constant.MediaType;
+import com.zhanglinwei.zTools.common.constant.WebTypes;
+import com.zhanglinwei.zTools.configure.config.DocumentConfig;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.zhanglinwei.zTools.constant.StringPool.COMMA_SPACE;
-import static com.zhanglinwei.zTools.constant.StringPool.EMPTY;
-import static com.zhanglinwei.zTools.constant.StringPool.FOLD;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.FOLD;
 
 public class ApiInfo {
 

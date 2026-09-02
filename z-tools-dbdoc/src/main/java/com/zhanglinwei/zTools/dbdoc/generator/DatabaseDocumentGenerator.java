@@ -2,19 +2,19 @@ package com.zhanglinwei.zTools.dbdoc.generator;
 
 import com.zhanglinwei.zTools.dbdoc.model.ColumnInfo;
 import com.zhanglinwei.zTools.dbdoc.model.TableInfo;
-import com.zhanglinwei.zTools.doc.TemplateDocWriter;
-import com.zhanglinwei.zTools.enums.DocumentType;
-import com.zhanglinwei.zTools.util.CollectionUtils;
+import com.zhanglinwei.zTools.common.doc.TemplateDocWriter;
+import com.zhanglinwei.zTools.common.enums.DocumentType;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.zhanglinwei.zTools.constant.StringPool.AMPERSAND;
-import static com.zhanglinwei.zTools.constant.StringPool.HTML_GT;
-import static com.zhanglinwei.zTools.constant.StringPool.HTML_LT;
-import static com.zhanglinwei.zTools.constant.StringPool.LEFT_CHEV;
-import static com.zhanglinwei.zTools.constant.StringPool.RIGHT_CHEV;
+import static com.zhanglinwei.zTools.common.constant.StringPool.AMPERSAND;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_GT;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_LT;
+import static com.zhanglinwei.zTools.common.constant.StringPool.LEFT_CHEV;
+import static com.zhanglinwei.zTools.common.constant.StringPool.RIGHT_CHEV;
 
 /**
  * 数据库文档写出。与具体数据库种类无关，只负责 HTML / Markdown / Word。

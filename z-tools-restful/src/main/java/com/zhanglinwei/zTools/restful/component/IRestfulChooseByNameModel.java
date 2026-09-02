@@ -10,7 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.psi.codeStyle.MinusculeMatcher;
 import com.intellij.psi.codeStyle.NameUtil;
-import com.zhanglinwei.zTools.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.matcher.AntPathMatcher;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import org.jetbrains.annotations.Nls;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 
-import static com.zhanglinwei.zTools.constant.StringPool.*;
+import static com.zhanglinwei.zTools.common.constant.StringPool.*;
 
 public class IRestfulChooseByNameModel extends FilteringGotoByModel<HttpMethod> implements DumbAware, CustomMatcherModel {
 

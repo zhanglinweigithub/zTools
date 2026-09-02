@@ -1,6 +1,6 @@
 package com.zhanglinwei.zTools.apidoc.formatter;
 
-import com.zhanglinwei.zTools.enums.DocumentType;
+import com.zhanglinwei.zTools.common.enums.DocumentType;
 
 /**
  * Markdown 导出：模板 {@code api-doc-md.ftl}。

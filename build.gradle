@@ -3,7 +3,7 @@
 plugins {
     id 'java'
     // 用于下载 IDEA SDK、runIde、buildPlugin 等插件开发任务
-    id 'org.jetbrains.intellij' version '1.13.3'
+    id 'org.jetbrains.intellij' version '1.17.0'
 }
 
 group = "com.zhanglinwei"
@@ -26,6 +26,7 @@ allprojects {
     version = rootProject.version
 
     repositories {
+        maven { url 'https://cache-redirector.jetbrains.com/intellij-dependencies' }
         maven { url 'https://maven.aliyun.com/repository/central/' }
         maven { url 'https://maven.aliyun.com/repository/public/' }
         maven { url 'https://maven.aliyun.com/repository/google/' }
@@ -71,6 +72,7 @@ configure(subprojects) {
     publishPlugin.enabled = false
     verifyPlugin.enabled = false
     buildSearchableOptions.enabled = false
+    instrumentCode.enabled = false
 
     // 子模块里的 plugin.xml 只是给 gradle-intellij-plugin 用的占位，不要打进 jar
     jar {
@@ -86,9 +88,9 @@ project(':z-tools-common') {
 }
 
 // 各功能模块依赖 common，模块之间互不依赖
-['z-tools-copyjson', 'z-tools-copycurl', 'z-tools-sensitive',
+['z-tools-copyjson', 'z-tools-copycurl', 'z-tools-jasyptcrypto',
  'z-tools-restful', 'z-tools-apidoc', 'z-tools-dbdoc', 'z-tools-generatebuilder',
- 'z-tools-annotation', 'z-tools-yapi', 'z-tools-config'].each { moduleName ->
+ 'z-tools-annotation', 'z-tools-yapi', 'z-tools-configure'].each { moduleName ->
     project(":${moduleName}") {
         dependencies {
             api project(':z-tools-common')
@@ -123,21 +125,27 @@ project(':z-tools-copyjson') {
 project(':z-tools-yapi') {
     dependencies {
         api project(':z-tools-annotation')
-        api project(':z-tools-config')
+        api project(':z-tools-configure')
     }
 }
 
 ['z-tools-restful', 'z-tools-apidoc', 'z-tools-dbdoc'].each { moduleName ->
     project(":${moduleName}") {
         dependencies {
-            api project(':z-tools-config')
+            api project(':z-tools-configure')
         }
     }
 }
 
-project(':z-tools-sensitive') {
+project(':z-tools-jasyptcrypto') {
     dependencies {
-        api project(':z-tools-config')
+        api project(':z-tools-configure')
+        compileOnly files("${rootProject.projectDir}/lib/jasypt-1.9.3.jar")
+    }
+}
+
+project(':z-tools-configure') {
+    dependencies {
         compileOnly files("${rootProject.projectDir}/lib/jasypt-1.9.3.jar")
     }
 }
@@ -148,6 +156,7 @@ intellij {
     version = ideaVersion
     updateSinceUntilBuild = false
     downloadSources = false
+    instrumentCode = false
 }
 
 sourceSets {
@@ -180,13 +189,13 @@ dependencies {
     implementation project(':z-tools-common')
     implementation project(':z-tools-copyjson')
     implementation project(':z-tools-copycurl')
-    implementation project(':z-tools-sensitive')
+    implementation project(':z-tools-jasyptcrypto')
     implementation project(':z-tools-restful')
     implementation project(':z-tools-apidoc')
     implementation project(':z-tools-dbdoc')
     implementation project(':z-tools-generatebuilder')
     implementation project(':z-tools-annotation')
     implementation project(':z-tools-yapi')
-    implementation project(':z-tools-config')
+    implementation project(':z-tools-configure')
     implementation fileTree(dir: 'lib', include: ['*.jar'])
 }

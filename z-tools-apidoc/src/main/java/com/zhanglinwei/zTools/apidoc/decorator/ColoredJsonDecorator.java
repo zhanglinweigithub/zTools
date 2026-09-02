@@ -2,12 +2,12 @@ package com.zhanglinwei.zTools.apidoc.decorator;
 
 import com.zhanglinwei.zTools.apidoc.formatter.ApiDocumentFormatter;
 
-import static com.zhanglinwei.zTools.constant.StringPool.COLON;
-import static com.zhanglinwei.zTools.constant.StringPool.COMMA;
-import static com.zhanglinwei.zTools.constant.StringPool.DOUBLE_SLASH;
-import static com.zhanglinwei.zTools.constant.StringPool.EMPTY;
-import static com.zhanglinwei.zTools.constant.StringPool.NEWLINE;
-import static com.zhanglinwei.zTools.constant.StringPool.SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COLON;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA;
+import static com.zhanglinwei.zTools.common.constant.StringPool.DOUBLE_SLASH;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.NEWLINE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.SPACE;
 
 /**
  * HTML / Word 共用的 JSON 拆行逻辑。

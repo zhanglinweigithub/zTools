@@ -19,11 +19,11 @@ import com.intellij.psi.PsiTypeParameterList;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiUtil;
-import com.zhanglinwei.zTools.generatebuilder.PsiClasses;
+import com.zhanglinwei.zTools.generatebuilder.psi.PsiClasses;
 import com.zhanglinwei.zTools.generatebuilder.enums.BuilderFlavor;
 import com.zhanglinwei.zTools.generatebuilder.enums.BuilderOption;
 import com.zhanglinwei.zTools.generatebuilder.psi.PsiParameterLists;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

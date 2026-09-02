@@ -3,12 +3,12 @@ package com.zhanglinwei.zTools.dbdoc;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import com.zhanglinwei.zTools.doc.DocOutput;
-import com.zhanglinwei.zTools.doc.config.DocumentConfig;
+import com.zhanglinwei.zTools.common.doc.DocOutput;
+import com.zhanglinwei.zTools.configure.config.DocumentConfig;
 import com.zhanglinwei.zTools.dbdoc.generator.DatabaseDocumentGenerator;
 import com.zhanglinwei.zTools.dbdoc.config.DataSourceConfig;
 import com.zhanglinwei.zTools.dbdoc.model.TableInfo;
-import com.zhanglinwei.zTools.util.NotificationUtil;
+import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
 import java.util.List;
 

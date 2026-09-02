@@ -10,8 +10,8 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
-import com.zhanglinwei.zTools.util.StringUtils;
-import com.zhanglinwei.zTools.util.TypeUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

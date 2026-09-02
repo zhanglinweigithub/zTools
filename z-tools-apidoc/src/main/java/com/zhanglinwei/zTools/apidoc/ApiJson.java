@@ -2,18 +2,18 @@ package com.zhanglinwei.zTools.apidoc;
 
 import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
 import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
-import com.zhanglinwei.zTools.util.JsonUtil;
-import com.zhanglinwei.zTools.util.NestedUtils;
-import com.zhanglinwei.zTools.util.StringUtils;
-import com.zhanglinwei.zTools.util.TypeUtils;
+import com.zhanglinwei.zTools.common.util.JsonUtil;
+import com.zhanglinwei.zTools.common.util.NestedUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.zhanglinwei.zTools.constant.StringPool.COMMA_SPACE;
-import static com.zhanglinwei.zTools.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 /**
  * 从参数 / 字段定义生成示例 JSON；注释按 pretty 后带冒号的行对齐。

@@ -16,10 +16,10 @@ import com.zhanglinwei.zTools.annotation.validation.ValidationAnnotationParser;
 import com.zhanglinwei.zTools.annotation.validation.ValidationConstraints;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
-import com.zhanglinwei.zTools.constant.NormalType;
-import com.zhanglinwei.zTools.constant.WebTypes;
-import com.zhanglinwei.zTools.util.StringUtils;
-import com.zhanglinwei.zTools.util.TypeUtils;
+import com.zhanglinwei.zTools.common.constant.NormalType;
+import com.zhanglinwei.zTools.common.constant.WebTypes;
+import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.List;
 

@@ -13,7 +13,7 @@ import com.zhanglinwei.zTools.annotation.parse.AnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
 import com.zhanglinwei.zTools.annotation.web.RequestPaths;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
-import com.zhanglinwei.zTools.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import com.zhanglinwei.zTools.restful.resolver.AbstractRestfulResolver;
 

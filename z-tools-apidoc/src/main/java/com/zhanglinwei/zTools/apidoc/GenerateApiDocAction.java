@@ -16,7 +16,7 @@ import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.parse.SourceParser;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.apidoc.generator.ApiDocumentGenerator;
-import com.zhanglinwei.zTools.util.NotificationUtil;
+import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
 import java.io.IOException;
 import java.util.Collections;

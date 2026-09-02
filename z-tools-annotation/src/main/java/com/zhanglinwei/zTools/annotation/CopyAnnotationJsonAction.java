@@ -15,8 +15,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.zhanglinwei.zTools.annotation.parse.SourceParser;
-import com.zhanglinwei.zTools.util.JsonUtil;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.JsonUtil;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.awt.datatransfer.StringSelection;
 

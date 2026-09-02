@@ -3,7 +3,7 @@ package com.zhanglinwei.zTools.restful.model;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiMethod;
-import com.zhanglinwei.zTools.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.component.IRestfulPresentation;
 import org.jetbrains.annotations.Nullable;
 

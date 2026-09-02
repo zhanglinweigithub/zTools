@@ -11,12 +11,12 @@ include(
         'z-tools-common',
         'z-tools-copyjson',
         'z-tools-copycurl',
-        'z-tools-sensitive',
+        'z-tools-jasyptcrypto',
         'z-tools-restful',
         'z-tools-apidoc',
         'z-tools-dbdoc',
         'z-tools-generatebuilder',
         'z-tools-annotation',
         'z-tools-yapi',
-        'z-tools-config'
+        'z-tools-configure'
 )

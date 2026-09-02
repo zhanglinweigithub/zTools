@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.zhanglinwei.zTools.constant.StringPool.*;
+import static com.zhanglinwei.zTools.common.constant.StringPool.*;
 
 public class IRestfulPresentation implements ItemPresentation {
 

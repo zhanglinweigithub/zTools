@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-jasyptcrypto</id>
+    <name>z-tools-jasyptcrypto</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>

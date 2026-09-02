@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.apidoc.formatter;
 
+import com.zhanglinwei.zTools.common.enums.DocumentType;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +24,7 @@ public final class ApiDocumentFormatterHolder {
     private ApiDocumentFormatterHolder() {}
 
     /**
-     * @param docType {@link com.zhanglinwei.zTools.enums.DocumentType#getType()}，如 {@code Html}
+     * @param docType {@link DocumentType#getType()}，如 {@code Html}
      */
     public static ApiDocumentFormatter ofDocType(String docType) {
         for (ApiDocumentFormatter format : ALL) {

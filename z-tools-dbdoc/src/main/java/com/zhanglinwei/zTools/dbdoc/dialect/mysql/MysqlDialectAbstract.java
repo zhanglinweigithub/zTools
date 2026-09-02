@@ -4,7 +4,7 @@ import com.zhanglinwei.zTools.dbdoc.dialect.AbstractJdbcDatabaseDialect;
 import com.zhanglinwei.zTools.dbdoc.model.ColumnInfo;
 import com.zhanglinwei.zTools.dbdoc.config.DataSourceConfig;
 import com.zhanglinwei.zTools.dbdoc.model.TableInfo;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.zhanglinwei.zTools.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 public class MysqlDialectAbstract extends AbstractJdbcDatabaseDialect {
 

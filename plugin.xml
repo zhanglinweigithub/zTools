@@ -121,12 +121,12 @@
                            displayType="BALLOON"
                            key="com.zhanglinwei.zTools.util.NotificationGroup"/>
         <projectConfigurable id="zTools"
-                             instance="com.zhanglinwei.zTools.config.ZToolsConfigSettings"
+                             instance="com.zhanglinwei.zTools.configure.settings.ZToolsConfigSettings"
                              displayName="z-tools"/>
-        <projectService serviceImplementation="com.zhanglinwei.zTools.doc.config.DocumentConfig"/>
-        <projectService serviceImplementation="com.zhanglinwei.zTools.sensitive.config.SensitiveDataConfig"/>
-        <projectService serviceImplementation="com.zhanglinwei.zTools.yapi.config.YApiSettings"/>
-        <projectService serviceImplementation="com.zhanglinwei.zTools.restful.config.IRestfulModalConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.configure.config.DocumentConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.configure.config.YApiConfig"/>
+        <projectService serviceImplementation="com.zhanglinwei.zTools.configure.config.RestfulConfig"/>
 
         <!--
             secondary 是否次要窗口: 次要窗口不会在 IDE 启动时自动显示，需用户手动打开
@@ -180,18 +180,21 @@
 <!--            <action id="copy-delete.ID" class="com.zhanglinwei.zTools.CopyDeleteAction" text="Copy Delete"/>-->
 <!--        </group>-->
 
-        <!-- 敏感数据操作组 -->
-        <group id="SensitiveDataGroup.ID" text="Sensitive Data" popup="true">
+        <!-- 数据加解密操作组 -->
+        <group id="JasyptCryptoGroup.ID" text="Jasypt Crypto" popup="true">
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="generate-api-doc.ID" />
-            <!-- 加密敏感数据 -->
-            <action id="encrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.EncryptSensitiveDataAction"
+            <!-- 加密数据 -->
+            <action id="encrypt.ID" class="com.zhanglinwei.zTools.jasyptcrypto.EncryptAction"
                     text="Encrypt"/>
-            <!-- 解密敏感数据 -->
-            <action id="decrypt-sensitive-data.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveDataAction"
+            <!-- 解密数据 -->
+            <action id="decrypt.ID" class="com.zhanglinwei.zTools.jasyptcrypto.DecryptAction"
                     text="Decrypt"/>
-            <!-- 解密敏感数据至剪贴板 -->
-            <action id="decrypt-sensitive-data-to-clipboard.ID" class="com.zhanglinwei.zTools.sensitive.DecryptSensitiveData2ClipboardAction"
+            <!-- 解密数据至剪贴板 -->
+            <action id="decrypt-to-clipboard.ID" class="com.zhanglinwei.zTools.jasyptcrypto.Decrypt2ClipboardAction"
                     text="Decrypt To Clipboard" />
+            <!-- 解密文件内所有加密数据 -->
+            <action id="decrypt-file.ID" class="com.zhanglinwei.zTools.jasyptcrypto.DecryptFileAction"
+                    text="Decrypt File" />
         </group>
 
         <!-- 搜索 Restful 接口 -->

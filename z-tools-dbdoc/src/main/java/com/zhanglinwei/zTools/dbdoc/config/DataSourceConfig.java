@@ -3,9 +3,9 @@ package com.zhanglinwei.zTools.dbdoc.config;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.dbdoc.dialect.DatabaseDialect;
 import com.zhanglinwei.zTools.dbdoc.dialect.DatabaseDialectFactory;
-import com.zhanglinwei.zTools.enums.SpringConfigProperties;
-import com.zhanglinwei.zTools.util.ProjectConfigs;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
+import com.zhanglinwei.zTools.common.util.ProjectConfigs;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 public class DataSourceConfig {
 

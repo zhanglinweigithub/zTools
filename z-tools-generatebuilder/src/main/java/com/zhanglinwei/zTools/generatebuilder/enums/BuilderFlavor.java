@@ -2,7 +2,7 @@ package com.zhanglinwei.zTools.generatebuilder.enums;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
-import com.zhanglinwei.zTools.generatebuilder.PsiClasses;
+import com.zhanglinwei.zTools.generatebuilder.psi.PsiClasses;
 
 import java.util.Set;
 

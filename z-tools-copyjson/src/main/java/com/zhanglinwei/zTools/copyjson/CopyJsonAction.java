@@ -10,8 +10,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
-import com.zhanglinwei.zTools.util.ClipboardUtils;
-import com.zhanglinwei.zTools.util.NotificationUtil;
+import com.zhanglinwei.zTools.common.util.ClipboardUtils;
+import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
 public class CopyJsonAction extends AnAction {
 

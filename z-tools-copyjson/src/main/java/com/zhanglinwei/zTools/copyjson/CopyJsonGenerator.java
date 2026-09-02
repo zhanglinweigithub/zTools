@@ -5,20 +5,20 @@ import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
 import com.zhanglinwei.zTools.annotation.parse.TypeParser;
 import com.zhanglinwei.zTools.annotation.validation.ValidationAnnotationParser;
 import com.zhanglinwei.zTools.annotation.validation.ValidationConstraints;
-import com.zhanglinwei.zTools.constant.NormalType;
-import com.zhanglinwei.zTools.util.CollectionUtils;
-import com.zhanglinwei.zTools.util.JsonUtil;
-import com.zhanglinwei.zTools.util.NestedUtils;
-import com.zhanglinwei.zTools.util.StringUtils;
-import com.zhanglinwei.zTools.util.TypeUtils;
+import com.zhanglinwei.zTools.common.constant.NormalType;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+import com.zhanglinwei.zTools.common.util.JsonUtil;
+import com.zhanglinwei.zTools.common.util.NestedUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.zhanglinwei.zTools.constant.StringPool.COMMA_SPACE;
-import static com.zhanglinwei.zTools.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 /**
  * 从类型字段定义生成带注释的示例 JSON。

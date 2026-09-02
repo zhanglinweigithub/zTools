@@ -7,7 +7,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.zhanglinwei.zTools.yapi.client.YApiClient;
-import com.zhanglinwei.zTools.yapi.config.YApiSettings;
+import com.zhanglinwei.zTools.configure.config.YApiConfig;
 import com.zhanglinwei.zTools.yapi.model.YApiProject;
 import org.jetbrains.annotations.NotNull;
 
@@ -89,7 +89,7 @@ public class YApiConfigDialog extends DialogWrapper {
                         String resolvedId = String.valueOf(projectInfo.get_id());
                         // 保存设置
                         SwingUtilities.invokeLater(() -> {
-                            YApiSettings settings = YApiSettings.getInstance(project);
+                            YApiConfig settings = YApiConfig.getInstance(project);
                             settings.setServerUrl(serverUrl);
                             settings.setToken(token);
                             settings.setProjectId(resolvedId);

@@ -1,6 +1,6 @@
 package com.zhanglinwei.zTools.dbdoc.model;
 
-import com.zhanglinwei.zTools.enums.Boolean;
+import com.zhanglinwei.zTools.common.enums.Boolean;
 
 public class ColumnInfo {
 

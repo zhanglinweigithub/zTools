@@ -7,7 +7,7 @@ import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
 import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
-import com.zhanglinwei.zTools.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.enums.HttpMethod;
 
 import java.util.Collections;
 import java.util.List;

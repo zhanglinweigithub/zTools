@@ -6,7 +6,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.zhanglinwei.zTools.annotation.model.CommentDefinition;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

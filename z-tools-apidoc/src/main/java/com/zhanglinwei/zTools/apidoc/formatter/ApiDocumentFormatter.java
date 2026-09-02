@@ -1,6 +1,6 @@
 package com.zhanglinwei.zTools.apidoc.formatter;
 
-import com.zhanglinwei.zTools.enums.DocumentType;
+import com.zhanglinwei.zTools.common.enums.DocumentType;
 
 /**
  * 一种 API 文档导出格式。

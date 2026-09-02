@@ -17,7 +17,7 @@ import com.intellij.psi.PsiType;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.model.AttributeDefinition;
 import com.zhanglinwei.zTools.annotation.lookup.Attr;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;

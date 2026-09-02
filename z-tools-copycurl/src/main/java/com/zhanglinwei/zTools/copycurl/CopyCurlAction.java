@@ -14,8 +14,8 @@ import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
 import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.parse.SourceParser;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
-import com.zhanglinwei.zTools.util.ClipboardUtils;
-import com.zhanglinwei.zTools.util.NotificationUtil;
+import com.zhanglinwei.zTools.common.util.ClipboardUtils;
+import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
 /**
  * 把当前 Mapping 方法复制为 curl。路径、动词、入参来自注解模块的定义，由本模块决定缺省值。

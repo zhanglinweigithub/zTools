@@ -15,7 +15,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.zhanglinwei.zTools.yapi.client.YApiClient;
-import com.zhanglinwei.zTools.yapi.config.YApiSettings;
+import com.zhanglinwei.zTools.configure.config.YApiConfig;
 import com.zhanglinwei.zTools.yapi.model.*;
 import com.zhanglinwei.zTools.yapi.ui.YApiConfigDialog;
 import org.jetbrains.annotations.NotNull;
@@ -64,14 +64,14 @@ public class UploadToYApiAction extends AnAction {
         if (project == null) return;
 
         // 1. 检查 YApi 是否已配置
-        YApiSettings settings = YApiSettings.getInstance(project);
+        YApiConfig settings = YApiConfig.getInstance(project);
         if (!settings.isConfigured()) {
             YApiConfigDialog dialog = new YApiConfigDialog(project);
             dialog.show();
             if (!dialog.isOK()) {
                 return;
             }
-            settings = YApiSettings.getInstance(project);
+            settings = YApiConfig.getInstance(project);
             if (!settings.isConfigured()) {
                 return;
             }

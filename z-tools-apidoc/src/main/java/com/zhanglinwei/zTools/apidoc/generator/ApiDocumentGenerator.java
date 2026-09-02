@@ -5,22 +5,22 @@ import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.apidoc.formatter.ApiDocumentFormatter;
 import com.zhanglinwei.zTools.apidoc.formatter.ApiDocumentFormatterHolder;
 import com.zhanglinwei.zTools.apidoc.ApiInfo;
-import com.zhanglinwei.zTools.doc.DocOutput;
-import com.zhanglinwei.zTools.doc.TemplateDocWriter;
-import com.zhanglinwei.zTools.doc.config.DocumentConfig;
-import com.zhanglinwei.zTools.util.CollectionUtils;
-import com.zhanglinwei.zTools.util.PathUtils;
-import com.zhanglinwei.zTools.util.ProjectConfigs;
-import com.zhanglinwei.zTools.util.StringUtils;
+import com.zhanglinwei.zTools.common.doc.DocOutput;
+import com.zhanglinwei.zTools.common.doc.TemplateDocWriter;
+import com.zhanglinwei.zTools.configure.config.DocumentConfig;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+import com.zhanglinwei.zTools.common.util.PathUtils;
+import com.zhanglinwei.zTools.common.util.ProjectConfigs;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.zhanglinwei.zTools.constant.StringPool.HTML_GT;
-import static com.zhanglinwei.zTools.constant.StringPool.HTML_LT;
-import static com.zhanglinwei.zTools.constant.StringPool.LEFT_CHEV;
-import static com.zhanglinwei.zTools.constant.StringPool.RIGHT_CHEV;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_GT;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_LT;
+import static com.zhanglinwei.zTools.common.constant.StringPool.LEFT_CHEV;
+import static com.zhanglinwei.zTools.common.constant.StringPool.RIGHT_CHEV;
 
 /**
  * 把已解析的 {@link ApiInfo} 写成文档文件。

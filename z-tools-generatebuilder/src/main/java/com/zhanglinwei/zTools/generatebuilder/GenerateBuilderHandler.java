@@ -12,6 +12,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.zhanglinwei.zTools.generatebuilder.field.BuilderFieldChooser;
 import com.zhanglinwei.zTools.generatebuilder.field.BuilderFields;
 import com.zhanglinwei.zTools.generatebuilder.generator.BuilderGenerator;
+import com.zhanglinwei.zTools.generatebuilder.psi.PsiClasses;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
