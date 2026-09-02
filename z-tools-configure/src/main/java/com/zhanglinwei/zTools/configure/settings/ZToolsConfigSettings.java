@@ -44,9 +44,13 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.SLASH;
 
 /**
  * 插件设置页：文档、敏感数据、YApi 各自一个 Tab。
+ * <p>
+ * Apply 时把控件值写回 {@link DocumentConfig}、{@link JasyptCryptoConfig}、{@link YApiConfig}，
+ * 由 IDEA 持久化到项目 {@code zTools.xml}。
  */
 public class ZToolsConfigSettings implements Configurable {
 
+    /** 从 YApi {@code /api/project/get} 响应里抠 {@code "_id"} */
     private static final Pattern YAPI_PROJECT_ID = Pattern.compile("\"_id\"\\s*:\\s*(\\d+)");
 
     private final Project project;
@@ -71,6 +75,11 @@ public class ZToolsConfigSettings implements Configurable {
     private JBTextField yapiTokenField;
     private JBTextField yapiProjectIdField;
 
+    /**
+     * 绑定当前项目的三份持久化配置。
+     *
+     * @param project 当前工程
+     */
     public ZToolsConfigSettings(Project project) {
         this.project = project;
         documentConfig = DocumentConfig.getInstance(project);
@@ -78,11 +87,21 @@ public class ZToolsConfigSettings implements Configurable {
         yApiConfig = YApiConfig.getInstance(project);
     }
 
+    /**
+     * 设置页在列表中的显示名。
+     *
+     * @return {@code z-tools}
+     */
     @Override
     public String getDisplayName() {
         return "z-tools";
     }
 
+    /**
+     * 构建三个 Tab：文档、Jasypt、YApi。
+     *
+     * @return 设置页根组件
+     */
     @Override
     public JComponent createComponent() {
         JBTabbedPane tabbedPane = new JBTabbedPane();
@@ -92,12 +111,23 @@ public class ZToolsConfigSettings implements Configurable {
         return tabbedPane;
     }
 
+    /**
+     * 把表单顶对齐，避免内容被垂直拉伸。
+     *
+     * @param content 表单面板
+     * @return 包了一层 BorderLayout 的面板
+     */
     private static JPanel wrapTop(JPanel content) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.add(content, BorderLayout.NORTH);
         return wrapper;
     }
 
+    /**
+     * 文档 Tab：保存目录、类型、覆盖、API 排除字段。
+     *
+     * @return 文档表单
+     */
     private JPanel createDocumentPanel() {
         saveDirectory = new TextFieldWithBrowseButton();
         saveDirectory.setText(documentConfig.getSaveDir());
@@ -131,6 +161,11 @@ public class ZToolsConfigSettings implements Configurable {
         return panel;
     }
 
+    /**
+     * Jasypt Tab：密码、算法、迭代、输出编码、包裹格式、盐与 IV。
+     *
+     * @return 加解密表单
+     */
     private JPanel createSensitivePanel() {
         passwordField = new JPasswordField(20);
         passwordField.setText(jasyptCryptoConfig.getPassword());
@@ -190,6 +225,11 @@ public class ZToolsConfigSettings implements Configurable {
         return panel;
     }
 
+    /**
+     * YApi Tab：服务地址、Token、只读项目 ID 与 Resolve 按钮。
+     *
+     * @return YApi 表单
+     */
     private JPanel createYApiPanel() {
         yapiServerUrlField = new JBTextField();
         yapiTokenField = new JBTextField();
@@ -216,6 +256,9 @@ public class ZToolsConfigSettings implements Configurable {
         return panel;
     }
 
+    /**
+     * 用 Server URL + Token 请求 YApi，把解析到的项目 ID 填进控件并立刻写回配置。
+     */
     private void resolveYApiProjectId() {
         String serverUrl = yapiServerUrlField.getText().trim();
         String token = yapiTokenField.getText().trim();
@@ -245,6 +288,14 @@ public class ZToolsConfigSettings implements Configurable {
         });
     }
 
+    /**
+     * 调用 {@code /api/project/get}，从 JSON 中取出 {@code _id}。
+     *
+     * @param serverUrl YApi 根地址
+     * @param token     项目 Token
+     * @return 项目数字 ID；errcode 非 0 或解析失败则为 {@code null}
+     * @throws Exception 网络或读取失败
+     */
     private static String lookupYApiProjectId(String serverUrl, String token) throws Exception {
         String base = serverUrl.endsWith(SLASH) ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
         String response = HttpRequests.request(base + "/api/project/get?token=" + token)
@@ -259,10 +310,19 @@ public class ZToolsConfigSettings implements Configurable {
         return null;
     }
 
+    /**
+     * 向 ComboBox 追加一项。
+     *
+     * @param box   下拉框
+     * @param value 选项文本
+     */
     private static void addItem(ComboBox<String> box, String value) {
         box.addItem(value);
     }
 
+    /**
+     * 弹出文件夹选择器，把选中路径填进保存目录。
+     */
     private void chooseFolder() {
         FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
         Project active = ProjectUtil.getActiveProject();
@@ -272,6 +332,11 @@ public class ZToolsConfigSettings implements Configurable {
         }
     }
 
+    /**
+     * 控件值是否与持久化配置不同（决定 Apply 是否可点）。
+     *
+     * @return 有未保存修改则为 {@code true}
+     */
     @Override
     public boolean isModified() {
         String password = new String(passwordField.getPassword());
@@ -290,6 +355,9 @@ public class ZToolsConfigSettings implements Configurable {
                 || !equalsField(yapiTokenField, yApiConfig.getToken());
     }
 
+    /**
+     * 把三个 Tab 的控件值写回对应 Config。
+     */
     @Override
     public void apply() {
         documentConfig.getApiDocConfig().setExcludeFields(excludeFields.getText());
@@ -310,6 +378,9 @@ public class ZToolsConfigSettings implements Configurable {
         yApiConfig.setProjectId(yapiProjectIdField.getText().trim());
     }
 
+    /**
+     * 用持久化配置重置三个 Tab 的控件。
+     */
     @Override
     public void reset() {
         saveDirectory.setText(documentConfig.getSaveDir());
@@ -330,6 +401,13 @@ public class ZToolsConfigSettings implements Configurable {
         yapiProjectIdField.setText(yApiConfig.getProjectId());
     }
 
+    /**
+     * 比较文本框（trim 后）与配置值是否相同。
+     *
+     * @param field 文本框
+     * @param value 配置中的值，{@code null} 视为空串
+     * @return 相同则为 {@code true}
+     */
     private static boolean equalsField(JTextField field, String value) {
         return field.getText().trim().equals(value != null ? value : EMPTY);
     }

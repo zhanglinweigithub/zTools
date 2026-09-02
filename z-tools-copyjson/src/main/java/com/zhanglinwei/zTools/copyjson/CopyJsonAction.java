@@ -13,8 +13,18 @@ import com.intellij.psi.util.PsiTypesUtil;
 import com.zhanglinwei.zTools.common.util.ClipboardUtils;
 import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
+/**
+ * 插件入口：编辑器右键把当前类复制成带注释的示例 JSON。
+ * <p>
+ * 流程：取光标处 {@link PsiClass} → {@link CopyJsonGenerator#of} 生成 JSON → 写入剪贴板。
+ */
 public class CopyJsonAction extends AnAction {
 
+    /**
+     * 从编辑器定位当前类并复制 JSON。
+     *
+     * @param actionEvent IDEA 动作事件，需带 Editor 与 PsiFile
+     */
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {
         Editor editor = actionEvent.getDataContext().getData(CommonDataKeys.EDITOR);

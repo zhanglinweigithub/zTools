@@ -7,10 +7,23 @@ import java.util.Map;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.DOT;
 
+/**
+ * HTTP MediaType 常量名到实际 MIME 值的映射，对齐 Spring {@code MediaType} 的 {@code *_VALUE} 命名。
+ * <p>
+ * 用于解析注解里写的 {@code MediaType.APPLICATION_JSON_VALUE} 这类常量引用，转成真正的 Content-Type。
+ *
+ * <pre>
+ *   MediaType.getValue("APPLICATION_JSON_VALUE", "text/plain") → "application/json"
+ *   MediaType.getValue("MediaType.APPLICATION_JSON_VALUE", "text/plain") → "application/json"
+ *   MediaType.getValue("UNKNOWN", "text/plain") → "text/plain"
+ * </pre>
+ */
 public final class MediaType {
 
+    /** 工具类，禁止实例化 */
     private MediaType() {}
 
+    /** 常量名 → MIME 值，例如 {@code APPLICATION_JSON_VALUE} → {@code application/json} */
     private static final Map<String, String> MEDIA_TYPE_MAP = new HashMap<>();
 
     static {
@@ -42,8 +55,24 @@ public final class MediaType {
         MEDIA_TYPE_MAP.put("PARAM_QUALITY_FACTOR", "q");
     }
 
+    /**
+     * 按常量名取 MIME 值；找不到则返回默认值。
+     * <p>
+     * 若 {@code key} 含点号（如 {@code MediaType.APPLICATION_JSON_VALUE}），取 {@code split(".")} 的第二段再查表。
+     *
+     * <pre>
+     *   getValue("APPLICATION_JSON_VALUE", "text/plain") → "application/json"
+     *   getValue("MediaType.APPLICATION_JSON_VALUE", "text/plain") → "application/json"
+     *   getValue("UNKNOWN", "text/plain") → "text/plain"
+     * </pre>
+     *
+     * @param key      常量名，或带类前缀的常量引用
+     * @param dftValue 查不到时的默认 MIME
+     * @return 映射到的 MIME，或 {@code dftValue}
+     */
     public static String getValue(String key, String dftValue) {
         if (key.contains(DOT)) {
+            // 含点号时取第二段作为 map key，以支持 MediaType.XXX_VALUE 这种写法
             String[] split = key.split("\\.");
             key = split[1];
         }
@@ -51,10 +80,20 @@ public final class MediaType {
         return StringUtils.isBlank(value) ? dftValue : value;
     }
 
+    /**
+     * {@code application/json}。
+     *
+     * @return JSON MIME
+     */
     public static String APPLICATION_JSON_VALUE() {
         return MEDIA_TYPE_MAP.get("APPLICATION_JSON_VALUE");
     }
 
+    /**
+     * {@code multipart/form-data}。
+     *
+     * @return 表单上传 MIME
+     */
     public static String MULTIPART_FORM_DATA_VALUE() {
         return MEDIA_TYPE_MAP.get("MULTIPART_FORM_DATA_VALUE");
     }

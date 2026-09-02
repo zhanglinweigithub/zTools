@@ -26,8 +26,14 @@ import java.awt.datatransfer.StringSelection;
  */
 public class CopyAnnotationJsonAction extends AnAction {
 
+    /** 插件通知组 id。 */
     private static final String NOTIFY_GROUP = "com.zhanglinwei.zTools.NotificationGroup";
 
+    /**
+     * 解析光标处的类或方法，把定义对象序列化为 JSON 并写入剪贴板。
+     *
+     * @param actionEvent 动作事件
+     */
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {
         Editor editor = actionEvent.getDataContext().getData(CommonDataKeys.EDITOR);
@@ -62,6 +68,12 @@ public class CopyAnnotationJsonAction extends AnAction {
         }
     }
 
+    /**
+     * 优先解析光标所在方法，否则解析所在类（不展开方法列表）。
+     *
+     * @param referenceAt 光标处 PSI 元素
+     * @return 方法定义或类定义；都不在范围内则为 {@code null}
+     */
     private static Object resolve(PsiElement referenceAt) {
         PsiMethod method = PsiTreeUtil.getContextOfType(referenceAt, PsiMethod.class);
         if (method != null) {
@@ -74,6 +86,13 @@ public class CopyAnnotationJsonAction extends AnAction {
         return null;
     }
 
+    /**
+     * 弹出通知。
+     *
+     * @param project 当前项目
+     * @param message 通知内容
+     * @param type    通知类型
+     */
     private static void notify(Project project, String message, NotificationType type) {
         Notifications.Bus.notify(new Notification(NOTIFY_GROUP, "zTools", message, type), project);
     }

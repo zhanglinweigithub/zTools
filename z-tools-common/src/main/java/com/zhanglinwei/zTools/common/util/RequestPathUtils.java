@@ -14,6 +14,7 @@ import java.util.List;
  */
 public final class RequestPathUtils {
 
+    /** 工具类，禁止实例化 */
     private RequestPathUtils() {}
 
     /**
@@ -38,6 +39,10 @@ public final class RequestPathUtils {
      * 输入：type=null, method=null
      * 输出：["/"]
      * </pre>
+     *
+     * @param typeLevel   类级别 Mapping path
+     * @param methodLevel 方法级别 Mapping path
+     * @return 组合后的完整 path 列表
      */
     public static List<String> combine(List<String> typeLevel, List<String> methodLevel) {
         List<String> prefixes = emptyToRoot(typeLevel);
@@ -76,6 +81,9 @@ public final class RequestPathUtils {
      * 输入：join("/api", "/user/{id}")
      * 输出："/api/user/{id}"
      * </pre>
+     *
+     * @param segments path 片段
+     * @return 拼接结果，至少为 {@code /}
      */
     public static String join(String... segments) {
         StringBuilder builder = new StringBuilder();
@@ -87,7 +95,12 @@ public final class RequestPathUtils {
         return builder.length() == 0 ? StringPool.SLASH : builder.toString();
     }
 
-    /** 把一段 path 接到已有结果后面。 */
+    /**
+     * 把一段 path 接到已有结果后面。
+     *
+     * @param builder 累积结果
+     * @param segment 本段 path
+     */
     private static void append(StringBuilder builder, String segment) {
         String normalized = normalize(segment);
         if (normalized.isEmpty() || StringPool.SLASH.equals(normalized)) {
@@ -97,6 +110,7 @@ public final class RequestPathUtils {
             return;
         }
         if (builder.length() == 0 || StringPool.SLASH.equals(builder.toString())) {
+            // 结果仍是空或仅有根斜杠时，用本段覆盖，避免出现 "//api"
             builder.setLength(0);
             builder.append(normalized);
             return;
@@ -119,6 +133,9 @@ public final class RequestPathUtils {
      * 输入："/"         输出："/"
      * 输入：null / ""   输出：""
      * </pre>
+     *
+     * @param path 单段 path
+     * @return 规范化结果
      */
     private static String normalize(String path) {
         if (path == null) {
@@ -137,7 +154,12 @@ public final class RequestPathUtils {
         return trimmed;
     }
 
-    /** {@code null} 或空列表视为只含根路径的单元素列表，便于和另一侧做笛卡尔积。 */
+    /**
+     * {@code null} 或空列表视为只含根路径的单元素列表，便于和另一侧做笛卡尔积。
+     *
+     * @param paths 原始 path 列表
+     * @return 非空列表
+     */
     private static List<String> emptyToRoot(List<String> paths) {
         return paths == null || paths.isEmpty()
                 ? Collections.singletonList(StringPool.EMPTY)

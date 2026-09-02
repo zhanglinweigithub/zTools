@@ -36,6 +36,8 @@ public class GenerateApiDocAction extends AnAction {
 
     /**
      * 从 AnActionEvent 取出 Editor / PsiFile，定位光标处的 PsiClass，再分流到方法或类生成。
+     *
+     * @param event IDEA 动作事件，需带 Editor 与 PsiFile
      */
     @Override
     public void actionPerformed(AnActionEvent event) {
@@ -74,7 +76,15 @@ public class GenerateApiDocAction extends AnAction {
         }
     }
 
-    /** 单个接口：方法必须有 Mapping，所属类必须是 Controller。 */
+    /**
+     * 单个接口：方法必须有 Mapping，所属类必须是 Controller。
+     *
+     * @param project  当前工程
+     * @param psiClass 所在控制器
+     * @param method   光标所在方法
+     * @return 写出成功则为 {@code true}
+     * @throws Exception 解析失败或写文档失败
+     */
     private boolean generateMethod(Project project, PsiClass psiClass, PsiMethod method) throws Exception {
         ClassDefinition type = SourceParser.parseClass(psiClass, false);
         MethodDefinition methodDefinition = SourceParser.parseMethod(method);
@@ -98,7 +108,14 @@ public class GenerateApiDocAction extends AnAction {
         );
     }
 
-    /** 整个 Controller：类上要有 Controller 注解，文件名取自类注释或类名。 */
+    /**
+     * 整个 Controller：类上要有 Controller 注解，文件名取自类注释或类名。
+     *
+     * @param project  当前工程
+     * @param psiClass 控制器类
+     * @return 写出成功则为 {@code true}
+     * @throws Exception 解析失败或写文档失败
+     */
     private boolean generateClass(Project project, PsiClass psiClass) throws Exception {
         ClassDefinition type = SourceParser.parseClass(psiClass, true);
         if (!WebAnnotationParser.isController(type)) {

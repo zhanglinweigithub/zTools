@@ -58,6 +58,8 @@ public class UploadToYApiAction extends AnAction {
      * 控制 Action 在何种 PSI 上下文中可用
      * <p>
      * 仅当光标位于方法、类上时启用，其他位置隐藏
+     *
+     * @param e 当前 Action 事件
      */
     @Override
     public void update(AnActionEvent e) {
@@ -78,6 +80,8 @@ public class UploadToYApiAction extends AnAction {
 
     /**
      * Action 执行入口
+     *
+     * @param e 当前 Action 事件
      */
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -150,6 +154,11 @@ public class UploadToYApiAction extends AnAction {
 
         // 4. 后台执行上传
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Upload To YApi...", true) {
+            /**
+             * 后台创建分类并逐个上传接口。
+             *
+             * @param indicator 进度指示器
+             */
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 // 表示进度条设为不确定模式——进度条会来回滚动（类似加载动画），而不是从 0% 走到 100%
@@ -200,6 +209,19 @@ public class UploadToYApiAction extends AnAction {
         });
     }
     
+    /**
+     * 把方法定义组装成 YApi 保存接口请求。
+     * <p>
+     * 路径拼接：全局前缀 × 类 Mapping × 方法 Mapping，
+     * 例 {@code /api} + {@code /user/{id}} → {@code /api/user/{id}}。
+     *
+     * @param project          当前工程
+     * @param classDefinition  所在类定义
+     * @param methodDefinition 处理方法定义
+     * @param projectId        YApi 项目 ID
+     * @param catId            分类 ID
+     * @return 可提交的保存请求
+     */
     private YApiInterfaceAddRequest buildInterface(Project project, ClassDefinition classDefinition, MethodDefinition methodDefinition,
                                                    Number projectId, Number catId) {
         YApiInterfaceAddRequest request = new YApiInterfaceAddRequest();
@@ -218,6 +240,7 @@ public class UploadToYApiAction extends AnAction {
         request.setMethod(resolveHttpMethod(methodMapping));
 
         // 请求路径（全局 × 类级别 × 方法级别）
+        // 例：/api + /user/{id} → /api/user/{id}
         MappingAnnotation classMapping = WebAnnotationParser.mapping(classDefinition);
         String requestPath = RequestPathUtils.join(
                 ProjectConfigs.globalRequestPrefix(project),
@@ -486,6 +509,12 @@ public class UploadToYApiAction extends AnAction {
         return merged;
     }
     
+    /**
+     * 解析 HTTP 方法：Mapping 未写 method 时默认 GET。
+     *
+     * @param mapping 方法级 Mapping 注解
+     * @return 大写 HTTP 方法名
+     */
     private String resolveHttpMethod(MappingAnnotation mapping) {
         if (mapping == null || CollectionUtils.isEmpty(mapping.methods())) {
             return HttpMethod.GET.name();

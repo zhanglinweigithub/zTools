@@ -18,10 +18,18 @@ import com.zhanglinwei.zTools.common.util.ClipboardUtils;
 import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
 /**
- * 把当前 Mapping 方法复制为 curl。路径、动词、入参来自注解模块的定义，由本模块决定缺省值。
+ * 插件入口：编辑器右键把当前 Mapping 方法复制为 curl。
+ * <p>
+ * 流程：光标处方法 → 注解模块解析类/方法定义 → {@link CurlGenerator#toCurl} → 剪贴板。
+ * 路径、动词、入参来自注解模块的定义，由本模块决定缺省值。
  */
 public class CopyCurlAction extends AnAction {
 
+    /**
+     * 从编辑器定位当前 Mapping 方法并复制 curl。
+     *
+     * @param actionEvent IDEA 动作事件，需带 Editor 与 PsiFile
+     */
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {
         Editor editor = actionEvent.getDataContext().getData(CommonDataKeys.EDITOR);

@@ -12,15 +12,26 @@ import com.zhanglinwei.zTools.common.enums.DocumentType;
  */
 public interface ApiDocumentFormatter {
 
-    /** 与设置页「文档类型」以及文件后缀对应，例如 Html / MarkDown / Word。 */
+    /**
+     * 与设置页「文档类型」以及文件后缀对应，例如 Html / MarkDown / Word。
+     *
+     * @return 文档类型枚举
+     */
     DocumentType documentType();
 
-    /** classpath {@code /template/api} 下的模板文件名，如 {@code api-doc-html.ftl}。 */
+    /**
+     * classpath {@code /template/api} 下的模板文件名，如 {@code api-doc-html.ftl}。
+     *
+     * @return 模板文件名
+     */
     String templateName();
 
     /**
      * 把 pretty JSON（可能带 {@code // 字段注释}）转成模板可直接插入的字符串。
      * 默认原样返回；需要着色的格式覆盖此方法。
+     *
+     * @param prettyJson {@link com.zhanglinwei.zTools.apidoc.ApiJson} 生成的文本
+     * @return 可写入模板的字符串
      */
     default String decorateJson(String prettyJson) {
         return prettyJson;

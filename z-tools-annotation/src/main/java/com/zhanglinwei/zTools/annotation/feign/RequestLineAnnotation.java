@@ -6,10 +6,18 @@ package com.zhanglinwei.zTools.annotation.feign;
  */
 public final class RequestLineAnnotation {
 
+    /** 原始 {@code value}，如 {@code GET /users/{id}}。 */
     private final String value;
+    /** 第一个空格前的动词，如 {@code GET}；没有空格则为整段。 */
     private final String httpMethod;
+    /** 第一个空格后的 path；未写 path 则为 {@code null}。 */
     private final String path;
 
+    /**
+     * @param value      原始 value
+     * @param httpMethod HTTP 动词
+     * @param path       路径
+     */
     public RequestLineAnnotation(String value, String httpMethod, String path) {
         this.value = value;
         this.httpMethod = httpMethod;

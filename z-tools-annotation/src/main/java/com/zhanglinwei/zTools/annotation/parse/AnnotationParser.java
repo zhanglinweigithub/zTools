@@ -26,11 +26,19 @@ import java.util.List;
 
 /**
  * 读取元素上的注解及源码写出的属性，不含注解 default。
+ * 例如 {@code @RequestMapping(value="/a")} 抽出属性名 {@code value}、值 {@code /a}。
  */
 public final class AnnotationParser {
 
+    /** 工具类，禁止实例化。 */
     private AnnotationParser() {}
 
+    /**
+     * 读取修饰符列表上的注解（类、方法、字段、参数等）。
+     *
+     * @param owner 带修饰符的 PSI 元素
+     * @return 注解定义；没有修饰符或没有注解时为空列表
+     */
     public static List<AnnotationDefinition> of(PsiModifierListOwner owner) {
         if (owner == null) {
             return Collections.emptyList();
@@ -42,11 +50,22 @@ public final class AnnotationParser {
         return of(modifiers.getAnnotations());
     }
 
-    /** 类型上的 TYPE_USE 注解，例如返回类型前的 {@code @NotNull}。 */
+    /**
+     * 类型上的 TYPE_USE 注解，例如返回类型前的 {@code @NotNull}。
+     *
+     * @param type PSI 类型
+     * @return 注解定义；{@code type} 为 {@code null} 时为空列表
+     */
     public static List<AnnotationDefinition> of(PsiType type) {
         return type == null ? Collections.<AnnotationDefinition>emptyList() : of(type.getAnnotations());
     }
 
+    /**
+     * 将 PSI 注解数组转为定义列表。
+     *
+     * @param annotations PSI 注解数组
+     * @return 不可变的注解定义列表
+     */
     public static List<AnnotationDefinition> of(PsiAnnotation[] annotations) {
         if (annotations == null || annotations.length == 0) {
             return Collections.emptyList();
@@ -58,11 +77,24 @@ public final class AnnotationParser {
         return Collections.unmodifiableList(result);
     }
 
+    /**
+     * 将单个 PSI 注解转为定义对象。
+     * {@code @RequestMapping(value="/a")} → 简单名 {@code RequestMapping}，属性 {@code value=["/a"]}。
+     *
+     * @param annotation PSI 注解
+     * @return 注解定义
+     */
     public static AnnotationDefinition of(PsiAnnotation annotation) {
         String qualifiedName = annotation.getQualifiedName();
         return new AnnotationDefinition(simpleName(annotation, qualifiedName), qualifiedName, attributes(annotation));
     }
 
+    /**
+     * 读取注解参数列表里源码写出的属性，不含 default。
+     *
+     * @param annotation PSI 注解
+     * @return 属性列表；未写任何属性时为空列表
+     */
     private static List<AttributeDefinition> attributes(PsiAnnotation annotation) {
         PsiNameValuePair[] pairs = annotation.getParameterList().getAttributes();
         if (pairs.length == 0) {
@@ -75,8 +107,15 @@ public final class AnnotationParser {
         return attributes;
     }
 
+    /**
+     * 解析一对属性名 / 值。简写 {@code @RequestMapping("/a")} 没有属性名，视为 {@code value}。
+     *
+     * @param pair PSI 名值对
+     * @return 属性定义
+     */
     private static AttributeDefinition attribute(PsiNameValuePair pair) {
         String name = pair.getName();
+        // 简写 @RequestMapping("/a") 没有属性名，按规范视为 value
         if (StringUtils.isBlank(name)) {
             name = Attr.VALUE;
         }
@@ -84,6 +123,7 @@ public final class AnnotationParser {
         List<AnnotationDefinition> nested = new ArrayList<AnnotationDefinition>();
         PsiAnnotationMemberValue value = pair.getValue();
         if (value != null) {
+            // 数组展开为多项；嵌套注解（如 schema=@Schema(...)）单独收录
             for (PsiAnnotationMemberValue item : flatten(value)) {
                 if (item instanceof PsiAnnotation) {
                     nested.add(of((PsiAnnotation) item));
@@ -98,6 +138,12 @@ public final class AnnotationParser {
         return new AttributeDefinition(name, values, nested);
     }
 
+    /**
+     * 将数组初始化展开为元素列表；非数组则单元素列表。
+     *
+     * @param value 属性值
+     * @return 扁平后的成员值
+     */
     private static List<PsiAnnotationMemberValue> flatten(PsiAnnotationMemberValue value) {
         if (value instanceof PsiArrayInitializerMemberValue) {
             PsiAnnotationMemberValue[] initializers = ((PsiArrayInitializerMemberValue) value).getInitializers();
@@ -108,6 +154,12 @@ public final class AnnotationParser {
         return Collections.singletonList(value);
     }
 
+    /**
+     * 把属性值写成字符串：字面量去引号，Class 取规范名，枚举取简单名。
+     *
+     * @param value 属性值
+     * @return 字符串形式；无法识别则为 {@code null}
+     */
     private static String stringify(PsiAnnotationMemberValue value) {
         Object literal = literalValue(value);
         if (literal != null) {
@@ -127,6 +179,12 @@ public final class AnnotationParser {
         return StringUtils.isBlank(text) ? null : unquote(text);
     }
 
+    /**
+     * 取出字面量（含一元负号前缀，如 {@code -1}）。
+     *
+     * @param value 属性值
+     * @return 字面量对象；非字面量则为 {@code null}
+     */
     private static Object literalValue(PsiAnnotationMemberValue value) {
         if (value instanceof PsiLiteral) {
             return ((PsiLiteral) value).getValue();
@@ -143,6 +201,13 @@ public final class AnnotationParser {
         return null;
     }
 
+    /**
+     * 注解简单名：优先从全限定名截取，否则读源码引用名。
+     *
+     * @param annotation    PSI 注解
+     * @param qualifiedName 全限定名，可能为 {@code null}
+     * @return 简单名，如 {@code RequestMapping}
+     */
     private static String simpleName(PsiAnnotation annotation, String qualifiedName) {
         if (qualifiedName != null) {
             int dot = qualifiedName.lastIndexOf(CharacterPool.DOT);
@@ -152,6 +217,12 @@ public final class AnnotationParser {
         return reference == null ? null : reference.getReferenceName();
     }
 
+    /**
+     * 去掉首尾双引号。
+     *
+     * @param text 原始文本
+     * @return 去引号后的文本
+     */
     private static String unquote(String text) {
         String trimmed = text.trim();
         if (trimmed.length() >= 2 && trimmed.charAt(0) == CharacterPool.QUOTE && trimmed.charAt(trimmed.length() - 1) == CharacterPool.QUOTE) {

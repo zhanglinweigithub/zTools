@@ -57,6 +57,12 @@ public final class BuilderGenerator implements Runnable {
 
     /**
      * 入口：确认光标在类上后，把自身丢进写操作。Handler 侧已经是读线程。
+     * 目标形态见 {@link BuilderFlavor}。
+     *
+     * @param project        当前项目
+     * @param editor         当前编辑器
+     * @param file           当前 PSI 文件
+     * @param selectedFields 对话框勾选的字段；Record 时为空列表
      */
     public static void generate(Project project, Editor editor, PsiFile file, List<PsiFieldMember> selectedFields) {
         PsiClass targetClass = PsiClasses.contextClass(editor, file);
@@ -67,6 +73,12 @@ public final class BuilderGenerator implements Runnable {
                 new BuilderGenerator(project, file, editor, selectedFields));
     }
 
+    /**
+     * @param project        当前项目
+     * @param file           当前文件
+     * @param editor         当前编辑器
+     * @param selectedFields 用户勾选的字段
+     */
     private BuilderGenerator(Project project, PsiFile file, Editor editor, List<PsiFieldMember> selectedFields) {
         this.project = project;
         this.file = file;
@@ -75,6 +87,10 @@ public final class BuilderGenerator implements Runnable {
         this.psiElementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
     }
 
+    /**
+     * 按选定字段与形态插入内部 Builder，并格式化。
+     * 目标形态见 {@link BuilderFlavor}。
+     */
     @Override
     public void run() {
         PsiClass targetClass = PsiClasses.contextClass(editor, file);
@@ -82,10 +98,12 @@ public final class BuilderGenerator implements Runnable {
             return;
         }
 
+        // 根据是否 Record、是否勾选 lite 决定生成形态
         Set<BuilderOption> options = BuilderOption.currentlySelected();
         BuilderFlavor flavor = BuilderFlavor.of(targetClass, options);
         List<PsiField> sourceFields = sourceFields(targetClass, flavor);
 
+        // 静态内部类 → 字段 → 同名链式 setter → build() → 外层全参构造 → 静态 builder()
         PsiClass builderClass = findOrCreateBuilderClass(targetClass, flavor);
         addBuilderFields(builderClass, sourceFields, flavor.fieldModifier());
         PsiElement lastSetter = addBuilderSetters(builderClass, sourceFields, flavor);
@@ -93,12 +111,17 @@ public final class BuilderGenerator implements Runnable {
         addMethod(targetClass, null, createAllArgsConstructor(targetClass, builderClass), false);
         addMethod(targetClass, null, createNewBuilderMethod(targetClass, builderClass, flavor), true);
 
+        // 缩短 import 并按项目代码风格格式化 Builder
         JavaCodeStyleManager.getInstance(project).shortenClassReferences(file);
         CodeStyleManager.getInstance(project).reformat(builderClass);
     }
 
     /**
      * Record 用类上全部字段；否则用对话框勾选的字段（Record 时该列表为空）。
+     *
+     * @param targetClass 外层类
+     * @param flavor      生成形态
+     * @return 将写入 Builder 的源字段
      */
     private List<PsiField> sourceFields(PsiClass targetClass, BuilderFlavor flavor) {
         if (flavor.usesAllClassFields()) {
@@ -111,7 +134,13 @@ public final class BuilderGenerator implements Runnable {
         return fields;
     }
 
-    /** 按源字段顺序插入；已存在同名字段则跳过，并把「上一个锚点」指到已有字段。 */
+    /**
+     * 按源字段顺序插入；已存在同名字段则跳过，并把「上一个锚点」指到已有字段。
+     *
+     * @param builderClass 内部 Builder
+     * @param sourceFields 源字段
+     * @param modifier     字段修饰符；Record 为 {@code null}
+     */
     private void addBuilderFields(PsiClass builderClass, List<PsiField> sourceFields, String modifier) {
         PsiElement lastField = null;
         for (PsiField source : sourceFields) {
@@ -122,6 +151,11 @@ public final class BuilderGenerator implements Runnable {
     /**
      * 可继承：setter 返回 {@code B} 并 {@code return (B) this;}；
      * lite/Record：返回 {@code Builder} 并 {@code return this;}。
+     *
+     * @param builderClass 内部 Builder
+     * @param sourceFields 源字段
+     * @param flavor       生成形态
+     * @return 最后一个插入的 setter，作为 {@code build()} 的锚点
      */
     private PsiElement addBuilderSetters(PsiClass builderClass, List<PsiField> sourceFields, BuilderFlavor flavor) {
         PsiType returnType;
@@ -144,6 +178,11 @@ public final class BuilderGenerator implements Runnable {
     /**
      * 外层类上的静态工厂。可继承返回 {@code Builder<?, ?>} 并 {@code new Builder<>()}，
      * 否则返回 {@code Builder} 并 {@code new Builder()}。
+     *
+     * @param targetClass  外层类
+     * @param builderClass 内部 Builder
+     * @param flavor       生成形态
+     * @return 静态 {@code builder()} 方法
      */
     private PsiMethod createNewBuilderMethod(PsiClass targetClass, PsiClass builderClass, BuilderFlavor flavor) {
         PsiType returnType;
@@ -163,7 +202,14 @@ public final class BuilderGenerator implements Runnable {
         return method;
     }
 
-    /** modifier 为 null 时保持 {@code createField} 的默认可见性（Record 用）。 */
+    /**
+     * modifier 为 null 时保持 {@code createField} 的默认可见性（Record 用）。
+     *
+     * @param fieldName 字段名
+     * @param fieldType 字段类型
+     * @param modifier  PSI 修饰符；{@code null} 表示不加
+     * @return 新建的 Builder 字段
+     */
     private PsiField createBuilderField(String fieldName, PsiType fieldType, String modifier) {
         PsiField field = psiElementFactory.createField(fieldName, fieldType);
         if (StringUtils.isNotBlank(modifier)) {
@@ -172,7 +218,14 @@ public final class BuilderGenerator implements Runnable {
         return field;
     }
 
-    /** 方法名与字段名相同，不是 {@code setXxx}。 */
+    /**
+     * 方法名与字段名相同，不是 {@code setXxx}。
+     *
+     * @param builderType     setter 返回类型
+     * @param psiField        对应源字段
+     * @param returnStatement {@code return this;} 或 {@code return (B) this;}
+     * @return 链式 setter
+     */
     private PsiMethod createSetter(PsiType builderType, PsiField psiField, String returnStatement) {
         PsiMethod setter = psiElementFactory.createMethod(psiField.getName(), builderType);
         setter.getModifierList().setModifierProperty(PsiModifier.PUBLIC, true);
@@ -190,6 +243,10 @@ public final class BuilderGenerator implements Runnable {
     /**
      * 加在外层类上，参数顺序与 Builder 字段一致，供 {@code build()} 里 {@code new Outer(...)} 使用。
      * 同签名构造已存在则不替换。
+     *
+     * @param targetClass  外层类
+     * @param builderClass 内部 Builder
+     * @return 全参构造方法
      */
     private PsiMethod createAllArgsConstructor(PsiClass targetClass, PsiClass builderClass) {
         PsiMethod constructor = psiElementFactory.createConstructor(targetClass.getName());
@@ -213,6 +270,11 @@ public final class BuilderGenerator implements Runnable {
     /**
      * 可继承返回 {@code C} 并带强制转换，便于子类 Builder 覆写后仍能当子类型用；
      * lite/Record 直接 {@code return new Outer(fields...)}。
+     *
+     * @param targetClass  外层类
+     * @param builderClass 内部 Builder
+     * @param flavor       生成形态
+     * @return {@code build()} 方法
      */
     private PsiMethod createBuildMethod(PsiClass targetClass, PsiClass builderClass, BuilderFlavor flavor) {
         PsiType returnType = flavor.usesGenerics()
@@ -235,7 +297,13 @@ public final class BuilderGenerator implements Runnable {
         return build;
     }
 
-    /** 已有内部类 Builder 则复用（不再补泛型），否则新建 static 内部类。 */
+    /**
+     * 已有内部类 Builder 则复用（不再补泛型），否则新建 static 内部类。
+     *
+     * @param targetClass 外层类
+     * @param flavor      生成形态，决定是否加 C/B 泛型
+     * @return 内部 Builder 类
+     */
     private PsiClass findOrCreateBuilderClass(PsiClass targetClass, BuilderFlavor flavor) {
         PsiClass builderClass = targetClass.findInnerClassByName(BUILDER_CLASS_NAME, false);
         if (builderClass != null) {
@@ -253,6 +321,9 @@ public final class BuilderGenerator implements Runnable {
     /**
      * 用带约束的方法签名解析类型参数，避免 {@code createTypeParameter} 丢掉
      * {@code B extends Outer.Builder<C, B>} 这种自引用边界。
+     *
+     * @param builderClass 新建的内部 Builder
+     * @param targetClass  外层类，用于拼 {@code C extends Outer}
      */
     private void addInheritableGenerics(PsiClass builderClass, PsiClass targetClass) {
         PsiTypeParameterList typeParameterList = builderClass.getTypeParameterList();
@@ -271,7 +342,12 @@ public final class BuilderGenerator implements Runnable {
         }
     }
 
-    /** 方法体存在才插入，避免接口/抽象方法 NPE。 */
+    /**
+     * 方法体存在才插入，避免接口/抽象方法 NPE。
+     *
+     * @param method    目标方法
+     * @param statement 语句文本
+     */
     private void addStatement(PsiMethod method, String statement) {
         PsiCodeBlock body = method.getBody();
         if (body != null) {
@@ -279,7 +355,14 @@ public final class BuilderGenerator implements Runnable {
         }
     }
 
-    /** 同名字段已存在则当作锚点，避免重复声明。 */
+    /**
+     * 同名字段已存在则当作锚点，避免重复声明。
+     *
+     * @param targetClass 插入目标（内部 Builder）
+     * @param field       待插入字段
+     * @param after       插在该元素之后；{@code null} 时由 PSI 决定位置
+     * @return 实际存在的字段（新建或已有），作为下一字段的锚点
+     */
     private PsiElement addField(PsiClass targetClass, PsiField field, PsiElement after) {
         PsiField existing = targetClass.findFieldByName(field.getName(), false);
         if (existing != null) {
@@ -289,8 +372,12 @@ public final class BuilderGenerator implements Runnable {
     }
 
     /**
-     * @param replace true 时覆盖已有同签名方法（{@code build}/{@code builder}）；
-     *                false 时保留用户已写的构造或 setter
+     * @param targetClass 插入目标类
+     * @param after       插在该元素之后；{@code null} 时追加到类末尾
+     * @param newMethod   待插入方法
+     * @param replace     {@code true} 时覆盖已有同签名方法（{@code build}/{@code builder}）；
+     *                    {@code false} 时保留用户已写的构造或 setter
+     * @return 插入或已有的方法元素，作为后续插入锚点
      */
     private PsiElement addMethod(PsiClass targetClass, PsiElement after, PsiMethod newMethod, boolean replace) {
         PsiMethod existing = findSameSignature(targetClass, newMethod);
@@ -307,7 +394,13 @@ public final class BuilderGenerator implements Runnable {
         return existing;
     }
 
-    /** 构造器按参数列表比；普通方法先按名字再按参数列表。 */
+    /**
+     * 构造器按参数列表比；普通方法先按名字再按参数列表。
+     *
+     * @param targetClass 查找范围
+     * @param newMethod   待匹配的新方法
+     * @return 同签名已有方法；没有则为 {@code null}
+     */
     private static PsiMethod findSameSignature(PsiClass targetClass, PsiMethod newMethod) {
         PsiMethod[] candidates = newMethod.isConstructor()
                 ? targetClass.getConstructors()

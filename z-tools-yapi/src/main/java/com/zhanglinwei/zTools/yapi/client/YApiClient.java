@@ -23,6 +23,7 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.SLASH;
  */
 public class YApiClient {
 
+    /** 字段名按下划线风格序列化，对齐 YApi 接口 */
     private static final Gson GSON = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
             .create();
@@ -38,6 +39,7 @@ public class YApiClient {
     public static YApiProject getProject(String serverUrl, String token) throws IOException {
         String url = buildUrl(serverUrl, "/api/project/get", token);
         String response = httpGet(url);
+        // 反序列化为通用包装后再校验 errcode/code
         Type type = new TypeToken<YApiResult<YApiProject>>() {}.getType();
         YApiResult<YApiProject> result = GSON.fromJson(response, type);
         checkResult(result);
@@ -60,6 +62,7 @@ public class YApiClient {
         Type type = new TypeToken<YApiResult<List<YApiInterfaceCat>>>() {}.getType();
         YApiResult<List<YApiInterfaceCat>> result = GSON.fromJson(response, type);
         checkResult(result);
+        // data 为空时给空列表，避免调用方 NPE
         return result.getData() != null ? result.getData() : Collections.emptyList();
     }
 
@@ -74,6 +77,7 @@ public class YApiClient {
      */
     public static YApiInterfaceCat addCat(String serverUrl, YApiInterfaceCatAddRequest request, String token) throws IOException {
         String url = buildUrl(serverUrl, "/api/interface/add_cat", token);
+        // POST JSON，返回带 _id 的新分类
         String jsonBody = GSON.toJson(request);
         String response = httpPost(url, jsonBody);
         Type type = new TypeToken<YApiResult<YApiInterfaceCat>>() {}.getType();
@@ -94,6 +98,7 @@ public class YApiClient {
      */
     public static void saveInterface(String serverUrl, YApiInterfaceAddRequest request, String token) throws IOException {
         String url = buildUrl(serverUrl, "/api/interface/save", token);
+        // 同名同分类覆盖，否则新增
         String jsonBody = GSON.toJson(request);
         String response = httpPost(url, jsonBody);
         YApiResult<?> result = GSON.fromJson(response, YApiResult.class);
@@ -101,15 +106,25 @@ public class YApiClient {
     }
 
     /**
-     * 构建 YApi API URL
+     * 构建 YApi API URL：去掉末尾斜杠后拼接 path 与 token。
+     *
+     * @param serverUrl YApi 服务器地址
+     * @param path      API 路径，如 {@code /api/project/get}
+     * @param token     项目 Token
+     * @return 带 token 查询参数的完整 URL
      */
     private static String buildUrl(String serverUrl, String path, String token) {
+        // 去掉末尾 / 再拼 path?token=
         String base = serverUrl.endsWith(SLASH) ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
         return base + path + "?token=" + token;
     }
 
     /**
      * HTTP GET 请求
+     *
+     * @param url 完整 URL
+     * @return 响应正文
+     * @throws IOException 网络错误
      */
     private static String httpGet(String url) throws IOException {
         return HttpRequests.request(url)
@@ -119,6 +134,11 @@ public class YApiClient {
 
     /**
      * HTTP POST 请求（JSON body）
+     *
+     * @param url      完整 URL
+     * @param jsonBody JSON 请求体
+     * @return 响应正文
+     * @throws IOException 网络错误
      */
     private static String httpPost(String url, String jsonBody) throws IOException {
         return HttpRequests.post(url, MediaType.APPLICATION_JSON_VALUE())
@@ -134,6 +154,9 @@ public class YApiClient {
 
     /**
      * 检查 YApi API 响应是否成功
+     *
+     * @param result 反序列化后的通用响应
+     * @throws IOException 空响应或业务失败
      */
     private static void checkResult(YApiResult<?> result) throws IOException {
         if (result == null) {

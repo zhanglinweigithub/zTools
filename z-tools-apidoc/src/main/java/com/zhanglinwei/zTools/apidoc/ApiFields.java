@@ -1,6 +1,6 @@
 package com.zhanglinwei.zTools.apidoc;
 
-import com.zhanglinwei.zTools.annotation.lookup.AnnotationDefinitions;
+import com.zhanglinwei.zTools.annotation.lookup.AnnotationLookup;
 import com.zhanglinwei.zTools.annotation.lookup.Attr;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
@@ -27,6 +27,8 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 /**
  * 文档侧补全。只读源码写出的注解属性，不补注解 default。
+ * <p>
+ * 由 {@link ApiInfo} 在组装标题、参数表、示例 JSON 时调用；位于注解模块解析之后、模板写出之前。
  *
  * <p>类标题（先到先得）：{@code @Schema(title)} → {@code @Tag(name)} → {@code @Api(value/tags)}
  * → {@code @ApiModel(value)} → 注释摘要 → 注释说明 → 类名。
@@ -67,9 +69,15 @@ public final class ApiFields {
     private static final String REQUIRED_MODE = "REQUIRED";
     private static final String NOT_REQUIRED_MODE = "NOT_REQUIRED";
 
+    /** 工具类，禁止实例化。 */
     private ApiFields() {}
 
-    /** 类标题：OpenAPI {@code @Schema(title)} → {@code @Tag} → Swagger {@code @Api}/{@code @ApiModel} → 注释 → 类名。 */
+    /**
+     * 类标题：OpenAPI {@code @Schema(title)} → {@code @Tag} → Swagger {@code @Api}/{@code @ApiModel} → 注释 → 类名。
+     *
+     * @param type 控制器类定义
+     * @return 文档用标题；{@code type} 为 {@code null} 时返回 {@code null}
+     */
     public static String titleOf(ClassDefinition type) {
         if (type == null) {
             return null;
@@ -87,7 +95,12 @@ public final class ApiFields {
         );
     }
 
-    /** 方法标题：{@code @Operation(summary)} → {@code @ApiOperation(value)} → 注释 → 方法名。 */
+    /**
+     * 方法标题：{@code @Operation(summary)} → {@code @ApiOperation(value)} → 注释 → 方法名。
+     *
+     * @param method 接口方法定义
+     * @return 文档用标题；{@code method} 为 {@code null} 时返回 {@code null}
+     */
     public static String titleOf(MethodDefinition method) {
         if (method == null) {
             return null;
@@ -103,7 +116,12 @@ public final class ApiFields {
         );
     }
 
-    /** 类描述：OpenAPI {@code @Schema}/{@code @Tag} → Swagger {@code @Api}/{@code @ApiModel} → 注释。 */
+    /**
+     * 类描述：OpenAPI {@code @Schema}/{@code @Tag} → Swagger {@code @Api}/{@code @ApiModel} → 注释。
+     *
+     * @param type 控制器类定义
+     * @return 文档用描述；没有则为 {@code null}
+     */
     public static String descriptionOf(ClassDefinition type) {
         if (type == null) {
             return null;
@@ -120,7 +138,12 @@ public final class ApiFields {
         );
     }
 
-    /** 方法描述：{@code @Operation(description)} → {@code @ApiOperation(notes)} → 注释。 */
+    /**
+     * 方法描述：{@code @Operation(description)} → {@code @ApiOperation(notes)} → 注释。标题不回落到描述。
+     *
+     * @param method 接口方法定义
+     * @return 文档用描述；没有则为 {@code null}
+     */
     public static String descriptionOf(MethodDefinition method) {
         if (method == null) {
             return null;
@@ -135,10 +158,16 @@ public final class ApiFields {
         );
     }
 
-    /** 参数种类：Spring 绑定注解优先；否则 multipart → PART，其余 → QUERY。 */
+    /**
+     * 参数种类：Spring 绑定注解优先；否则 multipart → PART，其余非跳过参数 → QUERY。
+     *
+     * @param parameter 方法参数
+     * @return 绑定种类；跳过的框架类型返回 {@code null}
+     */
     public static WebParameterAnnotation.Kind kind(ParameterDefinition parameter) {
         WebParameterAnnotation binding = WebAnnotationParser.parameter(parameter);
         if (binding != null) {
+            // 写出了 @RequestParam / @PathVariable / @RequestHeader / @RequestBody / @RequestPart
             return binding.kind();
         }
         if (skip(parameter)) {
@@ -147,9 +176,16 @@ public final class ApiFields {
         if (isMultipart(parameter.type())) {
             return WebParameterAnnotation.Kind.PART;
         }
+        // 未写绑定注解的简单类型按 Spring 习惯当作 query
         return WebParameterAnnotation.Kind.QUERY;
     }
 
+    /**
+     * 是否从文档参数表中忽略：{@code null}、或 Servlet 等框架类型。multipart 始终保留。
+     *
+     * @param parameter 方法参数
+     * @return 应跳过则为 {@code true}
+     */
     public static boolean skip(ParameterDefinition parameter) {
         if (parameter == null) {
             return true;
@@ -160,7 +196,12 @@ public final class ApiFields {
         return WebTypes.skipParameter(parameter.packageName(), parameter.type());
     }
 
-    /** 参数名：Spring 绑定 {@code name}/{@code value} → 源码名。不读 OpenAPI / Swagger。 */
+    /**
+     * 参数名：Spring 绑定 {@code name}/{@code value} → 源码名。不读 OpenAPI / Swagger。
+     *
+     * @param parameter 方法参数
+     * @return 对外名称；{@code parameter} 为 {@code null} 时返回 {@code null}
+     */
     public static String name(ParameterDefinition parameter) {
         if (parameter == null) {
             return null;
@@ -172,7 +213,12 @@ public final class ApiFields {
         );
     }
 
-    /** 字段名：Spring 绑定 {@code name}/{@code value} → 源码名。不读 OpenAPI / Swagger。 */
+    /**
+     * 字段名：Spring 绑定 {@code name}/{@code value} → 源码名。不读 OpenAPI / Swagger。
+     *
+     * @param property 对象字段
+     * @return 对外名称；{@code property} 为 {@code null} 时返回 {@code null}
+     */
     public static String name(PropertyDefinition property) {
         if (property == null) {
             return null;
@@ -184,7 +230,12 @@ public final class ApiFields {
         );
     }
 
-    /** 参数说明：OpenAPI {@code @Parameter}/{@code @Schema} → Swagger {@code @ApiParam} → 注释。 */
+    /**
+     * 参数说明：OpenAPI {@code @Parameter}/{@code @Schema} → Swagger {@code @ApiParam} → 注释。
+     *
+     * @param parameter 方法参数
+     * @return 说明文本；没有则为 {@code null}
+     */
     public static String description(ParameterDefinition parameter) {
         if (parameter == null) {
             return null;
@@ -201,7 +252,12 @@ public final class ApiFields {
         );
     }
 
-    /** 字段说明：OpenAPI {@code @Schema}/{@code @Parameter} → Swagger {@code @ApiModelProperty} → 注释。 */
+    /**
+     * 字段说明：OpenAPI {@code @Schema}/{@code @Parameter} → Swagger {@code @ApiModelProperty} → 注释。
+     *
+     * @param property 对象字段
+     * @return 说明文本；没有则为 {@code null}
+     */
     public static String description(PropertyDefinition property) {
         if (property == null) {
             return null;
@@ -220,6 +276,9 @@ public final class ApiFields {
 
     /**
      * 参数必填：OpenAPI / Swagger / Spring / 校验任一标明必填即为必填。
+     *
+     * @param parameter 方法参数
+     * @return 任一路径标明必填则为 {@code true}
      */
     public static boolean required(ParameterDefinition parameter) {
         if (parameter == null) {
@@ -238,6 +297,9 @@ public final class ApiFields {
 
     /**
      * 字段必填：OpenAPI / Swagger / Spring / 校验任一标明必填即为必填。
+     *
+     * @param property 对象字段
+     * @return 任一路径标明必填则为 {@code true}
      */
     public static boolean required(PropertyDefinition property) {
         if (property == null) {
@@ -254,7 +316,12 @@ public final class ApiFields {
                 || validated(property.annotations());
     }
 
-    /** 参数示例：OpenAPI {@code example} → Swagger {@code example} → Spring {@code defaultValue} → 类型默认值。 */
+    /**
+     * 参数示例：OpenAPI {@code example} → Swagger {@code example} → Spring {@code defaultValue} → 类型默认值。
+     *
+     * @param parameter 方法参数
+     * @return 示例值；参数为 {@code null} 时返回空串
+     */
     public static Object example(ParameterDefinition parameter) {
         if (parameter == null) {
             return EMPTY;
@@ -276,7 +343,12 @@ public final class ApiFields {
         return typeExample(parameter.type());
     }
 
-    /** 字段示例：OpenAPI {@code example} → Swagger {@code example} → 类型默认值。 */
+    /**
+     * 字段示例：OpenAPI {@code example} → Swagger {@code example} → 类型默认值。
+     *
+     * @param property 对象字段
+     * @return 示例值；字段为 {@code null} 时返回空串
+     */
     public static Object example(PropertyDefinition property) {
         if (property == null) {
             return EMPTY;
@@ -296,18 +368,42 @@ public final class ApiFields {
         return typeExample(property.type());
     }
 
+    /**
+     * 是否为 {@code MultipartFile} 等上传类型。
+     *
+     * @param type 声明类型
+     * @return 是上传类型则为 {@code true}
+     */
     public static boolean isMultipart(String type) {
         return TypeUtils.isMultipart(type);
     }
 
+    /**
+     * 是否为 Map 类型。
+     *
+     * @param type 声明类型
+     * @return 是 Map 则为 {@code true}
+     */
     public static boolean isMap(String type) {
         return TypeUtils.isMap(type);
     }
 
+    /**
+     * 是否为 {@link NormalType} 收录的普通类型。
+     *
+     * @param type 声明类型
+     * @return 有类型默认值则为 {@code true}
+     */
     public static boolean isNormal(String type) {
         return NormalType.containsKey(TypeUtils.rawType(type));
     }
 
+    /**
+     * 返回第一个非空白字符串（trim 后）。
+     *
+     * @param values 候选，可为 {@code null}
+     * @return 第一项非空白值；都没有则为 {@code null}
+     */
     private static String first(String... values) {
         if (values == null) {
             return null;
@@ -320,33 +416,74 @@ public final class ApiFields {
         return null;
     }
 
+    /**
+     * 是否存在 {@code @NotNull} / {@code @NotBlank} / {@code @NotEmpty}。
+     *
+     * @param annotations 注解列表
+     * @return 任一校验注解存在则为 {@code true}
+     */
     private static boolean validated(List<AnnotationDefinition> annotations) {
         ValidationConstraints constraints = ValidationAnnotationParser.parse(annotations);
         return constraints.notNull() || constraints.notBlank() || constraints.notEmpty();
     }
 
+    /**
+     * {@code @Parameter(schema=@Schema(...))} 里的嵌套 Schema。
+     *
+     * @param oas OpenAPI 参数注解
+     * @return 嵌套 schema；没有则为 {@code null}
+     */
     private static SchemaAnnotation nestedSchema(DocParameterAnnotation oas) {
         return oas == null ? null : oas.schema();
     }
 
+    /**
+     * 嵌套 Schema 上的 example。
+     *
+     * @param oas OpenAPI 参数注解
+     * @return example；没有则为 {@code null}
+     */
     private static String nestedSchemaExample(DocParameterAnnotation oas) {
         SchemaAnnotation schema = nestedSchema(oas);
         return schema == null ? null : schema.example();
     }
 
+    /**
+     * OpenAPI Schema 的说明：{@code description} 优先于 {@code title}。
+     *
+     * @param schema Schema 注解
+     * @return 说明；没有则为 {@code null}
+     */
     private static String openApiSchemaDescription(SchemaAnnotation schema) {
         return schema == null ? null : first(schema.description(), schema.title());
     }
 
-    /** {@code @ApiModelProperty(value)} 才是说明，{@code notes} 是补充。 */
+    /**
+     * {@code @ApiModelProperty(value)} 才是说明，{@code notes} 是补充。
+     *
+     * @param modelProperty Swagger 字段注解
+     * @return 说明；没有则为 {@code null}
+     */
     private static String swaggerModelPropertyDescription(SchemaAnnotation modelProperty) {
         return modelProperty == null ? null : first(modelProperty.title(), modelProperty.description());
     }
 
+    /**
+     * OpenAPI / Swagger 参数是否写出 {@code required=true}。
+     *
+     * @param annotation {@code @Parameter} 或 {@code @ApiParam}
+     * @return 标明必填则为 {@code true}
+     */
     private static boolean markedRequired(DocParameterAnnotation annotation) {
         return annotation != null && Boolean.TRUE.equals(annotation.required());
     }
 
+    /**
+     * Spring 绑定注解是否写出 {@code required=true}。未写不算必填。
+     *
+     * @param binding 绑定注解
+     * @return 标明必填则为 {@code true}
+     */
     private static boolean markedRequired(WebParameterAnnotation binding) {
         return binding != null && Boolean.TRUE.equals(binding.required());
     }
@@ -354,6 +491,9 @@ public final class ApiFields {
     /**
      * OpenAPI / Swagger Schema：{@code requiredMode=REQUIRED} 为必填；
      * {@code NOT_REQUIRED} 不贡献必填；未写或 {@code AUTO} 时看 {@code required=true}。
+     *
+     * @param schema Schema 注解
+     * @return 本条 Schema 贡献必填则为 {@code true}
      */
     private static boolean schemaMarkedRequired(SchemaAnnotation schema) {
         if (schema == null) {
@@ -368,11 +508,25 @@ public final class ApiFields {
         return Boolean.TRUE.equals(schema.required());
     }
 
+    /**
+     * 按 Java 类型取默认示例。
+     * <pre>
+     * MultipartFile          → 文件
+     * String                 → stringValue
+     * int / byte / short ... → 1
+     * Integer / Long ...     → 0
+     * boolean / Boolean      → false
+     * 未知类型               → 空串
+     * </pre>
+     *
+     * @param type 声明类型
+     * @return 示例值
+     */
     private static Object typeExample(String type) {
         if (isMultipart(type)) {
             return "文件";
         }
-        Object example = NormalType.get(TypeUtils.rawType(type));
+        Object example = NormalType.exampleOf(type);
         if (example != null) {
             return example;
         }
@@ -382,22 +536,52 @@ public final class ApiFields {
         return EMPTY;
     }
 
+    /**
+     * Swagger {@code @Api(value)} 或 {@code tags}。
+     *
+     * @param annotations 类注解
+     * @return 标题候选；没有则为 {@code null}
+     */
     private static String swaggerApiValue(List<AnnotationDefinition> annotations) {
-        return AnnotationDefinitions.string(findApi(annotations), Attr.VALUE, "tags");
+        return AnnotationLookup.string(findApi(annotations), Attr.VALUE, "tags");
     }
 
+    /**
+     * Swagger {@code @Api(description)}。
+     *
+     * @param annotations 类注解
+     * @return 描述候选；没有则为 {@code null}
+     */
     private static String swaggerApiDescription(List<AnnotationDefinition> annotations) {
-        return AnnotationDefinitions.string(findApi(annotations), Attr.DESCRIPTION);
+        return AnnotationLookup.string(findApi(annotations), Attr.DESCRIPTION);
     }
 
+    /**
+     * 查找 {@code @Api} 注解。
+     *
+     * @param annotations 类注解
+     * @return 找到的定义；没有则为 {@code null}
+     */
     private static AnnotationDefinition findApi(List<AnnotationDefinition> annotations) {
-        return AnnotationDefinitions.find(annotations, SwaggerAnnotationParser.API).orElse(null);
+        return AnnotationLookup.find(annotations, SwaggerAnnotationParser.API).orElse(null);
     }
 
+    /**
+     * JavaDoc 摘要（{@code comment.text}）。
+     *
+     * @param comment 注释定义
+     * @return 摘要；没有则为 {@code null}
+     */
     private static String commentText(CommentDefinition comment) {
         return comment == null ? null : comment.text();
     }
 
+    /**
+     * JavaDoc 说明（{@code comment.description}）。
+     *
+     * @param comment 注释定义
+     * @return 说明；没有则为 {@code null}
+     */
     private static String commentDescription(CommentDefinition comment) {
         return comment == null ? null : comment.description();
     }

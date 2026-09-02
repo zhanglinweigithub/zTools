@@ -1,6 +1,6 @@
 package com.zhanglinwei.zTools.annotation.validation;
 
-import com.zhanglinwei.zTools.annotation.lookup.AnnotationDefinitions;
+import com.zhanglinwei.zTools.annotation.lookup.AnnotationLookup;
 import com.zhanglinwei.zTools.annotation.lookup.AnnotationType;
 import com.zhanglinwei.zTools.annotation.lookup.Attr;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
@@ -45,36 +45,61 @@ public final class ValidationAnnotationParser {
     public static final AnnotationType VALIDATED = AnnotationType.of(
             "org.springframework.validation.annotation.Validated");
 
+    /** 工具类，禁止实例化。 */
     private ValidationAnnotationParser() {}
 
+    /**
+     * 解析参数上的校验注解。
+     *
+     * @param parameter 参数定义
+     * @return 校验约束；{@code parameter} 为 {@code null} 时返回全 false / null 的空结果
+     */
     public static ValidationConstraints parse(ParameterDefinition parameter) {
         return parameter == null ? empty() : parse(parameter.annotations());
     }
 
+    /**
+     * 解析字段上的校验注解。
+     *
+     * @param property 字段定义
+     * @return 校验约束；{@code property} 为 {@code null} 时返回全 false / null 的空结果
+     */
     public static ValidationConstraints parse(PropertyDefinition property) {
         return property == null ? empty() : parse(property.annotations());
     }
 
+    /**
+     * 从注解列表抽出校验约束。未写出的数值 / 正则保持 {@code null}。
+     *
+     * @param annotations 注解列表
+     * @return 校验约束
+     */
     public static ValidationConstraints parse(List<AnnotationDefinition> annotations) {
-        Optional<AnnotationDefinition> size = AnnotationDefinitions.find(annotations, SIZE);
-        Optional<AnnotationDefinition> min = AnnotationDefinitions.find(annotations, MIN);
-        Optional<AnnotationDefinition> max = AnnotationDefinitions.find(annotations, MAX);
-        Optional<AnnotationDefinition> pattern = AnnotationDefinitions.find(annotations, PATTERN);
+        Optional<AnnotationDefinition> size = AnnotationLookup.find(annotations, SIZE);
+        Optional<AnnotationDefinition> min = AnnotationLookup.find(annotations, MIN);
+        Optional<AnnotationDefinition> max = AnnotationLookup.find(annotations, MAX);
+        Optional<AnnotationDefinition> pattern = AnnotationLookup.find(annotations, PATTERN);
         AnnotationDefinition sizeAnn = size.isPresent() ? size.get() : null;
+        // 布尔表示注解是否存在；min/max/regexp 只读源码写出的值，不补注解 default
         return new ValidationConstraints(
-                AnnotationDefinitions.present(annotations, NOT_NULL),
-                AnnotationDefinitions.present(annotations, NOT_BLANK),
-                AnnotationDefinitions.present(annotations, NOT_EMPTY),
-                AnnotationDefinitions.anyPresent(annotations, VALID, VALIDATED),
+                AnnotationLookup.present(annotations, NOT_NULL),
+                AnnotationLookup.present(annotations, NOT_BLANK),
+                AnnotationLookup.present(annotations, NOT_EMPTY),
+                AnnotationLookup.anyPresent(annotations, VALID, VALIDATED),
                 sizeAnn != null,
-                sizeAnn == null ? null : AnnotationDefinitions.integer(sizeAnn, "min"),
-                sizeAnn == null ? null : AnnotationDefinitions.integer(sizeAnn, "max"),
-                min.isPresent() ? AnnotationDefinitions.longValue(min.get(), Attr.VALUE) : null,
-                max.isPresent() ? AnnotationDefinitions.longValue(max.get(), Attr.VALUE) : null,
-                pattern.isPresent() ? AnnotationDefinitions.string(pattern.get(), "regexp") : null
+                sizeAnn == null ? null : AnnotationLookup.integer(sizeAnn, "min"),
+                sizeAnn == null ? null : AnnotationLookup.integer(sizeAnn, "max"),
+                min.isPresent() ? AnnotationLookup.longValue(min.get(), Attr.VALUE) : null,
+                max.isPresent() ? AnnotationLookup.longValue(max.get(), Attr.VALUE) : null,
+                pattern.isPresent() ? AnnotationLookup.string(pattern.get(), "regexp") : null
         );
     }
 
+    /**
+     * 无注解时的空约束。
+     *
+     * @return 全 false、数值 / 正则为 {@code null} 的结果
+     */
     private static ValidationConstraints empty() {
         return new ValidationConstraints(false, false, false, false, false, null, null, null, null, null);
     }

@@ -24,7 +24,13 @@ public enum BuilderFlavor {
     INHERITABLE,
     ;
 
-    /** Record 优先于 lite 勾选：Record 不能按字段弹窗，始终走 RECORD。 */
+    /**
+     * Record 优先于 lite 勾选：Record 不能按字段弹窗，始终走 RECORD。
+     *
+     * @param targetClass 生成目标类
+     * @param options     当前已勾选的生成选项
+     * @return 对应形态
+     */
     public static BuilderFlavor of(PsiClass targetClass, Set<BuilderOption> options) {
         if (PsiClasses.isRecord(targetClass)) {
             return RECORD;
@@ -35,12 +41,20 @@ public enum BuilderFlavor {
         return INHERITABLE;
     }
 
-    /** true 时忽略对话框勾选，用 {@code getAllFields()}。 */
+    /**
+     * true 时忽略对话框勾选，用 {@code getAllFields()}。
+     *
+     * @return Record 形态为 {@code true}
+     */
     public boolean usesAllClassFields() {
         return this == RECORD;
     }
 
-    /** 仅可继承形态需要类型参数 C、B。 */
+    /**
+     * 仅可继承形态需要类型参数 C、B。
+     *
+     * @return 可继承形态为 {@code true}
+     */
     public boolean usesGenerics() {
         return this == INHERITABLE;
     }
@@ -48,6 +62,8 @@ public enum BuilderFlavor {
     /**
      * Record 保持默认可见性（与历史输出一致，不是 private）；
      * lite 为 private；可继承为 protected，方便子类 Builder 访问。
+     *
+     * @return PSI 修饰符常量；Record 为 {@code null} 表示不加显式修饰符
      */
     public String fieldModifier() {
         if (this == RECORD) {

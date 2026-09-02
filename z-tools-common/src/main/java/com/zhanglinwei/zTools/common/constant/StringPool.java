@@ -1,7 +1,14 @@
 package com.zhanglinwei.zTools.common.constant;
 
+/**
+ * 常用字符串常量池，避免魔法字符串散落在各工具类中。
+ * <p>
+ * 仅按常量名引用即可，不要给每个常量写注释。分组大致为：标点与路径、空白换行、
+ * 布尔/开关字面量、空集合占位、字符编码、HTML 实体。
+ */
 public interface StringPool {
 
+    // 标点、路径与文件后缀
     String AMPERSAND = "&";
     String AND = "and";
     String AT = "@";
@@ -65,9 +72,11 @@ public interface StringPool {
     String LEFT_SQ_BRACKET = "[";
     String RIGHT_SQ_BRACKET = "]";
     String EMPTY_ARRAY = "[]";
-    String EMPTY_OBJECT = "[]";
+    String EMPTY_OBJECT = "{}";
     String TRUE = "true";
     String UNDERSCORE = "_";
+
+    // 字符编码
     String UTF_8 = "UTF-8";
     String US_ASCII = "US-ASCII";
     String ISO_8859_1 = "ISO-8859-1";
@@ -80,6 +89,7 @@ public interface StringPool {
     String HASH_LEFT_BRACE = "#{";
     String CRLF = "\r\n";
 
+    // HTML 实体与脚本片段
     String HTML_NBSP = "&nbsp;";
     String HTML_AMP = "&amp";
     String HTML_QUOTE = "&quot;";

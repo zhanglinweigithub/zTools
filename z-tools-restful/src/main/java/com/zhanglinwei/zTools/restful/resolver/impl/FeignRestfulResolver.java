@@ -25,11 +25,19 @@ import java.util.List;
  */
 public class FeignRestfulResolver extends AbstractRestfulResolver {
 
+    /**
+     * 在范围内查找 {@code @RequestLine} 方法。
+     *
+     * @param project            当前工程
+     * @param globalSearchScope  搜索范围
+     * @return 解析出的接口列表
+     */
     @Override
     public List<IRestful> searchIRestful(Project project, GlobalSearchScope globalSearchScope) {
         if (project == null || globalSearchScope == null) {
             return Collections.emptyList();
         }
+        // StubIndex 按 RequestLine 简单名检索
         Collection<PsiAnnotation> annotations = StubIndex.getElements(
                 JavaStubIndexKeys.ANNOTATIONS,
                 FeignAnnotationParser.REQUEST_LINE.shortName(),
@@ -51,6 +59,12 @@ public class FeignRestfulResolver extends AbstractRestfulResolver {
         return result;
     }
 
+    /**
+     * 从 {@code @RequestLine} 解析 HTTP 方法与路径。
+     *
+     * @param method Feign 方法
+     * @return 接口项；注解无效时为 {@code null}
+     */
     private static IRestful createRestful(PsiMethod method) {
         RequestLineAnnotation requestLine = FeignAnnotationParser.requestLine(AnnotationParser.of(method));
         if (requestLine == null) {
@@ -60,6 +74,7 @@ public class FeignRestfulResolver extends AbstractRestfulResolver {
         if (httpMethod == null) {
             httpMethod = HttpMethod.NONE;
         }
+        // 规范化路径，如 user/{id} → /user/{id}
         return new IRestful(method, RequestPathUtils.join(requestLine.path()), httpMethod);
     }
 }

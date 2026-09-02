@@ -10,12 +10,18 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * 加密密码选择弹窗，当配置了多个密码时弹出让用户选择
+ * 加密密码选择弹窗，当配置了多个密码时弹出让用户选择。
  */
 public class ChoosePasswordDialog extends DialogWrapper {
 
     private final ComboBox<String> passwordBox;
 
+    /**
+     * 用已配置的密码列表初始化下拉框，默认选中第一项。
+     *
+     * @param project   当前项目
+     * @param passwords 可供选择的密码
+     */
     public ChoosePasswordDialog(Project project, String[] passwords) {
         super(project);
         setTitle("Select Encryption Password");
@@ -27,6 +33,11 @@ public class ChoosePasswordDialog extends DialogWrapper {
         init();
     }
 
+    /**
+     * 构建密码下拉表单。
+     *
+     * @return 对话框中心面板
+     */
     @Override
     protected JComponent createCenterPanel() {
         JPanel panel = FormBuilder.createFormBuilder()
@@ -40,7 +51,11 @@ public class ChoosePasswordDialog extends DialogWrapper {
     }
 
     /**
-     * 返回用户选择的密码，取消返回 null
+     * 弹出对话框让用户选择加密密码。
+     *
+     * @param project   当前项目
+     * @param passwords 可供选择的密码
+     * @return 用户选择的密码；点取消则为 {@code null}
      */
     public static String choose(Project project, String[] passwords) {
         ChoosePasswordDialog dialog = new ChoosePasswordDialog(project, passwords);

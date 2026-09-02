@@ -18,11 +18,20 @@ import javax.swing.*;
  */
 public class YApiConfigDialog extends DialogWrapper {
 
+    /** 当前工程 */
     private final Project project;
+    /** YApi 服务器地址输入框 */
     private JTextField serverUrlField;
+    /** 项目 Token 输入框 */
     private JTextField tokenField;
+    /** 校验/连接状态提示 */
     private JLabel statusLabel;
 
+    /**
+     * 绑定工程并初始化对话框。
+     *
+     * @param project 当前工程
+     */
     public YApiConfigDialog(Project project) {
         super(project);
         this.project = project;
@@ -30,6 +39,11 @@ public class YApiConfigDialog extends DialogWrapper {
         init();
     }
 
+    /**
+     * 构建中心面板：Server URL、Token 与状态提示。
+     *
+     * @return 中心面板
+     */
     @Override
     protected JComponent createCenterPanel() {
         JPanel panel = new JPanel();
@@ -65,6 +79,9 @@ public class YApiConfigDialog extends DialogWrapper {
         return panel;
     }
 
+    /**
+     * 校验输入，请求 YApi 解析项目 ID 并写入配置。
+     */
     @Override
     protected void doOKAction() {
         String serverUrl = serverUrlField.getText().trim();
@@ -80,6 +97,11 @@ public class YApiConfigDialog extends DialogWrapper {
         statusLabel.setText("正在解析项目信息...");
 
         ProgressManager.getInstance().run(new Task.Modal(project, "Resolving YApi Project...", true) {
+            /**
+             * 后台请求 {@code /api/project/get} 解析项目 ID。
+             *
+             * @param indicator 进度指示器
+             */
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setIndeterminate(true);
@@ -112,12 +134,22 @@ public class YApiConfigDialog extends DialogWrapper {
     }
 
 
+    /**
+     * 对话框按钮：确定与取消。
+     *
+     * @return 按钮数组
+     */
     @Override
     protected Action @NotNull [] createActions() {
         return new Action[]{getOKAction(), getCancelAction()};
     }
 
 
+    /**
+     * 确定按钮文案。
+     *
+     * @return {@code Save & Continue}
+     */
     protected String getOKActionText() {
         return "Save & Continue";
     }

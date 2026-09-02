@@ -12,8 +12,18 @@ import com.zhanglinwei.zTools.common.util.NotificationUtil;
 
 import java.util.List;
 
+/**
+ * 生成数据库表结构文档的 Action。
+ * <p>
+ * 从 {@code zTools.yaml} 读数据源，按方言拉表结构，再按设置页的文档类型写出 HTML / Markdown / Word。
+ */
 public class GenerateDatabaseDocumentAction extends AnAction {
 
+    /**
+     * 连库、拉表、写出文档；配置缺失或库中无表时弹通知并中止。
+     *
+     * @param actionEvent IDEA 动作事件
+     */
     @Override
     public void actionPerformed(AnActionEvent actionEvent) {
         Project project = actionEvent.getProject();

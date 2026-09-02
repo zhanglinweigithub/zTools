@@ -13,18 +13,22 @@ public class YApiQueryPath {
     /** 路径参数列表 */
     private List<String> params;
 
+    /** 查询路径。 */
     public String getPath() {
         return path;
     }
 
+    /** 设置查询路径。 */
     public void setPath(String path) {
         this.path = path;
     }
 
+    /** 路径参数列表。 */
     public List<String> getParams() {
         return params;
     }
 
+    /** 设置路径参数列表。 */
     public void setParams(List<String> params) {
         this.params = params;
     }

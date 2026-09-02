@@ -12,9 +12,18 @@ public final class PsiParameterLists {
 
     private static final String JAVA_LANG_PREFIX = "java.lang.";
 
+    /**
+     * 工具类，禁止实例化。
+     */
     private PsiParameterLists() {}
 
-    /** 参数个数或某一位类型对不上即视为不同方法。 */
+    /**
+     * 参数个数或某一位类型对不上即视为不同方法。
+     *
+     * @param left  已有方法的参数列表
+     * @param right 待插入方法的参数列表
+     * @return 视为同一签名则为 {@code true}
+     */
     public static boolean equal(PsiParameterList left, PsiParameterList right) {
         if (left.getParametersCount() != right.getParametersCount()) {
             return false;
@@ -29,7 +38,13 @@ public final class PsiParameterLists {
         return true;
     }
 
-    /** 用 presentableText 比，避免 FQCN 和短名被当成两种类型。 */
+    /**
+     * 用 presentableText 比，避免 FQCN 和短名被当成两种类型。
+     *
+     * @param left  左侧类型
+     * @param right 右侧类型
+     * @return 展示文本相同则为 {@code true}
+     */
     private static boolean presentableEqual(PsiType left, PsiType right) {
         if (left == null || right == null) {
             return false;
@@ -37,7 +52,12 @@ public final class PsiParameterLists {
         return stripJavaLang(left.getPresentableText()).equals(stripJavaLang(right.getPresentableText()));
     }
 
-    /** {@code java.lang.String} → {@code String}，其它包名保持原样。 */
+    /**
+     * {@code java.lang.String} → {@code String}，其它包名保持原样。
+     *
+     * @param type 类型展示文本
+     * @return 去掉 {@code java.lang.} 前缀后的文本
+     */
     private static String stripJavaLang(String type) {
         return type.startsWith(JAVA_LANG_PREFIX) ? type.substring(JAVA_LANG_PREFIX.length()) : type;
     }

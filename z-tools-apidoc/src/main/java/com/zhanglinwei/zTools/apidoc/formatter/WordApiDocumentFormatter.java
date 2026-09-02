@@ -25,17 +25,31 @@ public class WordApiDocumentFormatter extends ColoredJsonDecorator {
     /** 冒号、逗号，以及无法识别的值。 */
     private static final String BLACK = "000000";
 
+    /**
+     * @return {@link DocumentType#WORD}
+     */
     @Override
     public DocumentType documentType() {
         return DocumentType.WORD;
     }
 
+    /**
+     * @return {@code api-doc-word.ftl}
+     */
     @Override
     public String templateName() {
         return "api-doc-word.ftl";
     }
 
-    /** 一整行包在一个段落里：key、冒号、值、可选逗号、可选注释各一个 run。 */
+    /**
+     * 一整行包在一个段落里：key、冒号、值、可选逗号、可选注释各一个 run。
+     *
+     * @param builder    输出缓冲
+     * @param key        冒号左侧
+     * @param value      冒号右侧，已去掉末尾逗号
+     * @param needsComma 原行值后面是否有逗号
+     * @param comments   行尾 {@code // ...}，没有则为空串
+     */
     @Override
     protected void appendKeyedLine(StringBuilder builder, String key, String value,
                                    boolean needsComma, String comments) {
@@ -52,7 +66,12 @@ public class WordApiDocumentFormatter extends ColoredJsonDecorator {
         builder.append(WordXmlHelper.PARAGRAPH_CLOSE);
     }
 
-    /** 无冒号的行：单独一段，整行一种颜色。 */
+    /**
+     * 无冒号的行：单独一段，整行一种颜色。
+     *
+     * @param builder 输出缓冲
+     * @param line    整行文本
+     */
     @Override
     protected void appendPlainLine(StringBuilder builder, String line) {
         builder.append(WordXmlHelper.paragraph(valueColor(line), line));
@@ -60,13 +79,20 @@ public class WordApiDocumentFormatter extends ColoredJsonDecorator {
 
     /**
      * Word 每行已经是独立 {@code <w:p>}，不再插入换行标记。
+     *
+     * @param builder 输出缓冲（本实现不写入）
      */
     @Override
     protected void appendLineSeparator(StringBuilder builder) {
         // 每行已是独立 <w:p>
     }
 
-    /** 字符串/布尔蓝、数字绿、其余黑。 */
+    /**
+     * 字符串/布尔蓝、数字绿、其余黑。
+     *
+     * @param value 冒号右侧或整行文本
+     * @return 不带 {@code #} 的 hex
+     */
     private static String valueColor(String value) {
         return JsonValueKind.of(value).color(BLUE, GREEN, BLACK);
     }

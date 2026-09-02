@@ -17,13 +17,25 @@ public class GenerateBuilderAction extends BaseCodeInsightAction {
 
     private final GenerateBuilderHandler handler = new GenerateBuilderHandler();
 
+    /**
+     * 返回实际处理逻辑。
+     *
+     * @return Generate Builder 的 Handler
+     */
     @NotNull
     @Override
     protected CodeInsightActionHandler getHandler() {
         return handler;
     }
 
-    /** 仅当当前文件是带实例字段的 Java 类时，菜单里才出现 Builder。 */
+    /**
+     * 仅当当前文件是带实例字段的 Java 类时，菜单里才出现 Builder。
+     *
+     * @param project 当前项目
+     * @param editor  当前编辑器
+     * @param file    当前文件
+     * @return 菜单项是否可用
+     */
     @Override
     protected boolean isValidForFile(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
         return handler.isValidFor(editor, file);

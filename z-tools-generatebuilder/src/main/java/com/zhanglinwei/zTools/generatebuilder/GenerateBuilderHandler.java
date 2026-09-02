@@ -27,7 +27,13 @@ import java.util.List;
  */
 public class GenerateBuilderHandler implements LanguageCodeInsightActionHandler {
 
-    /** Java 文件、能解析到类、且至少有一个非 static 字段时，菜单才可用。 */
+    /**
+     * Java 文件、能解析到类、且至少有一个非 static 字段时，菜单才可用。
+     *
+     * @param editor 当前编辑器
+     * @param file   当前文件
+     * @return 菜单是否可用
+     */
     @Override
     public boolean isValidFor(Editor editor, PsiFile file) {
         if (editor.getProject() == null || !(file instanceof PsiJavaFile)) {
@@ -39,6 +45,8 @@ public class GenerateBuilderHandler implements LanguageCodeInsightActionHandler 
 
     /**
      * 弹窗和写文件分开：这里不进写操作。
+     *
+     * @return 始终 {@code false}，真正改 PSI 由 Generator 自行开写操作
      */
     @Override
     public boolean startInWriteAction() {
@@ -47,6 +55,10 @@ public class GenerateBuilderHandler implements LanguageCodeInsightActionHandler 
 
     /**
      * 用户点了 Builder 之后：Record 直接生成；其它类取消对话框或一个字段都不选则中止。
+     *
+     * @param project 当前项目
+     * @param editor  当前编辑器
+     * @param file    当前 Java 文件
      */
     @Override
     public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {

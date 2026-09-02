@@ -14,9 +14,14 @@ import java.util.List;
  */
 public final class AnnotationType {
 
+    /** 本组全部全限定名，不可变。 */
     private final List<String> qualifiedNames;
+    /** 简单名，取自第一个全限定名。 */
     private final String shortName;
 
+    /**
+     * @param qualifiedNames 至少一个全限定名，顺序即查找优先级
+     */
     private AnnotationType(String... qualifiedNames) {
         this.qualifiedNames = Collections.unmodifiableList(Arrays.asList(qualifiedNames));
         String first = qualifiedNames[0];
@@ -25,7 +30,10 @@ public final class AnnotationType {
     }
 
     /**
+     * 按全限定名创建注解类型。
+     *
      * @param qualifiedNames 至少一个全限定名，顺序即查找优先级
+     * @return 注解类型
      */
     public static AnnotationType of(String... qualifiedNames) {
         if (qualifiedNames == null || qualifiedNames.length == 0) {
@@ -44,15 +52,32 @@ public final class AnnotationType {
         return shortName;
     }
 
-    /** {@code annotation} 的全限定名是否落在本组内。 */
+    /**
+     * {@code annotation} 的全限定名是否落在本组内。
+     *
+     * @param annotation PSI 注解
+     * @return 匹配则为 {@code true}
+     */
     public boolean matches(PsiAnnotation annotation) {
         return annotation != null && matches(annotation.getQualifiedName());
     }
 
+    /**
+     * 定义对象的全限定名是否落在本组内。
+     *
+     * @param definition 注解定义
+     * @return 匹配则为 {@code true}
+     */
     public boolean matches(AnnotationDefinition definition) {
         return definition != null && matches(definition.qualifiedName());
     }
 
+    /**
+     * 全限定名是否落在本组内。只做字符串相等比较。
+     *
+     * @param qualifiedName 全限定名
+     * @return 匹配则为 {@code true}
+     */
     public boolean matches(String qualifiedName) {
         if (qualifiedName == null) {
             return false;

@@ -21,10 +21,14 @@ public final class ApiDocumentFormatterHolder {
             new WordApiDocumentFormatter()
     ));
 
+    /** 工具类，禁止实例化。 */
     private ApiDocumentFormatterHolder() {}
 
     /**
+     * 按设置页的文档类型字符串查找格式；找不到时退回列表第一项（Markdown）。
+     *
      * @param docType {@link DocumentType#getType()}，如 {@code Html}
+     * @return 对应格式化器，不会为 {@code null}
      */
     public static ApiDocumentFormatter ofDocType(String docType) {
         for (ApiDocumentFormatter format : ALL) {

@@ -9,11 +9,17 @@ import com.zhanglinwei.zTools.common.enums.DocumentType;
  */
 public class MarkdownApiDocumentFormatter implements ApiDocumentFormatter {
 
+    /**
+     * @return {@link DocumentType#MARKDOWN}
+     */
     @Override
     public DocumentType documentType() {
         return DocumentType.MARKDOWN;
     }
 
+    /**
+     * @return {@code api-doc-md.ftl}
+     */
     @Override
     public String templateName() {
         return "api-doc-md.ftl";

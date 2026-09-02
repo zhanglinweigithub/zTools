@@ -21,6 +21,9 @@ public abstract class ColoredJsonDecorator implements ApiDocumentFormatter {
     /**
      * 逐行处理：先取最后一个 {@code //} 作为注释，再按第一个冒号拆 key/value。
      * 值末尾的逗号会拆出来单独交给子类，方便分色。
+     *
+     * @param prettyJson 带缩进、可能含行尾 {@code // 注释} 的 JSON
+     * @return 子类拼接后的着色文本
      */
     @Override
     public final String decorateJson(String prettyJson) {
@@ -30,6 +33,7 @@ public abstract class ColoredJsonDecorator implements ApiDocumentFormatter {
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
             String comments = EMPTY;
+            // 行尾 // 视为字段注释，从最后一个 // 切开
             if (line.contains(DOUBLE_SLASH)) {
                 int commentAt = line.lastIndexOf(DOUBLE_SLASH);
                 comments = line.substring(commentAt);
@@ -37,6 +41,7 @@ public abstract class ColoredJsonDecorator implements ApiDocumentFormatter {
             }
 
             if (line.contains(COLON)) {
+                // 键值行：按第一个冒号拆开，末尾逗号单独交给子类
                 String[] parts = line.split(COLON, 2);
                 String value = parts[1];
                 boolean needsComma = value.endsWith(COMMA);
@@ -58,6 +63,7 @@ public abstract class ColoredJsonDecorator implements ApiDocumentFormatter {
     /**
      * 含冒号的一行，例如 {@code "id": 1,}。
      *
+     * @param builder    输出缓冲
      * @param key        冒号左侧（含缩进和引号）
      * @param value      冒号右侧，已去掉末尾逗号
      * @param needsComma 原行值后面是否有逗号
@@ -66,13 +72,27 @@ public abstract class ColoredJsonDecorator implements ApiDocumentFormatter {
     protected abstract void appendKeyedLine(StringBuilder builder, String key, String value,
                                             boolean needsComma, String comments);
 
-    /** 无冒号的行：括号、数组元素、单独的值等。 */
+    /**
+     * 无冒号的行：括号、数组元素、单独的值等。
+     *
+     * @param builder 输出缓冲
+     * @param line    整行文本（含缩进）
+     */
     protected abstract void appendPlainLine(StringBuilder builder, String line);
 
-    /** HTML 插入 {@code <br>}；Word 每行已是段落，可空实现。 */
+    /**
+     * HTML 插入 {@code <br>}；Word 每行已是段落，可空实现。
+     *
+     * @param builder 输出缓冲
+     */
     protected abstract void appendLineSeparator(StringBuilder builder);
 
-    /** 注释前补一个空格，和 JSON 正文隔开。 */
+    /**
+     * 注释前补一个空格，和 JSON 正文隔开。
+     *
+     * @param comments 行尾 {@code // ...}
+     * @return 前面带空格的注释
+     */
     protected static String spacedComment(String comments) {
         return SPACE + comments;
     }

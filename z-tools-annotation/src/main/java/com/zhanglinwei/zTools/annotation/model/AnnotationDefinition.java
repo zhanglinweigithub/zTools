@@ -9,10 +9,18 @@ import java.util.List;
  */
 public final class AnnotationDefinition {
 
+    /** 简单名，如 {@code GetMapping}。 */
     private final String name;
+    /** 全限定名；解析不到时为 {@code null}。 */
     private final String qualifiedName;
+    /** 源码里写出的属性；未写则为空列表。 */
     private final List<AttributeDefinition> attributes;
 
+    /**
+     * @param name          简单名
+     * @param qualifiedName 全限定名
+     * @param attributes    源码写出的属性
+     */
     public AnnotationDefinition(String name, String qualifiedName, List<AttributeDefinition> attributes) {
         this.name = name;
         this.qualifiedName = qualifiedName;

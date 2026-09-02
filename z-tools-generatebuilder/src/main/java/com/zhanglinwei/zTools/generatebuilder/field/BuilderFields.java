@@ -25,9 +25,17 @@ public final class BuilderFields {
     private static final ExtensionPointName<NotNullFunction<PsiClass, Collection<PsiFieldMember>>> ACCESSOR_PROVIDERS =
             ExtensionPointName.create("com.intellij.generateAccessorProvider");
 
+    /**
+     * 工具类，禁止实例化。
+     */
     private BuilderFields() {}
 
-    /** 菜单是否可用：至少有一个实例字段。 */
+    /**
+     * 菜单是否可用：至少有一个实例字段。
+     *
+     * @param psiClass 目标类
+     * @return 存在可放入 Builder 的字段则为 {@code true}
+     */
     public static boolean hasInstanceFields(PsiClass psiClass) {
         return instanceFields(psiClass).length > 0;
     }
@@ -35,6 +43,9 @@ public final class BuilderFields {
     /**
      * 合并所有 Accessor Provider 的结果，再去掉 static。
      * synchronized 沿用原先 Registrar 的写法，避免扩展点列表在迭代时被改。
+     *
+     * @param psiClass 目标类
+     * @return 实例字段数组，可能为空数组
      */
     public static synchronized PsiFieldMember[] instanceFields(PsiClass psiClass) {
         List<PsiFieldMember> provided = ContainerUtil.concat(ACCESSOR_PROVIDERS.getExtensionList(), provider -> provider.fun(psiClass));
@@ -54,7 +65,12 @@ public final class BuilderFields {
         return eligible.toArray(new PsiFieldMember[0]);
     }
 
-    /** Builder 只收实例字段，static 常量等排除。 */
+    /**
+     * Builder 只收实例字段，static 常量等排除。
+     *
+     * @param member 候选字段
+     * @return 非 static 则为 {@code true}
+     */
     private static boolean isInstanceField(PsiFieldMember member) {
         return !member.getElement().hasModifierProperty(PsiModifier.STATIC);
     }

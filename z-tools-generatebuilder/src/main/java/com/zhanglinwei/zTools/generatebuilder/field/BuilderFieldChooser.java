@@ -20,9 +20,16 @@ import java.util.List;
  */
 public final class BuilderFieldChooser {
 
+    /**
+     * 工具类，禁止实例化。
+     */
     private BuilderFieldChooser() {}
 
     /**
+     * 弹出字段与选项对话框。
+     *
+     * @param members 可勾选的实例字段
+     * @param project 当前项目
      * @return 用户勾选的字段；取消对话框时为 {@code null}
      */
     @Nullable
@@ -42,7 +49,11 @@ public final class BuilderFieldChooser {
         return null;
     }
 
-    /** 与枚举顺序对齐；非 checkBox 的选项位置保持 null，和原先 MemberChooser 用法一致。 */
+    /**
+     * 与枚举顺序对齐；非 checkBox 的选项位置保持 null，和原先 MemberChooser 用法一致。
+     *
+     * @return 底部选项组件数组
+     */
     private static JComponent[] optionCheckBoxes() {
         BuilderOption[] options = BuilderOption.values();
         JComponent[] components = new JComponent[options.length];
@@ -54,7 +65,12 @@ public final class BuilderFieldChooser {
         return components;
     }
 
-    /** 勾选变化马上持久化，生成阶段不再问一遍对话框。 */
+    /**
+     * 勾选变化马上持久化，生成阶段不再问一遍对话框。
+     *
+     * @param option 对应的生成选项
+     * @return 复选框
+     */
     private static JComponent checkBox(BuilderOption option) {
         JCheckBox box = new NonFocusableCheckBox(option.title());
         box.setToolTipText(option.tooltip());

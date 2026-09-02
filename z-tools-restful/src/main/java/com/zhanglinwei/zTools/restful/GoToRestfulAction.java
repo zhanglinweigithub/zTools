@@ -28,9 +28,20 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * 按 URL 跳转到 Spring MVC / Feign 接口的 GoTo Action。
+ * <p>
+ * 扫描当前工程（或当前模块）中的 Mapping 方法，弹出 ChooseByName 窗口，
+ * 选中后跳转到对应 {@link com.intellij.psi.PsiMethod}。
+ */
 public class GoToRestfulAction extends GotoActionBase implements DumbAware {
 
 
+    /**
+     * 收集接口并弹出 GoTo 窗口。
+     *
+     * @param actionEvent 当前 Action 事件，用于取 Project / Module
+     */
     @Override
     protected void gotoActionPerformed(@NotNull AnActionEvent actionEvent) {
         Project project = actionEvent.getProject();
@@ -44,11 +55,23 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
         IRestfulChooseByNameModel chooseByNameModel = new IRestfulChooseByNameModel(project, chooseByNameContributor);
 
         GotoActionBase.GotoActionCallback<HttpMethod> iRestfulCallback = new GotoActionBase.GotoActionCallback<HttpMethod>() {
+            /**
+             * 按 HTTP 方法过滤列表。
+             *
+             * @param popup 当前 GoTo 弹窗
+             * @return HTTP 方法过滤器
+             */
             @Override
             protected ChooseByNameFilter<HttpMethod> createFilter(@NotNull ChooseByNamePopup popup) {
                 return new IRestfulChooseByNameFilter(popup, chooseByNameModel, project);
             }
 
+            /**
+             * 选中某条接口后跳转到方法源码。
+             *
+             * @param chooseByNamePopup 当前弹窗
+             * @param element           选中项，期望为 {@link IRestful}
+             */
             @Override
             public void elementChosen(ChooseByNamePopup chooseByNamePopup, Object element) {
                 if (element instanceof IRestful) {
@@ -67,10 +90,24 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
         );
     }
 
+    /**
+     * 创建名称贡献者：按工程或模块解析接口，再拼上全局请求前缀。
+     *
+     * @param module        当前模块，勾选 “Current Module” 时使用
+     * @param requestPrefix 全局请求前缀，如 {@code /api}
+     * @return 向 GoTo 窗口提供名称与导航项的贡献者
+     */
     private ChooseByNameContributor createChooseByNameContributor(Module module, String requestPrefix) {
         return new ChooseByNameContributor() {
             List<IRestful> restfulList = new ArrayList<>();
 
+            /**
+             * 收集接口路径作为搜索名称。
+             *
+             * @param project        当前工程
+             * @param onlyThisModule 是否仅当前模块
+             * @return 接口路径数组，如 {@code /api/user/{id}}
+             */
             @Override
             public String @NotNull [] getNames(Project project, boolean onlyThisModule) {
                 restfulList = collect(onlyThisModule && module != null
@@ -80,6 +117,15 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
                 return restfulList.stream().map(IRestful::getName).toArray(String[]::new);
             }
 
+            /**
+             * 按名称取出对应导航项。
+             *
+             * @param name           接口路径
+             * @param pattern        用户输入
+             * @param project        当前工程
+             * @param onlyThisModule 是否仅当前模块
+             * @return 名称匹配的 {@link IRestful} 数组
+             */
             @Override
             public NavigationItem @NotNull [] getItemsByName(String name, String pattern, Project project, boolean onlyThisModule) {
                 return restfulList.stream()
@@ -87,6 +133,14 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
                         .toArray(NavigationItem[]::new);
             }
 
+            /**
+             * 把全局前缀拼到接口路径上。
+             * <p>
+             * 例：{@code /api} + {@code /user/{id}} → {@code /api/user/{id}}
+             *
+             * @param restfulList   已解析的接口列表
+             * @param requestPrefix 全局请求前缀，空白则跳过
+             */
             private void appendGlobalRequestPrefix(List<IRestful> restfulList, String requestPrefix) {
                 if (CollectionUtils.isEmpty(restfulList) || StringUtils.isBlank(requestPrefix)) {
                     return;
@@ -101,6 +155,12 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
         };
     }
 
+    /**
+     * 用全部解析器收集接口。
+     *
+     * @param search 按工程或模块调用解析器的策略
+     * @return 合并后的接口列表
+     */
     private List<IRestful> collect(Function<RestfulResolver, List<IRestful>> search) {
         return RestfulResolver.createResolver().stream()
                 .flatMap(resolver -> search.apply(resolver).stream())

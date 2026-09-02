@@ -35,6 +35,8 @@ public class YApiResult<T> {
 
     /**
      * 判断是否成功（兼容 errcode 和 code 两种格式）
+     *
+     * @return 两种错误码均为 0 则为 {@code true}
      */
     public boolean isSuccess() {
         return errcode == 0 && code == 0;
@@ -42,6 +44,8 @@ public class YApiResult<T> {
 
     /**
      * 获取错误信息（兼容两种格式）
+     *
+     * @return errmsg 或 message；都空时返回“未知错误”
      */
     public String getErrorMsg() {
         if (errmsg != null && !errmsg.isEmpty()) return errmsg;
@@ -49,42 +53,52 @@ public class YApiResult<T> {
         return "未知错误";
     }
 
+    /** errcode 错误码。 */
     public int getErrcode() {
         return errcode;
     }
 
+    /** 设置 errcode。 */
     public void setErrcode(int errcode) {
         this.errcode = errcode;
     }
 
+    /** errmsg 错误信息。 */
     public String getErrmsg() {
         return errmsg;
     }
 
+    /** 设置 errmsg。 */
     public void setErrmsg(String errmsg) {
         this.errmsg = errmsg;
     }
 
+    /** code 错误码。 */
     public int getCode() {
         return code;
     }
 
+    /** 设置 code。 */
     public void setCode(int code) {
         this.code = code;
     }
 
+    /** message 错误信息。 */
     public String getMessage() {
         return message;
     }
 
+    /** 设置 message。 */
     public void setMessage(String message) {
         this.message = message;
     }
 
+    /** 业务数据。 */
     public T getData() {
         return data;
     }
 
+    /** 设置业务数据。 */
     public void setData(T data) {
         this.data = data;
     }
