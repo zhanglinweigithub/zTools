@@ -37,6 +37,7 @@ public class YApiConfigDialog extends DialogWrapper {
         this.project = project;
         setTitle("Configure YApi Connection");
         init();
+        setOKButtonText("Save & Continue");
     }
 
     /**
@@ -133,7 +134,6 @@ public class YApiConfigDialog extends DialogWrapper {
         });
     }
 
-
     /**
      * 对话框按钮：确定与取消。
      *
@@ -142,15 +142,5 @@ public class YApiConfigDialog extends DialogWrapper {
     @Override
     protected Action @NotNull [] createActions() {
         return new Action[]{getOKAction(), getCancelAction()};
-    }
-
-
-    /**
-     * 确定按钮文案。
-     *
-     * @return {@code Save & Continue}
-     */
-    protected String getOKActionText() {
-        return "Save & Continue";
     }
 }

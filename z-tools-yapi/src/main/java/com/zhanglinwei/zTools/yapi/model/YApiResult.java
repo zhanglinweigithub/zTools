@@ -2,6 +2,7 @@ package com.zhanglinwei.zTools.yapi.model;
 
 
 import com.google.gson.annotations.SerializedName;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 
 /**
  * YApi 通用响应体
@@ -48,8 +49,12 @@ public class YApiResult<T> {
      * @return errmsg 或 message；都空时返回“未知错误”
      */
     public String getErrorMsg() {
-        if (errmsg != null && !errmsg.isEmpty()) return errmsg;
-        if (message != null && !message.isEmpty()) return message;
+        if (StringUtils.isNotBlank(errmsg)) {
+            return errmsg;
+        }
+        if (StringUtils.isNotBlank(message)) {
+            return message;
+        }
         return "未知错误";
     }
 

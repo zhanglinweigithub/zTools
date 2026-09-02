@@ -66,7 +66,8 @@ public final class TypeParser {
     }
 
     /**
-     * 对象类型的字段列表。叶子类型（基本类型、常见 JDK 类型、枚举、Map、HTTP/Servlet/IO 等）返回空列表。
+     * 对象类型的字段列表。叶子类型（基本类型、常见 JDK 类型、枚举、Map、HTTP/Servlet/IO、Reactor、流等）返回空列表。
+     * 展开时跳过 {@code static} 字段；入参与返回值共用此方法。
      * {@code List<User>}、{@code User[]} 会解开后展开 User 的字段。
      *
      * @param type PSI 类型
@@ -80,7 +81,8 @@ public final class TypeParser {
     }
 
     /**
-     * 递归展开对象字段。
+     * 递归展开对象字段。跳过 {@code static} 字段（含接口常量和 {@code serialVersionUID}），
+     * 入参与返回值走同一套展开，因此两边都不会出现静态字段。
      *
      * @param type     当前类型
      * @param visiting 当前解析链上的全限定名，用于检测循环引用
@@ -179,7 +181,10 @@ public final class TypeParser {
                 || TypeUtils.isMultipartType(real)
                 || TypeUtils.isHttpType(real)
                 || TypeUtils.isServletType(real)
-                || TypeUtils.isIOType(real);
+                || TypeUtils.isIOType(real)
+                || TypeUtils.isReactorType(real)
+                || TypeUtils.isStreamType(real)
+                || TypeUtils.isVoidType(real);
     }
 
     /**

@@ -48,6 +48,16 @@ public final class TypeUtils {
             "Hashtable", "SortedMap", "TreeMap"
     )));
 
+    /** Reactor / Reactive Streams 包装类型，文档里不当业务 JSON 展开 */
+    private static final Set<String> REACTOR_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "Mono", "Flux", "ParallelFlux", "GroupedFlux", "ConnectableFlux", "Publisher"
+    )));
+
+    /** 非 java.io 包、但仍按流处理的简单类名 */
+    private static final Set<String> STREAM_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "SseEmitter", "ResponseBodyEmitter", "ServletInputStream", "ServletOutputStream"
+    )));
+
     /** 工具类，禁止实例化 */
     private TypeUtils() {
     }
@@ -228,6 +238,128 @@ public final class TypeUtils {
      */
     public static boolean isMapType(PsiType psiType) {
         return psiType != null && isMap(psiType.getPresentableText());
+    }
+
+    /**
+     * 是否 {@code void} / {@code Void}（不含 {@code Mono<Void>} 等包装）。
+     *
+     * <pre>
+     *   isVoid("void") → true
+     *   isVoid("java.lang.Void") → true
+     *   isVoid("Mono&lt;Void&gt;") → false
+     * </pre>
+     *
+     * @param type presentable 类型文本
+     * @return 是 void 则为 {@code true}
+     */
+    public static boolean isVoid(String type) {
+        String simple = outerType(type);
+        return "void".equalsIgnoreCase(simple) || "Void".equals(simple);
+    }
+
+    /**
+     * PSI 类型是否为 {@code void} / {@code Void}。
+     *
+     * @param psiType PSI 类型
+     * @return 是 void 则为 {@code true}
+     */
+    public static boolean isVoidType(PsiType psiType) {
+        return psiType != null && isVoid(psiType.getPresentableText());
+    }
+
+    /**
+     * 是否 Reactor / Reactive Streams 包装（{@code Mono}/{@code Flux}/{@code Publisher} 等）。
+     *
+     * <pre>
+     *   isReactor("Mono&lt;User&gt;") → true
+     *   isReactor("Flux&lt;User&gt;") → true
+     *   isReactor("User") → false
+     * </pre>
+     *
+     * @param type presentable 类型文本
+     * @return 是 Reactor 包装则为 {@code true}
+     */
+    public static boolean isReactor(String type) {
+        return type != null && REACTOR_NAMES.contains(outerType(type));
+    }
+
+    /**
+     * PSI 类型是否为 Reactor 包装。
+     *
+     * @param psiType PSI 类型
+     * @return 是 Reactor 包装则为 {@code true}
+     */
+    public static boolean isReactorType(PsiType psiType) {
+        return psiType != null && isReactor(psiType.getPresentableText());
+    }
+
+    /**
+     * 是否字节/字符流、NIO Channel 或 SSE 推送类型。{@code java.io.File} 不算流。
+     * 业务包下仅简单名以 Stream/Reader/Writer 结尾的不判定，避免 {@code UserReader} 误伤。
+     *
+     * <pre>
+     *   isStream("java.io", "InputStream") → true
+     *   isStream("java.io", "File") → false
+     *   isStream("com.example", "UserReader") → false
+     *   isStream(null, "SseEmitter") → true
+     * </pre>
+     *
+     * @param packageName 类型所在包，可为 {@code null}
+     * @param type        presentable 类型文本
+     * @return 按流处理则为 {@code true}
+     */
+    public static boolean isStream(String packageName, String type) {
+        if (type == null) {
+            return false;
+        }
+        String simple = outerType(type);
+        if (STREAM_NAMES.contains(simple)) {
+            return true;
+        }
+        if (!isStreamSimpleName(simple)) {
+            return false;
+        }
+        if (packageName == null) {
+            return simple.endsWith("InputStream") || simple.endsWith("OutputStream");
+        }
+        return packageName.startsWith("java.io")
+                || packageName.startsWith("java.nio.channels")
+                || packageName.startsWith("javax.servlet")
+                || packageName.startsWith("jakarta.servlet");
+    }
+
+    /**
+     * PSI 类型是否按流处理。
+     *
+     * @param psiType PSI 类型
+     * @return 按流处理则为 {@code true}
+     */
+    public static boolean isStreamType(PsiType psiType) {
+        if (psiType == null) {
+            return false;
+        }
+        PsiClass psiClass = PsiUtil.resolveClassInType(psiType);
+        String packageName = null;
+        if (psiClass != null && StringUtils.isNotBlank(psiClass.getQualifiedName())) {
+            String qualified = psiClass.getQualifiedName();
+            int dot = qualified.lastIndexOf('.');
+            packageName = dot < 0 ? null : qualified.substring(0, dot);
+        }
+        return isStream(packageName, psiType.getPresentableText());
+    }
+
+    /**
+     * 简单名是否像流类型。
+     *
+     * @param simpleName 外层简单名
+     * @return 以 Stream / Reader / Writer / Channel 结尾则为 {@code true}
+     */
+    private static boolean isStreamSimpleName(String simpleName) {
+        return simpleName.endsWith("InputStream")
+                || simpleName.endsWith("OutputStream")
+                || simpleName.endsWith("Reader")
+                || simpleName.endsWith("Writer")
+                || simpleName.endsWith("Channel");
     }
 
     /**

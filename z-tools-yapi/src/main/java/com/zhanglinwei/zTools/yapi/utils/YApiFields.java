@@ -11,6 +11,7 @@ import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
 import com.zhanglinwei.zTools.common.constant.NormalType;
 import com.zhanglinwei.zTools.common.constant.WebTypes;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.common.util.TypeUtils;
 
@@ -85,28 +86,39 @@ public final class YApiFields {
     }
 
     /**
-     * 参数种类：Spring 绑定注解优先；否则 multipart → PART，其余 → QUERY
+     * 参数种类：Spring 绑定注解优先；否则 multipart → PART；
+     * 未标注的简单类型 → QUERY；未标注且带字段的对象不当 QUERY。
      *
      * @param parameter 方法参数
-     * @return 绑定种类；应跳过的参数返回 {@code null}
+     * @return 绑定种类；应跳过或未标注的对象返回 {@code null}
      */
     public static WebParameterAnnotation.Kind kind(ParameterDefinition parameter) {
+        if (skip(parameter)) {
+            return null;
+        }
         WebParameterAnnotation binding = WebAnnotationParser.parameter(parameter);
         if (binding != null) {
             return binding.kind();
         }
-        if (skip(parameter)) {
-            return null;
-        }
-        // 无绑定注解时：文件走 Form，其余默认 Query
-        if (isMultipart(parameter.type())) {
+        if (TypeUtils.isMultipart(parameter.type())) {
             return WebParameterAnnotation.Kind.PART;
         }
+        if (TypeUtils.isStream(parameter.packageName(), parameter.type())
+                || TypeUtils.isReactor(parameter.type())) {
+            // 未标注的流 / Reactor 不当 Query
+            return null;
+        }
+        if (CollectionUtils.isNotEmpty(parameter.properties())) {
+            // 未写 @RequestBody 的对象不塞进 Query
+            return null;
+        }
+        // String / Long / boolean 等未标注简单类型，默认当作 Query
         return WebParameterAnnotation.Kind.QUERY;
     }
 
     /**
-     * 是否跳过该参数（框架注入类型如 HttpServletRequest；MultipartFile 不跳过）。
+     * 是否跳过该参数：{@code null}，或 Servlet / Model 等框架注入类型。
+     * MultipartFile 始终保留。不看 OpenAPI / Swagger 的 hidden。
      *
      * @param parameter 方法参数
      * @return 应忽略则为 {@code true}
@@ -115,10 +127,10 @@ public final class YApiFields {
         if (parameter == null) {
             return true;
         }
-        if (isMultipart(parameter.type())) {
+        if (TypeUtils.isMultipart(parameter.type())) {
             return false;
         }
-        return WebTypes.skipParameter(parameter.packageName(), parameter.type());
+        return WebTypes.skipParameter(parameter.packageName(), TypeUtils.outerType(parameter.type()));
     }
 
     /**
@@ -294,26 +306,6 @@ public final class YApiFields {
     }
 
     /**
-     * 是否为 Multipart 文件类型。
-     *
-     * @param type 类型名
-     * @return 是文件类型则为 {@code true}
-     */
-    public static boolean isMultipart(String type) {
-        return TypeUtils.isMultipart(type);
-    }
-
-    /**
-     * 是否为 Map 类型。
-     *
-     * @param type 类型名
-     * @return 是 Map 则为 {@code true}
-     */
-    public static boolean isMap(String type) {
-        return TypeUtils.isMap(type);
-    }
-
-    /**
      * 返回第一个非空白字符串。
      *
      * @param values 候选值
@@ -423,23 +415,14 @@ public final class YApiFields {
     }
 
     /**
-     * 按 Java 类型给出默认示例：MultipartFile → {@code 文件}，Long → {@code 0}，boolean → {@code false}。
+     * 按 Java 类型给出默认示例：查 {@link NormalType}，未知类型给空串。
      *
      * @param type 类型名
      * @return 示例值
      */
     private static Object typeExample(String type) {
-        if (isMultipart(type)) {
-            return "文件";
-        }
         Object example = NormalType.exampleOf(type);
-        if (example != null) {
-            return example;
-        }
-        if ("boolean".equalsIgnoreCase(TypeUtils.rawType(type))) {
-            return Boolean.FALSE;
-        }
-        return EMPTY;
+        return example != null ? example : EMPTY;
     }
 
     /**

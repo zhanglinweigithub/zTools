@@ -2,6 +2,7 @@ package com.zhanglinwei.zTools.yapi.utils;
 
 import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
 import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
 import com.zhanglinwei.zTools.common.util.JsonUtil;
 import com.zhanglinwei.zTools.common.util.NestedUtils;
 import com.zhanglinwei.zTools.common.util.StringUtils;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
 import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.SPACE_SLASH_SLASH_SPACE;
 
 /**
  * YApi 侧 JSON 生成工具。基于 annotation 模块的解析结果，
@@ -52,6 +54,10 @@ public final class YApiJson {
         if (parameter == null) {
             return null;
         }
+        String placeholder = placeholderComment(parameter);
+        if (placeholder != null) {
+            return "{}" + SPACE_SLASH_SLASH_SPACE + placeholder;
+        }
         // 先生成 pretty JSON，再按字段顺序把说明贴到对应行
         String pretty = JsonUtil.toJsonString(jsonValue(parameter), true);
         if (StringUtils.isBlank(pretty)) {
@@ -65,13 +71,23 @@ public final class YApiJson {
     }
 
     /**
-     * 生成参数的扁平 JSON 字符串。
+     * void / Reactor / 流无法展开成业务 JSON 时，给出空对象上的说明。
      *
-     * @param parameter 参数定义
-     * @return 单行 JSON；参数为 {@code null} 时返回空串
+     * @param parameter 请求体或返回值
+     * @return 注释文案；普通业务类型则为 {@code null}
      */
-    public static String flatten(ParameterDefinition parameter) {
-        return parameter == null ? EMPTY : JsonUtil.toJsonString(jsonValue(parameter), false);
+    private static String placeholderComment(ParameterDefinition parameter) {
+        String type = parameter.type();
+        if (TypeUtils.isVoid(type)) {
+            return "无返回值";
+        }
+        if (TypeUtils.isReactor(type)) {
+            return "Reactor 类型 " + type + "，非 JSON 业务体";
+        }
+        if (TypeUtils.isStream(parameter.packageName(), type)) {
+            return "流类型 " + TypeUtils.outerType(type) + "，无法以 JSON 展示";
+        }
+        return null;
     }
 
     // ───── 内部方法 ─────
@@ -87,7 +103,7 @@ public final class YApiJson {
             return EMPTY;
         }
         Object value;
-        if (parameter.properties() == null || parameter.properties().isEmpty()) {
+        if (CollectionUtils.isEmpty(parameter.properties())) {
             // 无字段：Map 给空对象，其余用类型默认示例（Long→0, String→""）
             if (TypeUtils.isMap(parameter.type())) {
                 value = new LinkedHashMap<String, Object>();
@@ -110,7 +126,7 @@ public final class YApiJson {
         Object value;
         if (property.cycle()) {
             value = new LinkedHashMap<String, Object>();
-        } else if (property.properties() == null || property.properties().isEmpty()) {
+        } else if (CollectionUtils.isEmpty(property.properties())) {
             if (TypeUtils.isMap(property.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
@@ -155,7 +171,7 @@ public final class YApiJson {
      * @param properties 字段列表
      */
     private static void appendComments(List<String> comments, List<PropertyDefinition> properties) {
-        if (properties == null) {
+        if (CollectionUtils.isEmpty(properties)) {
             return;
         }
         for (int i = 0; i < properties.size(); i++) {

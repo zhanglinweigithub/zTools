@@ -142,7 +142,7 @@
     <!-- icon (only supports AllIcons.*): https://intellij-icons.jetbrains.design/ -->
     <actions>
         <!-- 生成数据库文档 -->
-        <action id="generate-db-doc.ID" icon="/debugger/db_db_object.svg" class="com.zhanglinwei.zTools.dbdoc.GenerateDatabaseDocumentAction" text="Generate DB Doc">
+        <action id="generate-db-doc.ID" class="com.zhanglinwei.zTools.dbdoc.GenerateDatabaseDocumentAction" text="Generate DB Doc">
             <add-to-group group-id="ToolsBasicGroup" anchor="first"/>
         </action>
 
@@ -159,18 +159,18 @@
 
 
         <!-- 拷贝JSON -->
-        <action id="copy-json.ID" icon="/json/object.svg" class="com.zhanglinwei.zTools.copyjson.CopyJsonAction"
+        <action id="copy-json.ID" class="com.zhanglinwei.zTools.copyjson.CopyJsonAction"
                 text="Copy Json">
             <add-to-group group-id="EditorLangPopupMenu" anchor="first"/>
         </action>
 
         <!-- 拷贝CURL -->
-        <action id="copy-curl.ID" icon="/icons/curl.svg" class="com.zhanglinwei.zTools.copycurl.CopyCurlAction" text="Copy CURL">
+        <action id="copy-curl.ID" class="com.zhanglinwei.zTools.copycurl.CopyCurlAction" text="Copy CURL">
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-json.ID"/>
         </action>
 
         <!-- 生成API文档 -->
-        <action id="generate-api-doc.ID" icon="/icons/api.svg" class="com.zhanglinwei.zTools.apidoc.GenerateApiDocAction"
+        <action id="generate-api-doc.ID" class="com.zhanglinwei.zTools.apidoc.GenerateApiDocAction"
                 text="Generate Api Doc">
             <add-to-group group-id="EditorLangPopupMenu" anchor="after" relative-to-action="copy-curl.ID"/>
         </action>

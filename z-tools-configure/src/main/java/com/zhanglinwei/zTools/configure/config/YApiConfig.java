@@ -6,6 +6,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.zhanglinwei.zTools.configure.constants.ZToolsConstant;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
@@ -62,13 +63,14 @@ public final class YApiConfig implements PersistentStateComponent<YApiConfig> {
     }
 
     /**
-     * 服务地址与 Token 都已填写时视为可连接。
+     * 服务地址、Token、项目 ID 都已填写时视为可上传。
      *
      * @return 已配置则为 {@code true}
      */
     public boolean isConfigured() {
-        return serverUrl != null && !serverUrl.trim().isEmpty()
-                && token != null && !token.trim().isEmpty();
+        return StringUtils.isNotBlank(serverUrl)
+                && StringUtils.isNotBlank(token)
+                && StringUtils.isNotBlank(projectId);
     }
 
     /**

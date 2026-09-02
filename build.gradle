@@ -84,7 +84,7 @@ project(':z-tools-common') {
     dependencies {
         // 仅编译期需要；运行时由 IDEA 提供 Freemarker。离线构建若报错，关掉 Gradle Offline 再同步一次
         compileOnly 'org.freemarker:freemarker:2.3.31'
-        testImplementation 'junit:junit:4.13.2'
+//        testImplementation 'junit:junit:4.13.2'
     }
 }
 
@@ -127,6 +127,7 @@ project(':z-tools-yapi') {
     dependencies {
         api project(':z-tools-annotation')
         api project(':z-tools-configure')
+//        testImplementation 'junit:junit:4.13.2'
     }
 }
 

@@ -22,12 +22,15 @@ public final class WebTypes {
             "javax.servlet",
             "jakarta.servlet",
             "org.springframework.ui",
-            "org.springframework.validation"
+            "org.springframework.validation",
+            "org.springframework.web.context.request"
     };
 
     /** 仅凭简单类名即可判定为框架参数的类型 */
     private static final Set<String> SKIP_SIMPLE_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
-            "BindingResult", "Model", "ModelMap", "Principal", "HttpSession"
+            "BindingResult", "Model", "ModelMap", "Principal", "HttpSession",
+            "HttpServletRequest", "HttpServletResponse", "ServletRequest", "ServletResponse",
+            "ServletContext", "WebRequest", "NativeWebRequest", "ServletWebRequest"
     )));
 
     /** 工具类，禁止实例化 */
@@ -45,7 +48,7 @@ public final class WebTypes {
      * </pre>
      *
      * @param packageName 参数类型所在包名，可为 {@code null}
-     * @param type        参数简单类名，可为 {@code null}
+     * @param type        参数类型名（简单名或带包名均可），可为 {@code null}
      * @return 应跳过则为 {@code true}
      */
     public static boolean skipParameter(String packageName, String type) {
@@ -56,6 +59,26 @@ public final class WebTypes {
                 }
             }
         }
-        return type != null && SKIP_SIMPLE_NAMES.contains(type);
+        return type != null && SKIP_SIMPLE_NAMES.contains(simpleName(type));
+    }
+
+    /**
+     * 从类型文本取出简单类名：去掉泛型、数组后缀和包前缀。
+     * 不依赖 {@code TypeUtils}，避免 constant 包反向依赖 util。
+     *
+     * @param type 类型文本
+     * @return 简单类名
+     */
+    private static String simpleName(String type) {
+        String simple = type.trim();
+        int generic = simple.indexOf('<');
+        if (generic > 0) {
+            simple = simple.substring(0, generic);
+        }
+        if (simple.endsWith("[]")) {
+            simple = simple.substring(0, simple.length() - 2);
+        }
+        int dot = simple.lastIndexOf('.');
+        return dot >= 0 ? simple.substring(dot + 1) : simple;
     }
 }
