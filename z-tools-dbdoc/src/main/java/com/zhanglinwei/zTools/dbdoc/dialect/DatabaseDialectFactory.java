@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+
 /**
  * 方言注册表。新增数据库时在 {@link #createDialects()} 中追加即可。
  */
@@ -32,6 +34,6 @@ public final class DatabaseDialectFactory {
     public static String supportedDisplayNames() {
         return DIALECTS.stream()
                 .map(DatabaseDialect::displayName)
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining(COMMA_SPACE));
     }
 }

@@ -16,7 +16,7 @@ import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
 import com.zhanglinwei.zTools.annotation.parse.SourceParser;
 import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
-import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
 import com.zhanglinwei.zTools.common.constant.MediaType;
@@ -38,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 /**
  * 右键上传接口至 YApi 的 Action
@@ -216,7 +219,7 @@ public class UploadToYApiAction extends AnAction {
 
         // 请求路径（全局 × 类级别 × 方法级别）
         MappingAnnotation classMapping = WebAnnotationParser.mapping(classDefinition);
-        String requestPath = RequestPaths.join(
+        String requestPath = RequestPathUtils.join(
                 ProjectConfigs.globalRequestPrefix(project),
                 classMapping == null ? null : classMapping.firstPath(),
                 methodMapping == null ? null : methodMapping.firstPath()
@@ -316,7 +319,7 @@ public class UploadToYApiAction extends AnAction {
         query.setRequired(YApiFields.required(parameter) ? String.valueOf(Boolean.TRUE.getNumberValue()) : String.valueOf(Boolean.FALSE.getNumberValue()));
         query.setDesc(YApiFields.description(parameter));
         Object example = YApiFields.example(parameter);
-        query.setExample(example == null ? "" : String.valueOf(example));
+        query.setExample(example == null ? EMPTY : String.valueOf(example));
         return query;
     }
 
@@ -333,7 +336,7 @@ public class UploadToYApiAction extends AnAction {
         path.setName(YApiFields.name(parameter));
         path.setDesc(YApiFields.description(parameter));
         Object example = YApiFields.example(parameter);
-        path.setExample(example == null ? "" : String.valueOf(example));
+        path.setExample(example == null ? EMPTY : String.valueOf(example));
         return path;
     }
 
@@ -351,8 +354,8 @@ public class UploadToYApiAction extends AnAction {
         header.setRequired(YApiFields.required(parameter) ? String.valueOf(Boolean.TRUE.getNumberValue()) : String.valueOf(Boolean.FALSE.getNumberValue()));
         header.setDesc(YApiFields.description(parameter));
         Object example = YApiFields.example(parameter);
-        header.setExample(example == null ? "" : String.valueOf(example));
-        header.setValue("");
+        header.setExample(example == null ? EMPTY : String.valueOf(example));
+        header.setValue(EMPTY);
         return header;
     }
 
@@ -373,8 +376,8 @@ public class UploadToYApiAction extends AnAction {
         form.setRequired(YApiFields.required(parameter) ? String.valueOf(Boolean.TRUE.getNumberValue()) : String.valueOf(Boolean.FALSE.getNumberValue()));
         form.setDesc(YApiFields.description(parameter));
         // 文件类型不需要示例值
-        Object example = YApiFields.isMultipart(parameter.type()) ? "" : YApiFields.example(parameter);
-        form.setExample(example == null ? "" : String.valueOf(example));
+        Object example = YApiFields.isMultipart(parameter.type()) ? EMPTY : YApiFields.example(parameter);
+        form.setExample(example == null ? EMPTY : String.valueOf(example));
         return form;
     }
 
@@ -464,7 +467,7 @@ public class UploadToYApiAction extends AnAction {
                 // 去重值（保持顺序）
                 Set<String> values = new LinkedHashSet<>();
                 for (YApiHeader h : headers) {
-                    String v = h.getExample() == null ? "" : h.getExample();
+                    String v = h.getExample() == null ? EMPTY : h.getExample();
                     values.add(v);
                 }
                 YApiHeader first = headers.get(0);
@@ -473,9 +476,9 @@ public class UploadToYApiAction extends AnAction {
                     merged.add(first);
                 } else {
                     // 值不同，逗号拼接，描述清空（无法确定单一含义）
-                    first.setExample(String.join(", ", values));
-                    first.setValue(String.join(", ", values));
-                    first.setDesc("");
+                    first.setExample(String.join(COMMA_SPACE, values));
+                    first.setValue(String.join(COMMA_SPACE, values));
+                    first.setDesc(EMPTY);
                     merged.add(first);
                 }
             }

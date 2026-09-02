@@ -10,6 +10,7 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
+import com.zhanglinwei.zTools.common.constant.CharacterPool;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.common.util.TypeUtils;
 
@@ -169,7 +170,7 @@ public final class TypeParser {
         if (StringUtils.isBlank(qualifiedName)) {
             return null;
         }
-        int dot = qualifiedName.lastIndexOf('.');
+        int dot = qualifiedName.lastIndexOf(CharacterPool.DOT);
         return dot < 0 ? null : qualifiedName.substring(0, dot);
     }
 

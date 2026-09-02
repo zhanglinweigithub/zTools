@@ -31,6 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.DOT;
+
 /**
  * 在写操作里往目标类插入内部 {@code Builder}。
  * <p>
@@ -223,7 +226,7 @@ public final class BuilderGenerator implements Runnable {
         if (body != null) {
             String fieldNames = Arrays.stream(builderClass.getAllFields())
                     .map(PsiField::getName)
-                    .collect(Collectors.joining(", "));
+                    .collect(Collectors.joining(COMMA_SPACE));
             String statement = flavor.usesGenerics()
                     ? String.format("return (" + CLASS_GENERIC + ") new %s(%s);", targetClass.getName(), fieldNames)
                     : String.format("return new %s(%s);", targetClass.getName(), fieldNames);

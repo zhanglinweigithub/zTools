@@ -64,6 +64,8 @@ public interface StringPool {
     String TILDA = "~";
     String LEFT_SQ_BRACKET = "[";
     String RIGHT_SQ_BRACKET = "]";
+    String EMPTY_ARRAY = "[]";
+    String EMPTY_OBJECT = "[]";
     String TRUE = "true";
     String UNDERSCORE = "_";
     String UTF_8 = "UTF-8";

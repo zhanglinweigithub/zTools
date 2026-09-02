@@ -7,7 +7,7 @@ import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.model.ParameterDefinition;
 import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
 import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
-import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
 import com.zhanglinwei.zTools.common.constant.MediaType;
@@ -69,7 +69,7 @@ public class ApiInfo {
         public ApiBaseInfo(ClassDefinition type, MethodDefinition method, String description) {
             MappingAnnotation classMapping = WebAnnotationParser.mapping(type);
             MappingAnnotation methodMapping = WebAnnotationParser.mapping(method);
-            List<String> paths = RequestPaths.combine(
+            List<String> paths = RequestPathUtils.combine(
                     classMapping == null ? null : classMapping.paths(),
                     methodMapping == null ? null : methodMapping.paths()
             );

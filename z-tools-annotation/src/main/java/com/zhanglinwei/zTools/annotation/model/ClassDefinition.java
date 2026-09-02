@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+
 import java.util.List;
 
 /**
@@ -20,9 +22,9 @@ public final class ClassDefinition {
         this.name = name;
         this.qualifiedName = qualifiedName;
         this.packageName = packageName;
-        this.annotations = Lists.copy(annotations);
+        this.annotations = CollectionUtils.unmodifiableList(annotations);
         this.comment = comment;
-        this.methods = Lists.copy(methods);
+        this.methods = CollectionUtils.unmodifiableList(methods);
     }
 
     public String name() {

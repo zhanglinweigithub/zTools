@@ -11,7 +11,7 @@ import com.intellij.psi.stubs.StubIndex;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.parse.AnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
-import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.model.IRestful;
@@ -80,7 +80,7 @@ public class SpringRestfulResolver extends AbstractRestfulResolver {
             return Collections.emptyList();
         }
 
-        List<String> paths = RequestPaths.combine(
+        List<String> paths = RequestPathUtils.combine(
                 classMapping == null ? null : classMapping.paths(),
                 methodMapping.paths()
         );

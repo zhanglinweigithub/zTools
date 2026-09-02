@@ -6,6 +6,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.zhanglinwei.zTools.annotation.model.CommentDefinition;
+import com.zhanglinwei.zTools.common.constant.StringPool;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.Collections;
@@ -93,7 +94,7 @@ public final class Comments {
         if (cleaned == null) {
             return null;
         }
-        cleaned = cleaned.replaceFirst(stripPrefix, "");
+        cleaned = cleaned.replaceFirst(stripPrefix, StringPool.EMPTY);
         return StringUtils.isBlank(cleaned) ? null : cleaned;
     }
 
@@ -101,13 +102,13 @@ public final class Comments {
         if (raw == null) {
             return null;
         }
-        String text = raw.replace("*", " ")
-                .replace("/", " ")
-                .replace("<br>", " ")
-                .replace("<br/>", " ")
-                .replace("<p>", " ")
-                .replace("</p>", " ")
-                .replaceAll("\\s+", " ")
+        String text = raw.replace(StringPool.STAR, StringPool.SPACE)
+                .replace(StringPool.SLASH, StringPool.SPACE)
+                .replace("<br>", StringPool.SPACE)
+                .replace("<br/>", StringPool.SPACE)
+                .replace("<p>", StringPool.SPACE)
+                .replace("</p>", StringPool.SPACE)
+                .replaceAll("\\s+", StringPool.SPACE)
                 .trim();
         return StringUtils.isBlank(text) ? null : text;
     }

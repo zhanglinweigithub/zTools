@@ -23,6 +23,8 @@ import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.List;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+
 /**
  * 文档侧补全。只读源码写出的注解属性，不补注解 default。
  *
@@ -255,7 +257,7 @@ public final class ApiFields {
     /** 参数示例：OpenAPI {@code example} → Swagger {@code example} → Spring {@code defaultValue} → 类型默认值。 */
     public static Object example(ParameterDefinition parameter) {
         if (parameter == null) {
-            return "";
+            return EMPTY;
         }
         DocParameterAnnotation oas = SwaggerAnnotationParser.parameter(parameter);
         SchemaAnnotation schema = SwaggerAnnotationParser.schema(parameter.annotations());
@@ -277,7 +279,7 @@ public final class ApiFields {
     /** 字段示例：OpenAPI {@code example} → Swagger {@code example} → 类型默认值。 */
     public static Object example(PropertyDefinition property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
         SchemaAnnotation schema = SwaggerAnnotationParser.schema(property);
         DocParameterAnnotation oas = SwaggerAnnotationParser.parameter(property);
@@ -377,7 +379,7 @@ public final class ApiFields {
         if ("boolean".equalsIgnoreCase(TypeUtils.rawType(type))) {
             return Boolean.FALSE;
         }
-        return "";
+        return EMPTY;
     }
 
     private static String swaggerApiValue(List<AnnotationDefinition> annotations) {

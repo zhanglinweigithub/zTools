@@ -17,6 +17,7 @@ import com.intellij.psi.PsiType;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.model.AttributeDefinition;
 import com.zhanglinwei.zTools.annotation.lookup.Attr;
+import com.zhanglinwei.zTools.common.constant.CharacterPool;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 
 import java.util.ArrayList;
@@ -144,7 +145,7 @@ public final class AnnotationParser {
 
     private static String simpleName(PsiAnnotation annotation, String qualifiedName) {
         if (qualifiedName != null) {
-            int dot = qualifiedName.lastIndexOf('.');
+            int dot = qualifiedName.lastIndexOf(CharacterPool.DOT);
             return dot < 0 ? qualifiedName : qualifiedName.substring(dot + 1);
         }
         PsiJavaCodeReferenceElement reference = annotation.getNameReferenceElement();
@@ -153,7 +154,7 @@ public final class AnnotationParser {
 
     private static String unquote(String text) {
         String trimmed = text.trim();
-        if (trimmed.length() >= 2 && trimmed.charAt(0) == '"' && trimmed.charAt(trimmed.length() - 1) == '"') {
+        if (trimmed.length() >= 2 && trimmed.charAt(0) == CharacterPool.QUOTE && trimmed.charAt(trimmed.length() - 1) == CharacterPool.QUOTE) {
             return trimmed.substring(1, trimmed.length() - 1);
         }
         return trimmed;

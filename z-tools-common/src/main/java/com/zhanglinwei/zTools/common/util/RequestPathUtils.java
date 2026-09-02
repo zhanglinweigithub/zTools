@@ -1,4 +1,7 @@
-package com.zhanglinwei.zTools.annotation.web;
+package com.zhanglinwei.zTools.common.util;
+
+import com.zhanglinwei.zTools.common.constant.CharacterPool;
+import com.zhanglinwei.zTools.common.constant.StringPool;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,9 +12,9 @@ import java.util.List;
  * 补前导 {@code /}、去掉多余尾 {@code /}、空 path 视为根 {@code /}。
  * 类 path 作为前缀，与方法 path 做笛卡尔积。
  */
-public final class RequestPaths {
+public final class RequestPathUtils {
 
-    private RequestPaths() {}
+    private RequestPathUtils() {}
 
     /**
      * 类级别 path × 方法级别 path。任一侧为 {@code null} 或空列表时，当作 {@code [""]}（即根路径）。
@@ -40,9 +43,9 @@ public final class RequestPaths {
         List<String> prefixes = emptyToRoot(typeLevel);
         List<String> suffixes = emptyToRoot(methodLevel);
         List<String> combined = new ArrayList<String>(prefixes.size() * suffixes.size());
-        for (int i = 0; i < prefixes.size(); i++) {
-            for (int j = 0; j < suffixes.size(); j++) {
-                combined.add(join(prefixes.get(i), suffixes.get(j)));
+        for (String prefix : prefixes) {
+            for (String suffix : suffixes) {
+                combined.add(join(prefix, suffix));
             }
         }
         return combined;
@@ -81,29 +84,29 @@ public final class RequestPaths {
                 append(builder, segment);
             }
         }
-        return builder.length() == 0 ? "/" : builder.toString();
+        return builder.length() == 0 ? StringPool.SLASH : builder.toString();
     }
 
     /** 把一段 path 接到已有结果后面。 */
     private static void append(StringBuilder builder, String segment) {
         String normalized = normalize(segment);
-        if (normalized.isEmpty() || "/".equals(normalized)) {
+        if (normalized.isEmpty() || StringPool.SLASH.equals(normalized)) {
             if (builder.length() == 0) {
-                builder.append("/");
+                builder.append(StringPool.SLASH);
             }
             return;
         }
-        if (builder.length() == 0 || "/".equals(builder.toString())) {
+        if (builder.length() == 0 || StringPool.SLASH.equals(builder.toString())) {
             builder.setLength(0);
             builder.append(normalized);
             return;
         }
-        if (builder.charAt(builder.length() - 1) == '/') {
-            builder.append(normalized.startsWith("/") ? normalized.substring(1) : normalized);
-        } else if (normalized.startsWith("/")) {
+        if (builder.charAt(builder.length() - 1) == CharacterPool.SLASH) {
+            builder.append(normalized.startsWith(StringPool.SLASH) ? normalized.substring(1) : normalized);
+        } else if (normalized.startsWith(StringPool.SLASH)) {
             builder.append(normalized);
         } else {
-            builder.append('/').append(normalized);
+            builder.append(CharacterPool.SLASH).append(normalized);
         }
     }
 
@@ -119,16 +122,16 @@ public final class RequestPaths {
      */
     private static String normalize(String path) {
         if (path == null) {
-            return "";
+            return StringPool.EMPTY;
         }
         String trimmed = path.trim();
         if (trimmed.isEmpty()) {
-            return "";
+            return StringPool.EMPTY;
         }
-        if (!trimmed.startsWith("/")) {
-            trimmed = "/" + trimmed;
+        if (!trimmed.startsWith(StringPool.SLASH)) {
+            trimmed = StringPool.SLASH + trimmed;
         }
-        while (trimmed.length() > 1 && trimmed.endsWith("/")) {
+        while (trimmed.length() > 1 && trimmed.endsWith(StringPool.SLASH)) {
             trimmed = trimmed.substring(0, trimmed.length() - 1);
         }
         return trimmed;
@@ -137,7 +140,7 @@ public final class RequestPaths {
     /** {@code null} 或空列表视为只含根路径的单元素列表，便于和另一侧做笛卡尔积。 */
     private static List<String> emptyToRoot(List<String> paths) {
         return paths == null || paths.isEmpty()
-                ? Collections.singletonList("")
+                ? Collections.singletonList(StringPool.EMPTY)
                 : paths;
     }
 }

@@ -10,12 +10,10 @@ import com.zhanglinwei.zTools.annotation.swagger.DocParameterAnnotation;
 import com.zhanglinwei.zTools.annotation.swagger.SchemaAnnotation;
 import com.zhanglinwei.zTools.annotation.swagger.SwaggerAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.MappingAnnotation;
-import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.common.constant.*;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.annotation.web.WebAnnotationParser;
 import com.zhanglinwei.zTools.annotation.web.WebParameterAnnotation;
-import com.zhanglinwei.zTools.common.constant.MediaType;
-import com.zhanglinwei.zTools.common.constant.NormalType;
-import com.zhanglinwei.zTools.common.constant.WebTypes;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
 import com.zhanglinwei.zTools.common.util.JsonUtil;
@@ -29,6 +27,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 /**
  * 根据类 / 方法定义生成 curl。注解未写的属性在本模块内给可执行的缺省：动词 GET、端口 80、示例走类型默认值。
@@ -64,14 +65,14 @@ public final class CurlGenerator {
 
     private static String url(MappingAnnotation classMapping, MappingAnnotation methodMapping,
                               MethodDefinition method, Project project) {
-        List<String> paths = RequestPaths.combine(
+        List<String> paths = RequestPathUtils.combine(
                 classMapping == null ? null : classMapping.paths(),
                 methodMapping == null ? null : methodMapping.paths()
         );
         String path = fillPath(paths.get(0), method);
         String port = resolvePort(project);
         return "http://127.0.0.1:" + port
-                + RequestPaths.join(ProjectConfigs.globalRequestPrefix(project), path)
+                + RequestPathUtils.join(ProjectConfigs.globalRequestPrefix(project), path)
                 + queryString(method);
     }
 
@@ -87,7 +88,7 @@ public final class CurlGenerator {
             if (StringUtils.isBlank(name)) {
                 continue;
             }
-            filled = filled.replace("{" + name + "}", scalar(parameter));
+            filled = filled.replace(StringPool.LEFT_BRACE + name + StringPool.RIGHT_BRACE, scalar(parameter));
         }
         return filled;
     }
@@ -95,22 +96,21 @@ public final class CurlGenerator {
     private static String queryString(MethodDefinition method) {
         List<ParameterDefinition> query = new ArrayList<ParameterDefinition>();
         List<ParameterDefinition> parameters = method.parameters();
-        for (int i = 0; i < parameters.size(); i++) {
-            ParameterDefinition parameter = parameters.get(i);
+        for (ParameterDefinition parameter : parameters) {
             if (kind(parameter) == WebParameterAnnotation.Kind.QUERY && !skip(parameter)) {
                 query.add(parameter);
             }
         }
         if (query.isEmpty()) {
-            return "";
+            return EMPTY;
         }
-        StringBuilder builder = new StringBuilder("?");
+        StringBuilder builder = new StringBuilder(StringPool.QUESTION_MARK);
         for (int i = 0; i < query.size(); i++) {
             if (i > 0) {
-                builder.append('&');
+                builder.append(CharacterPool.AMPERSAND);
             }
             ParameterDefinition parameter = query.get(i);
-            builder.append(parameterName(parameter)).append('=').append(scalar(parameter));
+            builder.append(parameterName(parameter)).append(CharacterPool.EQUALS).append(scalar(parameter));
         }
         return builder.toString();
     }
@@ -144,7 +144,7 @@ public final class CurlGenerator {
         StringBuilder accept = new StringBuilder();
         for (int i = 0; i < produces.size(); i++) {
             if (i > 0) {
-                accept.append(", ");
+                accept.append(COMMA_SPACE);
             }
             accept.append(mediaType(produces.get(i)));
         }
@@ -205,8 +205,7 @@ public final class CurlGenerator {
 
     private static ParameterDefinition bodyParameter(MethodDefinition method) {
         List<ParameterDefinition> parameters = method.parameters();
-        for (int i = 0; i < parameters.size(); i++) {
-            ParameterDefinition parameter = parameters.get(i);
+        for (ParameterDefinition parameter : parameters) {
             if (kind(parameter) == WebParameterAnnotation.Kind.BODY && !skip(parameter)) {
                 return parameter;
             }
@@ -216,8 +215,8 @@ public final class CurlGenerator {
 
     private static boolean hasForm(MethodDefinition method) {
         List<ParameterDefinition> parameters = method.parameters();
-        for (int i = 0; i < parameters.size(); i++) {
-            if (kind(parameters.get(i)) == WebParameterAnnotation.Kind.PART && !skip(parameters.get(i))) {
+        for (ParameterDefinition parameter : parameters) {
+            if (kind(parameter) == WebParameterAnnotation.Kind.PART && !skip(parameter)) {
                 return true;
             }
         }
@@ -294,8 +293,7 @@ public final class CurlGenerator {
 
     private static Map<String, Object> jsonObject(List<PropertyDefinition> properties) {
         Map<String, Object> map = new LinkedHashMap<String, Object>();
-        for (int i = 0; i < properties.size(); i++) {
-            PropertyDefinition property = properties.get(i);
+        for (PropertyDefinition property : properties) {
             map.put(property.name(), jsonValue(property));
         }
         return map;
@@ -357,7 +355,7 @@ public final class CurlGenerator {
         if ("boolean".equalsIgnoreCase(raw)) {
             return Boolean.FALSE;
         }
-        return "";
+        return EMPTY;
     }
 
     private static String mediaType(String raw) {

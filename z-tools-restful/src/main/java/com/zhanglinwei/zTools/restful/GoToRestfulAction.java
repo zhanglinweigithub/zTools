@@ -13,7 +13,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
-import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameFilter;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameModel;
 import com.zhanglinwei.zTools.restful.model.IRestful;
@@ -93,7 +93,7 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
                 }
 
                 restfulList.forEach(restful -> {
-                    String fullPath = RequestPaths.join(requestPrefix, restful.getName());
+                    String fullPath = RequestPathUtils.join(requestPrefix, restful.getName());
                     restful.setName(fullPath);
                     restful.setRequestPath(fullPath);
                 });

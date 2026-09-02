@@ -12,12 +12,14 @@ import com.zhanglinwei.zTools.configure.enums.JasyptOutputType;
 import com.zhanglinwei.zTools.configure.enums.JasyptSalt;
 import org.jetbrains.annotations.NotNull;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+
 @Service(value = Service.Level.PROJECT)
 @State(name = "JasyptCryptoConfig", storages = {@Storage(ZToolsConstant.STORAGE_FILE)})
 public final class JasyptCryptoConfig implements PersistentStateComponent<JasyptCryptoConfig> {
 
     /** Jasypt 加密密码，多个密码以 ; 分隔 */
-    private String password = "";
+    private String password = EMPTY;
 
     /** Jasypt PBE 加密算法 */
     private String cryptoAlgorithm = ZToolsConstant.DEFAULT_PBE_ALGORITHM;
@@ -110,7 +112,7 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
      */
     public String getEncSuffix() {
         int idx = encWrapper.indexOf("%s");
-        return idx >= 0 ? encWrapper.substring(idx + 2) : "";
+        return idx >= 0 ? encWrapper.substring(idx + 2) : EMPTY;
     }
 
     @Override

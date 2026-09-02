@@ -2,6 +2,7 @@ package com.zhanglinwei.zTools.apidoc.enums;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.FALSE;
 import static com.zhanglinwei.zTools.common.constant.StringPool.ONE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.QUOTE;
 import static com.zhanglinwei.zTools.common.constant.StringPool.SINGLE_QUOTE;
 import static com.zhanglinwei.zTools.common.constant.StringPool.TRUE;
 import static com.zhanglinwei.zTools.common.constant.StringPool.ZERO;
@@ -26,7 +27,7 @@ public enum JsonValueKind {
      */
     public static JsonValueKind of(String value) {
         String trimmed = value.trim();
-        if (trimmed.startsWith("\"") || trimmed.startsWith(SINGLE_QUOTE)
+        if (trimmed.startsWith(QUOTE) || trimmed.startsWith(SINGLE_QUOTE)
                 || trimmed.startsWith(TRUE) || trimmed.startsWith(FALSE)) {
             return STRING_OR_BOOLEAN;
         }

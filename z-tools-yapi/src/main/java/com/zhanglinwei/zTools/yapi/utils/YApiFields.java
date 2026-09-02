@@ -16,6 +16,8 @@ import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.List;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+
 /**
  * YApi 侧字段解析工具。基于 annotation 模块的解析结果，
  * 统一解析参数/字段的名称、说明、必填、示例、类型。
@@ -29,8 +31,6 @@ public final class YApiFields {
     private static final String NOT_REQUIRED_MODE = "NOT_REQUIRED";
 
     private YApiFields() {}
-
-    // ───── 类/方法标题与描述 ─────
 
     /** 方法标题：@Operation(summary) → @ApiOperation(value) → 注释 → 方法名 */
     public static String titleOf(MethodDefinition method) {
@@ -63,8 +63,6 @@ public final class YApiFields {
         );
     }
 
-    // ───── 参数种类 ─────
-
     /** 参数种类：Spring 绑定注解优先；否则 multipart → PART，其余 → QUERY */
     public static WebParameterAnnotation.Kind kind(ParameterDefinition parameter) {
         WebParameterAnnotation binding = WebAnnotationParser.parameter(parameter);
@@ -90,8 +88,6 @@ public final class YApiFields {
         return WebTypes.skipParameter(parameter.packageName(), parameter.type());
     }
 
-    // ───── 名称 ─────
-
     /** 参数名：Spring 绑定 name/value → 源码名 */
     public static String name(ParameterDefinition parameter) {
         if (parameter == null) {
@@ -115,8 +111,6 @@ public final class YApiFields {
                 property.name()
         );
     }
-
-    // ───── 说明 ─────
 
     /** 参数说明：OpenAPI @Parameter/@Schema → Swagger @ApiParam → 注释 */
     public static String description(ParameterDefinition parameter) {
@@ -152,8 +146,6 @@ public final class YApiFields {
         );
     }
 
-    // ───── 必填 ─────
-
     /** 参数必填：OpenAPI / Swagger / Spring / 校验任一标明必填即为必填 */
     public static boolean required(ParameterDefinition parameter) {
         if (parameter == null) {
@@ -186,12 +178,10 @@ public final class YApiFields {
                 || validated(property.annotations());
     }
 
-    // ───── 示例 ─────
-
     /** 参数示例：OpenAPI example → Swagger example → Spring defaultValue → 类型默认值 */
     public static Object example(ParameterDefinition parameter) {
         if (parameter == null) {
-            return "";
+            return EMPTY;
         }
         DocParameterAnnotation oas = SwaggerAnnotationParser.parameter(parameter);
         SchemaAnnotation schema = SwaggerAnnotationParser.schema(parameter.annotations());
@@ -213,7 +203,7 @@ public final class YApiFields {
     /** 字段示例：OpenAPI example → Swagger example → 类型默认值 */
     public static Object example(PropertyDefinition property) {
         if (property == null) {
-            return "";
+            return EMPTY;
         }
         SchemaAnnotation schema = SwaggerAnnotationParser.schema(property);
         DocParameterAnnotation oas = SwaggerAnnotationParser.parameter(property);
@@ -230,8 +220,6 @@ public final class YApiFields {
         return typeExample(property.type());
     }
 
-    // ───── 类型判断 ─────
-
     public static boolean isMultipart(String type) {
         return TypeUtils.isMultipart(type);
     }
@@ -239,8 +227,6 @@ public final class YApiFields {
     public static boolean isMap(String type) {
         return TypeUtils.isMap(type);
     }
-
-    // ───── 内部方法 ─────
 
     private static String first(String... values) {
         if (values == null) {
@@ -308,7 +294,7 @@ public final class YApiFields {
         if ("boolean".equalsIgnoreCase(TypeUtils.rawType(type))) {
             return Boolean.FALSE;
         }
-        return "";
+        return EMPTY;
     }
 
     private static String commentText(CommentDefinition comment) {

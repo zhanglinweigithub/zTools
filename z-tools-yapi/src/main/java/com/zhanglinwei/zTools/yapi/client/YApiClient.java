@@ -6,6 +6,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.intellij.util.io.HttpRequests;
+import com.zhanglinwei.zTools.common.constant.MediaType;
+import com.zhanglinwei.zTools.common.constant.WebTypes;
 import com.zhanglinwei.zTools.yapi.model.*;
 
 import java.io.IOException;
@@ -13,6 +15,8 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+
+import static com.zhanglinwei.zTools.common.constant.StringPool.SLASH;
 
 /**
  * YApi HTTP 客户端，封装所有 YApi API 调用
@@ -100,7 +104,7 @@ public class YApiClient {
      * 构建 YApi API URL
      */
     private static String buildUrl(String serverUrl, String path, String token) {
-        String base = serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
+        String base = serverUrl.endsWith(SLASH) ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
         return base + path + "?token=" + token;
     }
 
@@ -117,9 +121,9 @@ public class YApiClient {
      * HTTP POST 请求（JSON body）
      */
     private static String httpPost(String url, String jsonBody) throws IOException {
-        return HttpRequests.post(url, "application/json")
+        return HttpRequests.post(url, MediaType.APPLICATION_JSON_VALUE())
                 .tuner(connection -> {
-                    connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                    connection.setRequestProperty(WebTypes.CONTENT_TYPE, "application/json; charset=UTF-8");
                     connection.setDoOutput(true);
                 })
                 .connect(request -> {

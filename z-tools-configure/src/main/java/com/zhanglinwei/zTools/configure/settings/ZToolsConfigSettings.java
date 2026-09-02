@@ -39,6 +39,9 @@ import java.awt.event.ActionEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.SLASH;
+
 /**
  * 插件设置页：文档、敏感数据、YApi 各自一个 Tab。
  */
@@ -243,7 +246,7 @@ public class ZToolsConfigSettings implements Configurable {
     }
 
     private static String lookupYApiProjectId(String serverUrl, String token) throws Exception {
-        String base = serverUrl.endsWith("/") ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
+        String base = serverUrl.endsWith(SLASH) ? serverUrl.substring(0, serverUrl.length() - 1) : serverUrl;
         String response = HttpRequests.request(base + "/api/project/get?token=" + token)
                 .tuner(connection -> connection.setRequestProperty("Accept", "application/json"))
                 .readString();
@@ -328,6 +331,6 @@ public class ZToolsConfigSettings implements Configurable {
     }
 
     private static boolean equalsField(JTextField field, String value) {
-        return field.getText().trim().equals(value != null ? value : "");
+        return field.getText().trim().equals(value != null ? value : EMPTY);
     }
 }

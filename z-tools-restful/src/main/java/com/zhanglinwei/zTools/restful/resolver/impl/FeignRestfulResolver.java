@@ -10,7 +10,7 @@ import com.intellij.psi.stubs.StubIndex;
 import com.zhanglinwei.zTools.annotation.feign.FeignAnnotationParser;
 import com.zhanglinwei.zTools.annotation.feign.RequestLineAnnotation;
 import com.zhanglinwei.zTools.annotation.parse.AnnotationParser;
-import com.zhanglinwei.zTools.annotation.web.RequestPaths;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import com.zhanglinwei.zTools.restful.resolver.AbstractRestfulResolver;
@@ -60,6 +60,6 @@ public class FeignRestfulResolver extends AbstractRestfulResolver {
         if (httpMethod == null) {
             httpMethod = HttpMethod.NONE;
         }
-        return new IRestful(method, RequestPaths.join(requestLine.path()), httpMethod);
+        return new IRestful(method, RequestPathUtils.join(requestLine.path()), httpMethod);
     }
 }

@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.SEMICOLON;
+
 public class JasyptUtils {
 
     /**
@@ -22,7 +24,7 @@ public class JasyptUtils {
         if (StringUtils.isBlank(password)) {
             return new String[0];
         }
-        String[] raw = password.split(";");
+        String[] raw = password.split(SEMICOLON);
         java.util.List<String> list = new java.util.ArrayList<>();
         for (String pwd : raw) {
             if (StringUtils.isNotBlank(pwd)) {

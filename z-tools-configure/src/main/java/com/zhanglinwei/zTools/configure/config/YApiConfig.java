@@ -8,15 +8,17 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.zhanglinwei.zTools.configure.constants.ZToolsConstant;
 import org.jetbrains.annotations.NotNull;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+
 /**
  * YApi 连接配置（项目级持久化）。
  */
 @State(name = "YApiConfig", storages = {@Storage(ZToolsConstant.STORAGE_FILE)})
 public final class YApiConfig implements PersistentStateComponent<YApiConfig> {
 
-    public String serverUrl = "";
-    public String token = "";
-    public String projectId = "";
+    public String serverUrl = EMPTY;
+    public String token = EMPTY;
+    public String projectId = EMPTY;
 
     public YApiConfig() {
     }

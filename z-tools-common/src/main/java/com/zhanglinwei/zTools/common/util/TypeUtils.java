@@ -5,12 +5,17 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiUtil;
+import com.zhanglinwei.zTools.common.constant.CharacterPool;
 import com.zhanglinwei.zTools.common.constant.NormalType;
+import com.zhanglinwei.zTools.common.constant.StringPool;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA;
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 
 public final class TypeUtils {
 
@@ -145,7 +150,7 @@ public final class TypeUtils {
             return false;
         }
         String text = type.trim();
-        if (text.endsWith("[]")) {
+        if (text.endsWith(StringPool.EMPTY_ARRAY)) {
             return true;
         }
         return isCollectionFamily(outerType(text));
@@ -157,14 +162,14 @@ public final class TypeUtils {
         }
         int depth = 0;
         String text = type.trim();
-        while (text.endsWith("[]")) {
+        while (text.endsWith(StringPool.EMPTY_ARRAY)) {
             depth++;
             text = text.substring(0, text.length() - 2).trim();
         }
         while (isCollectionFamily(outerType(text))) {
             depth++;
             String inner = innerGeneric(text);
-            if (inner == null || inner.contains(",")) {
+            if (inner == null || inner.contains(COMMA)) {
                 break;
             }
             text = inner;
@@ -174,35 +179,35 @@ public final class TypeUtils {
 
     public static String rawType(String type) {
         if (type == null) {
-            return "";
+            return EMPTY;
         }
         String text = type.trim();
-        if (text.endsWith("[]")) {
+        if (text.endsWith(StringPool.EMPTY_ARRAY)) {
             text = text.substring(0, text.length() - 2);
         }
         String inner = innerGeneric(text);
-        if (inner != null && !inner.contains(",")) {
+        if (inner != null && !inner.contains(COMMA)) {
             text = inner;
         } else {
             text = outerType(text);
         }
-        int dot = text.lastIndexOf('.');
+        int dot = text.lastIndexOf(CharacterPool.DOT);
         return dot < 0 ? text : text.substring(dot + 1);
     }
 
     public static String outerType(String type) {
         if (type == null) {
-            return "";
+            return EMPTY;
         }
         String text = type.trim();
-        int generic = text.indexOf('<');
+        int generic = text.indexOf(CharacterPool.LEFT_CHEV);
         if (generic > 0) {
             text = text.substring(0, generic);
         }
-        if (text.endsWith("[]")) {
+        if (text.endsWith(StringPool.EMPTY_ARRAY)) {
             text = text.substring(0, text.length() - 2);
         }
-        int dot = text.lastIndexOf('.');
+        int dot = text.lastIndexOf(CharacterPool.DOT);
         return dot < 0 ? text : text.substring(dot + 1);
     }
 
@@ -214,8 +219,8 @@ public final class TypeUtils {
         if (type == null) {
             return null;
         }
-        int start = type.indexOf('<');
-        if (start < 0 || !type.endsWith(">")) {
+        int start = type.indexOf(CharacterPool.LEFT_CHEV);
+        if (start < 0 || !type.endsWith(StringPool.RIGHT_CHEV)) {
             return null;
         }
         return type.substring(start + 1, type.length() - 1).trim();

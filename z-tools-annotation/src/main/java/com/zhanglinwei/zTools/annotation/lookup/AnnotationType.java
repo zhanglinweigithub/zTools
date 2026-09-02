@@ -2,6 +2,7 @@ package com.zhanglinwei.zTools.annotation.lookup;
 
 import com.intellij.psi.PsiAnnotation;
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
+import com.zhanglinwei.zTools.common.constant.CharacterPool;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,7 +20,7 @@ public final class AnnotationType {
     private AnnotationType(String... qualifiedNames) {
         this.qualifiedNames = Collections.unmodifiableList(Arrays.asList(qualifiedNames));
         String first = qualifiedNames[0];
-        int lastDot = first.lastIndexOf('.');
+        int lastDot = first.lastIndexOf(CharacterPool.DOT);
         this.shortName = lastDot < 0 ? first : first.substring(lastDot + 1);
     }
 

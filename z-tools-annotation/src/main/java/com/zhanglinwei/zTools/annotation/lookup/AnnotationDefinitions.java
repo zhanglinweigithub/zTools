@@ -2,6 +2,7 @@ package com.zhanglinwei.zTools.annotation.lookup;
 
 import com.zhanglinwei.zTools.annotation.model.AnnotationDefinition;
 import com.zhanglinwei.zTools.annotation.model.AttributeDefinition;
+import com.zhanglinwei.zTools.common.constant.StringPool;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +20,7 @@ public final class AnnotationDefinitions {
         if (annotations == null || type == null) {
             return Optional.empty();
         }
-        for (int i = 0; i < annotations.size(); i++) {
-            AnnotationDefinition annotation = annotations.get(i);
+        for (AnnotationDefinition annotation : annotations) {
             if (type.matches(annotation)) {
                 return Optional.of(annotation);
             }
@@ -32,8 +32,8 @@ public final class AnnotationDefinitions {
         if (types == null) {
             return Optional.empty();
         }
-        for (int i = 0; i < types.length; i++) {
-            Optional<AnnotationDefinition> found = find(annotations, types[i]);
+        for (AnnotationType type : types) {
+            Optional<AnnotationDefinition> found = find(annotations, type);
             if (found.isPresent()) {
                 return found;
             }
@@ -64,10 +64,10 @@ public final class AnnotationDefinitions {
     /** 布尔属性；未写或无法识别则为 {@code null}。 */
     public static Boolean bool(AnnotationDefinition annotation, String name) {
         String value = string(annotation, name);
-        if ("true".equalsIgnoreCase(value)) {
+        if (StringPool.TRUE.equalsIgnoreCase(value)) {
             return Boolean.TRUE;
         }
-        if ("false".equalsIgnoreCase(value)) {
+        if (StringPool.FALSE.equalsIgnoreCase(value)) {
             return Boolean.FALSE;
         }
         return null;
@@ -111,10 +111,8 @@ public final class AnnotationDefinitions {
             return null;
         }
         List<AttributeDefinition> attributes = annotation.attributes();
-        for (int i = 0; i < names.length; i++) {
-            String name = names[i];
-            for (int j = 0; j < attributes.size(); j++) {
-                AttributeDefinition attribute = attributes.get(j);
+        for (String name : names) {
+            for (AttributeDefinition attribute : attributes) {
                 if (name.equals(attribute.name())) {
                     return attribute;
                 }

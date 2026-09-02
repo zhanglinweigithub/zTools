@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+
 import java.util.List;
 
 /**
@@ -13,8 +15,8 @@ public final class AttributeDefinition {
 
     public AttributeDefinition(String name, List<String> values, List<AnnotationDefinition> annotations) {
         this.name = name;
-        this.values = Lists.copy(values);
-        this.annotations = Lists.copy(annotations);
+        this.values = CollectionUtils.unmodifiableList(values);
+        this.annotations = CollectionUtils.unmodifiableList(annotations);
     }
 
     /** 属性名；简写 {@code @GetMapping("/x")} 对应 {@code value}。 */

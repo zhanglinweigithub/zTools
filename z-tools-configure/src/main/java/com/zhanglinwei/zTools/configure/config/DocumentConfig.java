@@ -16,12 +16,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
+import static com.zhanglinwei.zTools.common.constant.StringPool.SEMICOLON;
+import static com.zhanglinwei.zTools.common.constant.StringPool.SLASH;
+
 @Service(value = Service.Level.PROJECT)
 @State(name = "DocumentConfig", storages = {@Storage(ZToolsConstant.STORAGE_FILE)})
 public final class DocumentConfig implements PersistentStateComponent<DocumentConfig> {
 
     private boolean overwriteDoc = true;
-    private String saveDir = "";
+    private String saveDir = EMPTY;
     private String docType = "MarkDown";
 
     private ApiDocConfig apiDocConfig = new ApiDocConfig();
@@ -71,8 +75,8 @@ public final class DocumentConfig implements PersistentStateComponent<DocumentCo
     }
 
     public void setSaveDir(String saveDir) {
-        if (StringUtils.isNotBlank(saveDir) && !saveDir.endsWith("/")) {
-            this.saveDir = saveDir + "/";
+        if (StringUtils.isNotBlank(saveDir) && !saveDir.endsWith(SLASH)) {
+            this.saveDir = saveDir + SLASH;
             return;
         }
         this.saveDir = saveDir;
@@ -114,7 +118,7 @@ public final class DocumentConfig implements PersistentStateComponent<DocumentCo
         public void setExcludeFields(String excludeFields) {
             this.excludeFields = excludeFields;
             if (StringUtils.isNotBlank(excludeFields)) {
-                String[] splitField = excludeFields.split(";");
+                String[] splitField = excludeFields.split(SEMICOLON);
                 setExcludeFieldList(Arrays.stream(splitField).collect(Collectors.toSet()));
             }
         }

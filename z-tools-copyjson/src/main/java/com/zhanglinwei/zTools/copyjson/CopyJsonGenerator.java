@@ -57,7 +57,7 @@ public final class CopyJsonGenerator {
             value = new LinkedHashMap<String, Object>();
         } else if (CollectionUtils.isEmpty(property.properties())) {
             Object example = NormalType.get(TypeUtils.rawType(property.type()));
-            value = example == null ? "" : example;
+            value = example == null ? EMPTY : example;
         } else {
             value = jsonObject(property.properties());
         }

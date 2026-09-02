@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
+
 import java.util.List;
 
 /**
@@ -14,7 +16,7 @@ public final class AnnotationDefinition {
     public AnnotationDefinition(String name, String qualifiedName, List<AttributeDefinition> attributes) {
         this.name = name;
         this.qualifiedName = qualifiedName;
-        this.attributes = Lists.copy(attributes);
+        this.attributes = CollectionUtils.unmodifiableList(attributes);
     }
 
     /** 简单名，如 {@code GetMapping}。 */
