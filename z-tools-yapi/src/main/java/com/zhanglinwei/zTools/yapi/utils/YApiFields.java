@@ -1,5 +1,7 @@
 package com.zhanglinwei.zTools.yapi.utils;
 
+import com.zhanglinwei.zTools.annotation.lookup.AnnotationLookup;
+import com.zhanglinwei.zTools.annotation.lookup.Attr;
 import com.zhanglinwei.zTools.annotation.model.*;
 import com.zhanglinwei.zTools.annotation.swagger.DocParameterAnnotation;
 import com.zhanglinwei.zTools.annotation.swagger.OperationAnnotation;
@@ -41,8 +43,45 @@ public final class YApiFields {
     private static final String REQUIRED_MODE = "REQUIRED";
     private static final String NOT_REQUIRED_MODE = "NOT_REQUIRED";
 
+    /** 类上无注解、无 JavaDoc 时的 YApi 分类缺省名。 */
+    public static final String UNNAMED_CATEGORY = "未命名分类";
+
     /** 工具类，禁止实例化。 */
     private YApiFields() {}
+
+    /**
+     * YApi 接口分类名：类文档注解 → 类 JavaDoc → {@link #UNNAMED_CATEGORY}。
+     * <p>
+     * 注解优先级与 apidoc 类标题一致：
+     * {@code @Schema(title)} → {@code @Tag(name)} → {@code @Api(value/tags)} → {@code @ApiModel(value)}。
+     * 不使用类名作为分类名。
+     *
+     * @param type 控制器类定义
+     * @return 分类名；{@code type} 为 {@code null} 时返回 {@link #UNNAMED_CATEGORY}
+     */
+    public static String categoryOf(ClassDefinition type) {
+        if (type == null) {
+            return UNNAMED_CATEGORY;
+        }
+        SchemaAnnotation schema = SwaggerAnnotationParser.schema(type);
+        SchemaAnnotation apiModel = SwaggerAnnotationParser.apiModel(type);
+        String fromAnnotation = first(
+                schema == null ? null : schema.title(),
+                schema == null ? null : schema.description(),
+                SwaggerAnnotationParser.tagName(type),
+                swaggerApiValue(type.annotations()),
+                apiModel == null ? null : apiModel.title(),
+                apiModel == null ? null : apiModel.description()
+        );
+        if (fromAnnotation != null) {
+            return fromAnnotation;
+        }
+        String fromComment = first(
+                commentText(type.comment()),
+                commentDescription(type.comment())
+        );
+        return fromComment == null ? UNNAMED_CATEGORY : fromComment;
+    }
 
     /**
      * 方法标题：@Operation(summary) → @ApiOperation(value) → 注释 → 方法名
@@ -423,6 +462,26 @@ public final class YApiFields {
     private static Object typeExample(String type) {
         Object example = NormalType.exampleOf(type);
         return example != null ? example : EMPTY;
+    }
+
+    /**
+     * Swagger {@code @Api(value)} 或 {@code tags} 的第一个值。
+     *
+     * @param annotations 类注解
+     * @return 标题候选；没有则为 {@code null}
+     */
+    private static String swaggerApiValue(List<AnnotationDefinition> annotations) {
+        return AnnotationLookup.string(findApi(annotations), Attr.VALUE, "tags");
+    }
+
+    /**
+     * 查找 {@code @Api} 注解。
+     *
+     * @param annotations 类注解
+     * @return 找到的定义；没有则为 {@code null}
+     */
+    private static AnnotationDefinition findApi(List<AnnotationDefinition> annotations) {
+        return AnnotationLookup.find(annotations, SwaggerAnnotationParser.API).orElse(null);
     }
 
     /**

@@ -21,6 +21,7 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.configure.config.DocumentConfig;
 import com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig;
 import com.zhanglinwei.zTools.configure.config.YApiConfig;
@@ -301,7 +302,7 @@ public class ZToolsConfigSettings implements Configurable {
         String response = HttpRequests.request(base + "/api/project/get?token=" + token)
                 .tuner(connection -> connection.setRequestProperty("Accept", "application/json"))
                 .readString();
-        if (response != null && response.contains("\"errcode\":0")) {
+        if (StringUtils.isNotBlank(response)) {
             Matcher matcher = YAPI_PROJECT_ID.matcher(response);
             if (matcher.find()) {
                 return matcher.group(1);

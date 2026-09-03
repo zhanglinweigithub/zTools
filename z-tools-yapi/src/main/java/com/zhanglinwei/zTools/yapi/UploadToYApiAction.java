@@ -1,10 +1,10 @@
 package com.zhanglinwei.zTools.yapi;
 
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -16,9 +16,11 @@ import com.intellij.psi.PsiMethod;
 import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
 import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.parse.SourceParser;
+import com.zhanglinwei.zTools.common.util.CollectionUtils;
 import com.zhanglinwei.zTools.common.util.NotificationUtil;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.configure.config.YApiConfig;
+import com.zhanglinwei.zTools.yapi.utils.YApiFields;
 import com.zhanglinwei.zTools.yapi.client.YApiClient;
 import com.zhanglinwei.zTools.yapi.model.YApiInterfaceAddRequest;
 import com.zhanglinwei.zTools.yapi.model.YApiInterfaceCat;
@@ -109,7 +111,7 @@ public class UploadToYApiAction extends AnAction {
             }
         }
 
-        if (targetClass == null || targetMethods.isEmpty()) {
+        if (targetClass == null || CollectionUtils.isEmpty(targetMethods)) {
             NotificationUtil.warnNotify("No Web method was found!", project);
             return;
         }
@@ -118,8 +120,7 @@ public class UploadToYApiAction extends AnAction {
         final String token = settings.getToken();
         final Number resolvedProjectId = projectId;
         final ClassDefinition classDef = SourceParser.parseClass(targetClass, false);
-        final String className = classDef != null && StringUtils.isNotBlank(classDef.name())
-                ? classDef.name() : "Default";
+        final String categoryName = YApiFields.categoryOf(classDef);
         final List<MethodDefinition> methods = new ArrayList<MethodDefinition>(targetMethods);
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Upload To YApi...", true) {
@@ -135,10 +136,10 @@ public class UploadToYApiAction extends AnAction {
                     indicator.setText("Load category list...");
                     List<YApiInterfaceCat> existingCats = YApiClient.getCatMenu(serverUrl, resolvedProjectId, token);
 
-                    Number catId = findCatId(existingCats, className);
+                    Number catId = findCatId(existingCats, categoryName);
                     if (catId == null) {
-                        indicator.setText("Create category: " + className);
-                        YApiInterfaceCatAddRequest catRequest = new YApiInterfaceCatAddRequest(className, resolvedProjectId);
+                        indicator.setText("Create category: " + categoryName);
+                        YApiInterfaceCatAddRequest catRequest = new YApiInterfaceCatAddRequest(categoryName, resolvedProjectId);
                         YApiInterfaceCat newCat = YApiClient.addCat(serverUrl, catRequest, token);
                         catId = newCat.get_id();
                     }
@@ -172,15 +173,15 @@ public class UploadToYApiAction extends AnAction {
     }
 
     /**
-     * 按类名查找已有分类 ID。
+     * 按分类名查找已有分类 ID。
      *
-     * @param cats      已有分类
-     * @param className 类名（分类名）
+     * @param cats         已有分类
+     * @param categoryName 分类名
      * @return 分类 ID；没有则为 {@code null}
      */
-    private static Number findCatId(List<YApiInterfaceCat> cats, String className) {
+    private static Number findCatId(List<YApiInterfaceCat> cats, String categoryName) {
         for (YApiInterfaceCat cat : cats) {
-            if (cat != null && className.equals(cat.getName())) {
+            if (cat != null && categoryName.equals(cat.getName())) {
                 return cat.get_id();
             }
         }

@@ -25,7 +25,7 @@ public class YApiInterfaceCatAddRequest {
     /**
      * 用分类名和项目 ID 构造。
      *
-     * @param name       分类名，通常取 Controller 类名
+     * @param name       分类名，通常来自类文档注解或 JavaDoc
      * @param project_id 项目 ID
      */
     public YApiInterfaceCatAddRequest(String name, Number project_id) {
