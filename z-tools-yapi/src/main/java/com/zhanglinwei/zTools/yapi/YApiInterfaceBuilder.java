@@ -1,6 +1,5 @@
 package com.zhanglinwei.zTools.yapi;
 
-import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.annotation.feign.FeignAnnotationParser;
 import com.zhanglinwei.zTools.annotation.feign.RequestLineAnnotation;
 import com.zhanglinwei.zTools.annotation.model.ClassDefinition;
@@ -14,26 +13,16 @@ import com.zhanglinwei.zTools.common.constant.WebTypes;
 import com.zhanglinwei.zTools.common.enums.Boolean;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
-import com.zhanglinwei.zTools.common.util.ProjectConfigs;
 import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.common.util.TypeUtils;
 import com.zhanglinwei.zTools.yapi.enums.ParameterType;
 import com.zhanglinwei.zTools.yapi.enums.ReqBodyType;
-import com.zhanglinwei.zTools.yapi.model.YApiFormParam;
-import com.zhanglinwei.zTools.yapi.model.YApiHeader;
-import com.zhanglinwei.zTools.yapi.model.YApiInterfaceAddRequest;
-import com.zhanglinwei.zTools.yapi.model.YApiPathParam;
-import com.zhanglinwei.zTools.yapi.model.YApiQueryParam;
+import com.zhanglinwei.zTools.yapi.model.*;
 import com.zhanglinwei.zTools.yapi.utils.YApiFields;
 import com.zhanglinwei.zTools.yapi.utils.YApiJson;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
 import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
@@ -60,14 +49,14 @@ public final class YApiInterfaceBuilder {
     /**
      * 组装一条 YApi 保存请求。
      *
-     * @param project          当前工程（读全局前缀）
-     * @param classDefinition  所在类
-     * @param methodDefinition 接口方法
-     * @param projectId        YApi 项目 ID
-     * @param catId            分类 ID
+     * @param globalRequestPrefix   全局前缀
+     * @param classDefinition       所在类
+     * @param methodDefinition      接口方法
+     * @param projectId             YApi 项目 ID
+     * @param catId                 分类 ID
      * @return 保存请求
      */
-    public static YApiInterfaceAddRequest build(Project project, ClassDefinition classDefinition,
+    public static YApiInterfaceAddRequest build(String globalRequestPrefix, ClassDefinition classDefinition,
                                                 MethodDefinition methodDefinition, Number projectId, Number catId) {
         MappingAnnotation classMapping = WebAnnotationParser.mapping(classDefinition);
         MappingAnnotation methodMapping = WebAnnotationParser.mapping(methodDefinition);
@@ -81,7 +70,7 @@ public final class YApiInterfaceBuilder {
         request.setStatus("undone");
         request.setMethod(resolveHttpMethod(methodMapping, requestLine));
         request.setPath(RequestPathUtils.join(
-                ProjectConfigs.globalRequestPrefix(project),
+                globalRequestPrefix,
                 classMapping == null ? null : classMapping.firstPath(),
                 methodPath(methodMapping, requestLine)
         ));

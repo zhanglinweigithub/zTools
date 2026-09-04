@@ -156,8 +156,7 @@ public final class ProjectConfigs {
         String linebreak = content.contains(CRLF) ? CRLF : NEWLINE;
         Map<String, Object> result = new LinkedHashMap<String, Object>();
         String[] lines = content.split(linebreak);
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
+        for (String line : lines) {
             if (StringUtils.isBlank(line) || !line.contains(EQUAL)) {
                 continue;
             }

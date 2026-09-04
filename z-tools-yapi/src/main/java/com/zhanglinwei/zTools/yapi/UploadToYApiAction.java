@@ -18,6 +18,7 @@ import com.zhanglinwei.zTools.annotation.model.MethodDefinition;
 import com.zhanglinwei.zTools.annotation.parse.SourceParser;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
 import com.zhanglinwei.zTools.common.util.NotificationUtil;
+import com.zhanglinwei.zTools.common.util.ProjectConfigs;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.configure.config.YApiConfig;
 import com.zhanglinwei.zTools.yapi.utils.YApiFields;
@@ -122,6 +123,7 @@ public class UploadToYApiAction extends AnAction {
         final ClassDefinition classDef = SourceParser.parseClass(targetClass, false);
         final String categoryName = YApiFields.categoryOf(classDef);
         final List<MethodDefinition> methods = new ArrayList<MethodDefinition>(targetMethods);
+        String globalRequestPrefix = ProjectConfigs.globalRequestPrefix(project);
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Upload To YApi...", true) {
             /**
@@ -153,7 +155,7 @@ public class UploadToYApiAction extends AnAction {
                         indicator.setFraction((double) (i + 1) / methods.size());
                         try {
                             YApiInterfaceAddRequest request = YApiInterfaceBuilder.build(
-                                    project, classDef, methodDef, resolvedProjectId, catId);
+                                    globalRequestPrefix, classDef, methodDef, resolvedProjectId, catId);
                             YApiClient.saveInterface(serverUrl, request, token);
                             success++;
                         } catch (Exception uploadError) {
