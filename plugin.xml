@@ -17,31 +17,43 @@
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description>
         <![CDATA[
-            This is a Java development tool that can generate interface documents, convert classes to JSON, and Encrypting and Decrypting sensitive data, and generate database documents, and generate inner builder<br />
-            <b>Minimum supported IDEA version: 2022.1.1</b><br />
-            Document:
+            <p>A Java / Spring toolbox: API docs, JSON / cURL from source, Restful navigation, YApi upload, Jasypt encrypt/decrypt, database docs, and inner Builder generation.</p>
+            <p>面向 Java / Spring 的开发工具：生成接口文档、类转 JSON、Restful 跳转、复制 cURL、上传 YApi、Jasypt 加解密、库表文档、内部 Builder。</p>
+            <p><b>Minimum supported IDEA version: 2022.1.1</b> (Java plugin required)</p>
+            <p>Documentation:</p>
             <ul>
-                <li><a href="https://gitee.com/linwei-zhang/z-tools/blob/master/README.md">Gitee</a></li>
-                <li><a href="https://github.com/zhanglinweigithub/zTools/blob/main/README.md">GitHub</a></li>
+                <li><a href="https://github.com/zhanglinweigithub/zTools/blob/main/README.md">GitHub README</a></li>
+                <li><a href="https://gitee.com/linwei-zhang/z-tools/blob/master/README.md">Gitee README</a></li>
             </ul>
-            Feature:
-                <ul>
-                    <li>Generate interface documents, supporting three formats: Html, MarkDown, and Word</li>
-                    <li>Class to JSON, support arbitrary nesting, inheritance, generics, and annotation parsing</li>
-                    <li>Encrypting and Decrypting Sensitive data, Supported Algorithms [SM4_CBC, SM4_ECB, AES]</li>
-                    <li>Quick search jump to Restful interface [Ctrl + \]</li>
-                    <li>RestFul to CURL</li>
-                    <li>Generate database documents, supporting three formats: Html, MarkDown, and Word</li>
-                    <li>Generate an inner builder class</li>
-                </ul>
+            <p>Features:</p>
+            <ul>
+                <li><b>API documentation</b> — Generate Html / MarkDown / Word from Spring Controllers (OpenAPI / Swagger / validation / JavaDoc). 从 Controller 生成 Html、MarkDown、Word 接口文档。</li>
+                <li><b>Copy JSON</b> — Class to commented example JSON (nesting, generics, inheritance, enums). 类转带注释的示例 JSON。</li>
+                <li><b>Copy cURL</b> — Mapping method to a runnable curl (port and context-path from application.*). Mapping 方法复制为可执行 curl。</li>
+                <li><b>Go to Restful</b> — Search Spring MVC / Feign APIs by path, shortcut Ctrl+\. 按路径搜索并跳转接口。</li>
+                <li><b>Upload YApi</b> — Push one method or a whole Controller / Feign type to YApi. 上传接口到 YApi。</li>
+                <li><b>Jasypt Crypto</b> — Encrypt / decrypt ENC(...) in the editor; decrypt a whole file. 编辑器内 Jasypt 加解密，支持整文件解密。</li>
+                <li><b>Database documentation</b> — MySQL table docs (Html / MarkDown / Word) from zTools.yaml. 从 zTools.yaml 读数据源生成库表文档。</li>
+                <li><b>Inner Builder</b> — Generate Builder (lite or generic, record, inheritance). 生成内部 Builder 类。</li>
+            </ul>
+            <p>Configure under <b>Settings → z-tools</b> (project-level, stored in .idea/zTools.xml).</p>
         ]]>
     </description>
 
     <change-notes>
         <![CDATA[
+            <em>2026.09.04</em><br>
+            <ul>
+                <li>feat: upload interfaces to YApi (method or class, Spring Mapping / Feign RequestLine) | 支持将接口上传到 YApi</li>
+                <li>feat: Jasypt PBE encrypt / decrypt in editor (ENC wrapper, multi-password, decrypt file) | 编辑器内 Jasypt 加解密，支持整文件解密与多密码</li>
+                <li>feat: project Settings page (document / Jasypt / YApi), persisted to .idea/zTools.xml | 项目设置页写入 zTools.xml</li>
+                <li>feat: API doc void responses omitted; path/query required defaults; enum and numeric examples; Markdown tables | 接口文档：void 不展示响应、Path/Query 默认必填、枚举与数字示例、Markdown 表格</li>
+                <li>feat: Copy JSON uses first enum constant | Copy JSON 枚举取第一个常量</li>
+                <li>perf: load Jasypt algorithm list in background | 设置页算法列表改为后台加载，避免打开配置时卡顿</li>
+            </ul>
             <em>2026.03.16</em><br>
             <ul>
-                <li>feat: config param are read from zTools file | 配置参数将从 zTools 配置文件读取</li>
+                <li>feat: database datasource is read from zTools.yaml / yml / properties | 库表文档数据源从 zTools 配置文件读取</li>
             </ul>
             <em>2026.03.15</em><br>
             <ul>
