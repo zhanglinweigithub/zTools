@@ -163,7 +163,7 @@ public class UploadToYApiAction extends AnAction {
                         }
                     }
                     if (success == methods.size()) {
-                        notifyInfo(project, "Uploaded " + success + " interface(s) to YApi");
+                        notifyInfo(project, "Uploaded " + success + " interfaces to YApi");
                     }
                 } catch (ProcessCanceledException cancel) {
                     throw cancel;
