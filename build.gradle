@@ -73,6 +73,7 @@ configure(subprojects) {
     verifyPlugin.enabled = false
     buildSearchableOptions.enabled = false
     instrumentCode.enabled = false
+    instrumentTestCode.enabled = false
 
     // 子模块里的 plugin.xml 只是给 gradle-intellij-plugin 用的占位，不要打进 jar
     jar {

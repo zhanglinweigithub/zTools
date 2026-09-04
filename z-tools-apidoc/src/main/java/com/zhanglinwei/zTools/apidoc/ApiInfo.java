@@ -15,6 +15,7 @@ import com.zhanglinwei.zTools.common.constant.WebTypes;
 import com.zhanglinwei.zTools.configure.config.DocumentConfig;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
 import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.common.util.TypeUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +32,9 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.FOLD;
  * 字段名、必填、说明、示例一律走 {@link ApiFields}；请求/响应 JSON 走 {@link ApiJson}。
  */
 public class ApiInfo {
+
+    /** Spring {@code @RequestMapping} 未写 {@code method} 时匹配的全部动词。 */
+    private static final String ALL_REQUEST_METHODS = "GET, POST, PUT, PATCH, DELETE";
 
     private String title;
     private String description;
@@ -78,8 +82,19 @@ public class ApiInfo {
         apiInfo.setDescription(description);
         apiInfo.setBaseInfo(new ApiBaseInfo(type, method, description));
         apiInfo.setRequestInfo(new ApiRequestInfo(type, method));
-        apiInfo.setResponseInfo(new ApiResponseInfo(method));
+        apiInfo.setResponseInfo(voidReturn(method) ? null : new ApiResponseInfo(method));
         return apiInfo;
+    }
+
+    /**
+     * 方法返回 {@code void} / {@code Void}（不含 {@code Mono<Void>} 等包装）。
+     *
+     * @param method 接口方法
+     * @return 无业务返回值则为 {@code true}
+     */
+    private static boolean voidReturn(MethodDefinition method) {
+        ParameterDefinition returns = method.returns();
+        return returns != null && TypeUtils.isVoid(returns.type());
     }
 
     /**
@@ -110,7 +125,8 @@ public class ApiInfo {
         }
 
         /**
-         * 方法 Mapping 的动词优先于类 Mapping；都没有则空串。
+         * 方法 Mapping 的动词优先于类 Mapping；都没有时按 Spring {@code @RequestMapping}
+         * 未写 {@code method} 的语义，匹配全部 HTTP 动词。
          *
          * @param classMapping  类 Mapping
          * @param methodMapping 方法 Mapping
@@ -122,7 +138,7 @@ public class ApiInfo {
                 names = classMapping == null ? null : classMapping.methods();
             }
             if (names == null || names.isEmpty()) {
-                return EMPTY;
+                return ALL_REQUEST_METHODS;
             }
             List<String> verbs = new ArrayList<>(names.size());
             for (String name : names) {
@@ -212,7 +228,7 @@ public class ApiInfo {
                 rowList.addAll(createTableRow(EMPTY, body.properties()));
             } else if (ApiFields.isNormal(body.type()) || body.name() != null) {
                 rowList.add(new TableRowInfo(
-                        ApiFields.name(body),
+                        bodyName(body),
                         body.type(),
                         ApiFields.required(body),
                         ApiFields.description(body),
@@ -220,6 +236,17 @@ public class ApiInfo {
                 ));
             }
             return new ApiTableInfo(rowList);
+        }
+
+        /**
+         * 表格名称：参数名优先；返回值等没有源码名时用外层类型名。
+         *
+         * @param body 请求体或返回值
+         * @return 非空白名称
+         */
+        private static String bodyName(ParameterDefinition body) {
+            String name = ApiFields.name(body);
+            return StringUtils.isNotBlank(name) ? name : TypeUtils.outerType(body.type());
         }
 
         /**

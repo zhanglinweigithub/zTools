@@ -24,6 +24,8 @@ public final class PropertyDefinition {
     private final List<PropertyDefinition> properties;
     /** 字段类型已在外层解析过，子字段不再展开。 */
     private final boolean cycle;
+    /** 字段类型为枚举时的常量名；非枚举为空列表。 */
+    private final List<String> enumConstants;
 
     /**
      * 非循环引用的字段。
@@ -53,6 +55,23 @@ public final class PropertyDefinition {
     public PropertyDefinition(String name, String type, String packageName,
                               List<AnnotationDefinition> annotations, String comment,
                               List<PropertyDefinition> properties, boolean cycle) {
+        this(name, type, packageName, annotations, comment, properties, cycle, null);
+    }
+
+    /**
+     * @param name          字段名
+     * @param type          展示类型名
+     * @param packageName   类型所在包
+     * @param annotations   字段注解
+     * @param comment       字段 JavaDoc
+     * @param properties    子字段
+     * @param cycle         是否循环引用
+     * @param enumConstants 枚举常量名；非枚举为 {@code null} 或空
+     */
+    public PropertyDefinition(String name, String type, String packageName,
+                              List<AnnotationDefinition> annotations, String comment,
+                              List<PropertyDefinition> properties, boolean cycle,
+                              List<String> enumConstants) {
         this.name = name;
         this.type = type;
         this.packageName = packageName;
@@ -60,6 +79,7 @@ public final class PropertyDefinition {
         this.comment = comment;
         this.properties = CollectionUtils.unmodifiableList(properties);
         this.cycle = cycle;
+        this.enumConstants = CollectionUtils.unmodifiableList(enumConstants);
     }
 
     /** 字段名。 */
@@ -95,6 +115,11 @@ public final class PropertyDefinition {
     /** 字段类型已在外层解析过，子字段不再展开。 */
     public boolean cycle() {
         return cycle;
+    }
+
+    /** 字段类型为枚举时的常量名，声明顺序；非枚举为空列表。 */
+    public List<String> enumConstants() {
+        return enumConstants;
     }
 
 }

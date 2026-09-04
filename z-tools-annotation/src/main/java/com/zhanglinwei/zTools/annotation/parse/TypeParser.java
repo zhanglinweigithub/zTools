@@ -3,6 +3,7 @@ package com.zhanglinwei.zTools.annotation.parse;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiEnumConstant;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
@@ -143,8 +144,29 @@ public final class TypeParser {
                 AnnotationParser.of(field),
                 CommentParser.text(field),
                 children,
-                cycle
+                cycle,
+                enumConstantNames(fieldType)
         );
+    }
+
+    /**
+     * 枚举类型的常量名，按源码声明顺序。非枚举为空列表。
+     *
+     * @param type 字段类型
+     * @return 常量名
+     */
+    private static List<String> enumConstantNames(PsiType type) {
+        PsiClass psiClass = PsiUtil.resolveClassInType(unwrap(type));
+        if (psiClass == null || !psiClass.isEnum()) {
+            return Collections.emptyList();
+        }
+        List<String> names = new ArrayList<String>();
+        for (PsiField field : psiClass.getFields()) {
+            if (field instanceof PsiEnumConstant) {
+                names.add(field.getName());
+            }
+        }
+        return names;
     }
 
     /**

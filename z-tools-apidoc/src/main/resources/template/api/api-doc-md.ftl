@@ -2,8 +2,8 @@
 
 ## ${api_index + 1}、${api.title!''}
 
-<#if api.description??>
-> ${api.description!''}
+<#if api.description?has_content>
+> ${api.description}
 </#if>
 
 ### 接口信息
@@ -17,10 +17,10 @@
 <#if api.requestInfo.requestHeader?? && api.requestInfo.requestHeader.rowList?? && api.requestInfo.requestHeader.rowList?has_content>
 #### 请求头参数（RequestHeader）
 
-名称|类型|必填|说明|示例
-:--:|:--:|:--:|:--:|:--:
+| 名称 | 类型 | 必填 | 说明 | 示例 |
+| :--: | :--: | :--: | :--: | :--: |
 <#list api.requestInfo.requestHeader.rowList as rowInfo>
-${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowInfo.description!''}|${rowInfo.example!''}
+| ${rowInfo.name!''} | ${rowInfo.type!''} | ${rowInfo.required?then('Y', 'N')} | ${rowInfo.description!''} | ${rowInfo.example!''} |
 </#list>
 </#if>
 <#if api.requestInfo.pathVariable?? && api.requestInfo.pathVariable.rowList?? && api.requestInfo.pathVariable.rowList?has_content>
@@ -30,7 +30,7 @@ ${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowIn
 | 名称 | 类型 | 必填 | 说明 | 示例 |
 | -- | -- | -- | -- | -- |
 <#list api.requestInfo.pathVariable.rowList as rowInfo>
-${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowInfo.description!''}|${rowInfo.example!''}
+| ${rowInfo.name!''} | ${rowInfo.type!''} | ${rowInfo.required?then('Y', 'N')} | ${rowInfo.description!''} | ${rowInfo.example!''} |
 </#list>
 </#if>
 <#if api.requestInfo.requestParam?? && api.requestInfo.requestParam.rowList?? && api.requestInfo.requestParam.rowList?has_content>
@@ -40,7 +40,7 @@ ${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowIn
 | 名称 | 类型 | 必填 | 说明 | 示例 |
 | -- | -- | -- | -- | -- |
 <#list api.requestInfo.requestParam.rowList as rowInfo>
-${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowInfo.description!''}|${rowInfo.example!''}
+| ${rowInfo.name!''} | ${rowInfo.type!''} | ${rowInfo.required?then('Y', 'N')} | ${rowInfo.description!''} | ${rowInfo.example!''} |
 </#list>
 </#if>
 <#if api.requestInfo.formParam?? && api.requestInfo.formParam.rowList?? && api.requestInfo.formParam.rowList?has_content>
@@ -50,7 +50,7 @@ ${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowIn
 | 名称 | 类型 | 必填 | 说明 | 示例 |
 | -- | -- | -- | -- | -- |
 <#list api.requestInfo.formParam.rowList as rowInfo>
-${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowInfo.description!''}|${rowInfo.example!''}
+| ${rowInfo.name!''} | ${rowInfo.type!''} | ${rowInfo.required?then('Y', 'N')} | ${rowInfo.description!''} | ${rowInfo.example!''} |
 </#list>
 </#if>
 <#if api.requestInfo.requestBody?? && api.requestInfo.requestBody.rowList?? && api.requestInfo.requestBody.rowList?has_content>
@@ -62,7 +62,7 @@ ${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowIn
 | 名称 | 类型 | 必填 | 说明 | 示例 |
 | -- | -- | -- | -- | -- |
 <#list api.requestInfo.requestBody.rowList as rowInfo>
-${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowInfo.description!''}|${rowInfo.example!''}
+| ${rowInfo.name!''} | ${rowInfo.type!''} | ${rowInfo.required?then('Y', 'N')} | ${rowInfo.description!''} | ${rowInfo.example!''} |
 </#list>
 
 **示例**
@@ -87,7 +87,7 @@ ${api.requestInfo.requestBodyJson!''}
 | 名称 | 类型 | 必填 | 说明 | 示例 |
 | -- | -- | -- | -- | -- |
 <#list api.responseInfo.responseBody.rowList as rowInfo>
-${rowInfo.name!''}|${rowInfo.type!''}|${rowInfo.required?then('Y', 'N')}|${rowInfo.description!''}|${rowInfo.example!''}
+| ${rowInfo.name!''} | ${rowInfo.type!''} | ${rowInfo.required?then('Y', 'N')} | ${rowInfo.description!''} | ${rowInfo.example!''} |
 </#list>
 
 **示例**

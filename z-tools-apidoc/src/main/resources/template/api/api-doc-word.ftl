@@ -310,6 +310,7 @@
                             <w:t>${requestPrefix!''}${api.baseInfo.requestPath!''}</w:t>
                         </w:r>
                     </w:p>
+                    <#if api.baseInfo.description?has_content>
                     <w:p w14:paraId="6A1B0C49">
                         <w:pPr>
                             <w:keepNext w:val="0"/>
@@ -374,6 +375,7 @@
                             <w:t>${api.baseInfo.description!''}</w:t>
                         </w:r>
                     </w:p>
+                    </#if>
                     <w:p w14:paraId="3EAB2FD2">
                         <w:pPr>
                             <w:pStyle w:val="4"/>

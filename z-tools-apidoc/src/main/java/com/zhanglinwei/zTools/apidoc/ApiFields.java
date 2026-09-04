@@ -51,16 +51,18 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
  * → Swagger {@code @ApiParam(value)}、{@code @ApiModelProperty(value)}（{@code notes} 作补充）
  * → 注释。
  *
- * <p>参数 / 字段必填：OpenAPI、Swagger、Spring、校验注解任一标明必填即为必填，不按优先级覆盖。
- * OpenAPI：{@code @Parameter(required=true)}，或 {@code @Schema}/{@code schema} 的
- * {@code requiredMode=REQUIRED}，或 {@code requiredMode} 未写 / {@code AUTO} 时 {@code required=true}。
- * {@code requiredMode=NOT_REQUIRED} 不贡献必填。
- * Swagger：{@code @ApiParam(required=true)}、{@code @ApiModelProperty(required=true)}。
- * Spring：绑定注解写出 {@code required=true}。
- * 校验：存在 {@code @NotNull} / {@code @NotBlank} / {@code @NotEmpty}。
+     * <p>参数 / 字段必填：OpenAPI、Swagger、Spring、校验注解任一标明必填即为必填，不按优先级覆盖。
+     * OpenAPI：{@code @Parameter(required=true)}，或 {@code @Schema}/{@code schema} 的
+     * {@code requiredMode=REQUIRED}，或 {@code requiredMode} 未写 / {@code AUTO} 时 {@code required=true}。
+     * {@code requiredMode=NOT_REQUIRED} 不贡献必填。
+     * Swagger：{@code @ApiParam(required=true)}、{@code @ApiModelProperty(required=true)}。
+     * Spring：绑定注解写出 {@code required=true}；{@code @PathVariable}、{@code @RequestParam}
+     * 未写 {@code required}（且无 {@code defaultValue}）以及未写绑定的隐式 query，按 Spring 缺省视为必填。
+     * 写出 {@code required=false} 则为非必填。校验：存在 {@code @NotNull} / {@code @NotBlank} / {@code @NotEmpty}。
  *
- * <p>参数 / 字段示例（先到先得）：OpenAPI {@code example} → Swagger {@code example}
- * → Spring {@code defaultValue}（仅参数）→ 类型默认值。
+     * <p>参数 / 字段示例（先到先得）：OpenAPI {@code example} → Swagger {@code example}
+     * → Spring {@code defaultValue}（仅参数）→ 枚举第一个常量 → 类型默认值。
+     * 注解示例会按 Java 声明类型把数字字符串转成数值，避免 JSON 里带引号。
  *
  * <p>参数种类：有 Spring 绑定注解则用其 kind；否则 multipart 为 PART，其余非跳过参数为 QUERY。
  */
@@ -276,6 +278,7 @@ public final class ApiFields {
 
     /**
      * 参数必填：OpenAPI / Swagger / Spring / 校验任一标明必填即为必填。
+     * {@code @PathVariable}、{@code @RequestParam} 未写 {@code required}、隐式 query 按 Spring 缺省为必填。
      *
      * @param parameter 方法参数
      * @return 任一路径标明必填则为 {@code true}
@@ -292,7 +295,8 @@ public final class ApiFields {
                 || schemaMarkedRequired(SwaggerAnnotationParser.schema(parameter.annotations()))
                 || markedRequired(apiParam)
                 || markedRequired(binding)
-                || validated(parameter.annotations());
+                || validated(parameter.annotations())
+                || springDefaultRequired(parameter, binding);
     }
 
     /**
@@ -338,13 +342,13 @@ public final class ApiFields {
                 binding == null ? null : binding.defaultValue()
         );
         if (annotated != null) {
-            return annotated;
+            return coerceExample(annotated, parameter.type());
         }
         return typeExample(parameter.type());
     }
 
     /**
-     * 字段示例：OpenAPI {@code example} → Swagger {@code example} → 类型默认值。
+     * 字段示例：OpenAPI {@code example} → Swagger {@code example} → 枚举第一个常量 → 类型默认值。
      *
      * @param property 对象字段
      * @return 示例值；字段为 {@code null} 时返回空串
@@ -363,7 +367,10 @@ public final class ApiFields {
                 modelProperty == null ? null : modelProperty.example()
         );
         if (annotated != null) {
-            return annotated;
+            return coerceExample(annotated, property.type());
+        }
+        if (!property.enumConstants().isEmpty()) {
+            return property.enumConstants().get(0);
         }
         return typeExample(property.type());
     }
@@ -486,6 +493,88 @@ public final class ApiFields {
      */
     private static boolean markedRequired(WebParameterAnnotation binding) {
         return binding != null && Boolean.TRUE.equals(binding.required());
+    }
+
+    /**
+     * Spring 缺省必填：{@code @PathVariable}、{@code @RequestParam} 未写 {@code required=false}
+     * 且没有 {@code defaultValue}；未写绑定的隐式 query 同样必填。
+     *
+     * @param parameter 方法参数
+     * @param binding   绑定注解；隐式 query 为 {@code null}
+     * @return 按 Spring 缺省必填则为 {@code true}
+     */
+    private static boolean springDefaultRequired(ParameterDefinition parameter, WebParameterAnnotation binding) {
+        WebParameterAnnotation.Kind kind = kind(parameter);
+        if (kind == WebParameterAnnotation.Kind.PATH) {
+            return binding == null || !Boolean.FALSE.equals(binding.required());
+        }
+        if (kind != WebParameterAnnotation.Kind.QUERY) {
+            return false;
+        }
+        if (binding == null) {
+            return true;
+        }
+        if (Boolean.FALSE.equals(binding.required())) {
+            return false;
+        }
+        return StringUtils.isBlank(binding.defaultValue());
+    }
+
+    /**
+     * 把注解写出的示例按 Java 类型转成数值等，无法转换则保留原字符串。
+     *
+     * @param example 注解示例
+     * @param type    声明类型
+     * @return 转换后的示例
+     */
+    private static Object coerceExample(String example, String type) {
+        if (example == null) {
+            return null;
+        }
+        Object number = parseNumber(example.trim(), TypeUtils.rawType(type));
+        return number != null ? number : example;
+    }
+
+    /**
+     * 按目标类型解析数字字符串。
+     *
+     * @param value 示例文本
+     * @param raw   简单类型名
+     * @return 数值；无法解析或非数字类型为 {@code null}
+     */
+    private static Object parseNumber(String value, String raw) {
+        if (StringUtils.isBlank(value) || StringUtils.isBlank(raw)) {
+            return null;
+        }
+        try {
+            if ("int".equals(raw) || "Integer".equals(raw) || "AtomicInteger".equals(raw) || "Number".equals(raw)) {
+                return Integer.valueOf(value);
+            }
+            if ("long".equals(raw) || "Long".equals(raw) || "AtomicLong".equals(raw)) {
+                return Long.valueOf(value);
+            }
+            if ("short".equals(raw) || "Short".equals(raw)) {
+                return Short.valueOf(value);
+            }
+            if ("byte".equals(raw) || "Byte".equals(raw)) {
+                return Byte.valueOf(value);
+            }
+            if ("float".equals(raw) || "Float".equals(raw)) {
+                return Float.valueOf(value);
+            }
+            if ("double".equals(raw) || "Double".equals(raw)) {
+                return Double.valueOf(value);
+            }
+            if ("BigDecimal".equals(raw)) {
+                return new java.math.BigDecimal(value);
+            }
+            if ("BigInteger".equals(raw)) {
+                return new java.math.BigInteger(value);
+            }
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+        return null;
     }
 
     /**

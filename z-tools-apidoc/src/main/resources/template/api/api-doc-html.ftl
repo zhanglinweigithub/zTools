@@ -274,7 +274,7 @@
 
 <div id="main-content">
     <div class="content-container">
-    <h1>接口文档</h1>
+
     <div style='width: 100%; text-align:left;'>
 
         <#list apiList as api>
@@ -286,7 +286,9 @@
             <ul>
                 <li>请求方式： <code>${api.baseInfo.requestType!''}</code></li>
                 <li>接口路径： <code>${requestPrefix!''}${api.baseInfo.requestPath!''}</code></li>
-                <li>接口描述： ${api.baseInfo.description!''}</li>
+                <#if api.baseInfo.description?has_content>
+                <li>接口描述： ${api.baseInfo.description}</li>
+                </#if>
             </ul>
 
             <h3>请求参数</h3>
