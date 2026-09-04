@@ -151,11 +151,12 @@ public final class TypeParser {
 
     /**
      * 枚举类型的常量名，按源码声明顺序。非枚举为空列表。
+     * {@code List&lt;Status&gt;} 会先解开再取 Status 的常量。
      *
-     * @param type 字段类型
-     * @return 常量名
+     * @param type PSI 类型
+     * @return 常量名；非枚举为空列表
      */
-    private static List<String> enumConstantNames(PsiType type) {
+    public static List<String> enumConstantNames(PsiType type) {
         PsiClass psiClass = PsiUtil.resolveClassInType(unwrap(type));
         if (psiClass == null || !psiClass.isEnum()) {
             return Collections.emptyList();

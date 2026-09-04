@@ -59,6 +59,10 @@ public final class CopyJsonGenerator {
             if (TypeUtils.isNormalType(type)) {
                 return JsonUtil.toJsonString(NormalType.get(type.getPresentableText()), true);
             }
+            List<String> enums = TypeParser.enumConstantNames(type);
+            if (!enums.isEmpty()) {
+                return JsonUtil.toJsonString(enums.get(0), true);
+            }
             return StringPool.EMPTY_OBJECT;
         }
         // 先序列化对象，再把前序注释对齐到带冒号的行
@@ -82,7 +86,7 @@ public final class CopyJsonGenerator {
     }
 
     /**
-     * 字段转 JSON 值：循环引用为 {@code {}}，叶子用 {@link NormalType} 默认值。
+     * 字段转 JSON 值：循环引用为 {@code {}}，枚举用第一个常量，其余叶子用 {@link NormalType} 默认值。
      *
      * @param property 字段定义
      * @return 标量、空 Map 或嵌套 Map；集合类型按嵌套深度包 List
@@ -93,13 +97,28 @@ public final class CopyJsonGenerator {
             // 循环引用：值用 {}，注释侧会标「同外层」
             value = new LinkedHashMap<String, Object>();
         } else if (CollectionUtils.isEmpty(property.properties())) {
-            // Map → {}；Number 等走默认值表；未知类型仍用空串
-            Object example = NormalType.exampleOf(property.type());
-            value = example == null ? EMPTY : example;
+            value = leafValue(property);
         } else {
             value = jsonObject(property.properties());
         }
         return NestedUtils.wrapWithNesting(value, TypeUtils.nestDepth(property.type()));
+    }
+
+    /**
+     * 叶子字段示例：枚举取第一个常量，否则走 {@link NormalType}，再没有则为空串。
+     *
+     * @param property 字段定义
+     * @return 示例值
+     */
+    public static Object leafValue(PropertyDefinition property) {
+        if (property == null) {
+            return EMPTY;
+        }
+        if (!property.enumConstants().isEmpty()) {
+            return property.enumConstants().get(0);
+        }
+        Object example = NormalType.exampleOf(property.type());
+        return example == null ? EMPTY : example;
     }
 
     /**

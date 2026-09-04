@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA_SPACE;
+import static com.zhanglinwei.zTools.common.constant.StringPool.DASH;
 import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 import static com.zhanglinwei.zTools.common.constant.StringPool.FOLD;
 
@@ -239,14 +240,14 @@ public class ApiInfo {
         }
 
         /**
-         * 表格名称：参数名优先；返回值等没有源码名时用外层类型名。
+         * 表格名称：参数名优先；返回值等原子类型没有源码名时为 {@code -}。
          *
          * @param body 请求体或返回值
          * @return 非空白名称
          */
         private static String bodyName(ParameterDefinition body) {
             String name = ApiFields.name(body);
-            return StringUtils.isNotBlank(name) ? name : TypeUtils.outerType(body.type());
+            return StringUtils.isNotBlank(name) ? name : DASH;
         }
 
         /**
