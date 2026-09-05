@@ -75,6 +75,22 @@ public final class StringUtils {
         return !isEmpty(str);
     }
 
+    public static String wrap(String str, String prefix, String suffix) {
+        if (str == null) {
+            return str;
+        }
+
+        if (prefix != null) {
+            str = prefix + str;
+        }
+
+        if (suffix != null) {
+            str = str + suffix;
+        }
+
+        return str;
+    }
+
     /**
      * 取 {@code open} 与 {@code close} 之间的子串；任一找不到则为 {@code null}。
      *
