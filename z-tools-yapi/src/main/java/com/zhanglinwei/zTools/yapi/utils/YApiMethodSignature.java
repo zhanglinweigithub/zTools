@@ -96,11 +96,95 @@ public final class YApiMethodSignature {
                 text = text.substring(0, index);
             }
         }
-        text = text.trim();
+        text = dedent(text);
         if (text.endsWith(SEMICOLON)) {
-            text = text.substring(0, text.length() - 1).trim();
+            text = dedent(text.substring(0, text.length() - 1));
         }
         return text;
+    }
+
+    /**
+     * 去掉各行共同的前导空白，避免 {@code trim} 只削第一行导致注解和 {@code public} 不对齐。
+     *
+     * @param text 签名原文
+     * @return 左对齐后的文本
+     */
+    private static String dedent(String text) {
+        if (StringUtils.isBlank(text)) {
+            return EMPTY;
+        }
+        String normalized = text.replace("\r\n", NEWLINE).replace("\r", NEWLINE);
+        String[] lines = normalized.split("\n", -1);
+        int start = 0;
+        int end = lines.length - 1;
+        while (start <= end && StringUtils.isBlank(lines[start])) {
+            start++;
+        }
+        while (end >= start && StringUtils.isBlank(lines[end])) {
+            end--;
+        }
+        if (start > end) {
+            return EMPTY;
+        }
+        int minIndent = Integer.MAX_VALUE;
+        for (int i = start; i <= end; i++) {
+            if (StringUtils.isBlank(lines[i])) {
+                continue;
+            }
+            int indent = leadingWhitespace(lines[i]);
+            if (indent < minIndent) {
+                minIndent = indent;
+            }
+        }
+        StringBuilder aligned = new StringBuilder();
+        for (int i = start; i <= end; i++) {
+            if (i > start) {
+                aligned.append(NEWLINE);
+            }
+            String line = lines[i];
+            if (StringUtils.isBlank(line)) {
+                continue;
+            }
+            String stripped = line.length() <= minIndent ? EMPTY : line.substring(minIndent);
+            aligned.append(trimTrailing(stripped));
+        }
+        return aligned.toString();
+    }
+
+    /**
+     * 行首连续空格 / 制表符个数。
+     *
+     * @param line 一行文本
+     * @return 前导空白长度
+     */
+    private static int leadingWhitespace(String line) {
+        int count = 0;
+        for (int i = 0; i < line.length(); i++) {
+            char current = line.charAt(i);
+            if (current != ' ' && current != '\t') {
+                break;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * 去掉行尾空白。
+     *
+     * @param line 一行文本
+     * @return 去掉尾部空格 / 制表符后的文本
+     */
+    private static String trimTrailing(String line) {
+        int end = line.length();
+        while (end > 0) {
+            char current = line.charAt(end - 1);
+            if (current != ' ' && current != '\t') {
+                break;
+            }
+            end--;
+        }
+        return end == line.length() ? line : line.substring(0, end);
     }
 
     /**
