@@ -21,6 +21,7 @@ import com.zhanglinwei.zTools.yapi.enums.ReqBodyType;
 import com.zhanglinwei.zTools.yapi.model.*;
 import com.zhanglinwei.zTools.yapi.utils.YApiFields;
 import com.zhanglinwei.zTools.yapi.utils.YApiJson;
+import com.zhanglinwei.zTools.yapi.utils.YApiMethodSignature;
 
 import java.util.*;
 
@@ -66,7 +67,7 @@ public final class YApiInterfaceBuilder {
         request.setProject_id(projectId);
         request.setCatid(catId);
         request.setTitle(YApiFields.titleOf(methodDefinition));
-        request.setDesc(YApiFields.descriptionOf(methodDefinition));
+        request.setDesc(YApiMethodSignature.of(methodDefinition));
         request.setStatus("undone");
         request.setMethod(resolveHttpMethod(methodMapping, requestLine));
         request.setPath(RequestPathUtils.join(
