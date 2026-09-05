@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.zhanglinwei"
-version = "2026.09.05"
+version = "2026.09.06"
 
 // 按 Java 8 语法编译，并生成 Java 8 字节码，以兼容 IDEA 2022.1（自带 JDK 11）
 sourceCompatibility = 1.8
