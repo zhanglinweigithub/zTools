@@ -32,13 +32,13 @@ public class JasyptCrypto {
         this.encryptor.setPassword(password);
         this.encryptor.setKeyObtentionIterations(config.getKeyObtentionIterations());
 
-        // 按配置名解析盐生成器（Zero 可复现，Random 每次密文不同）
+        // 按配置名解析盐生成器（Zero 可复现，Random 每次密文不同，Fixed 使用配置中的盐值）
         JasyptSalt jasyptSalt = JasyptSalt.codeOf(config.getSaltGenerator());
-        this.encryptor.setSaltGenerator(jasyptSalt.getGenerator());
+        this.encryptor.setSaltGenerator(jasyptSalt.create(config.getSaltValue()));
 
         // 按配置名解析 IV；PBEWITHMD5ANDDES 等算法应使用 NoIvGenerator
         JasyptIV jasyptIV = JasyptIV.codeOf(config.getIvGenerator());
-        this.encryptor.setIvGenerator(jasyptIV.getGenerator());
+        this.encryptor.setIvGenerator(jasyptIV.create(config.getIvValue()));
 
         // 密文编码：base64 或 hexadecimal
         JasyptOutputType jasyptOutputType = JasyptOutputType.codeOf(config.getOutputType());

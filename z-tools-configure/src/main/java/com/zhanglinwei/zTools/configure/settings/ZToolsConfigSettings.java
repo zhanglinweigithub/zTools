@@ -71,7 +71,12 @@ public class ZToolsConfigSettings implements Configurable {
     private ComboBox<String> outputTypeBox;
     private JTextField encWrapperField;
     private ComboBox<String> saltGeneratorBox;
+    private JXTextField saltValueField;
+    private JLabel saltValueLabel;
     private ComboBox<String> ivGeneratorBox;
+    private JXTextField ivValueField;
+    private JLabel ivValueLabel;
+    private JPanel jasyptPanel;
 
     private JBTextField yapiServerUrlField;
     private JBTextField yapiTokenField;
@@ -208,12 +213,24 @@ public class ZToolsConfigSettings implements Configurable {
         saltGeneratorBox = new ComboBox<>();
         JasyptSalt.SALT_OPTIONS.forEach(salt -> saltGeneratorBox.addItem(salt));
         saltGeneratorBox.setSelectedItem(jasyptCryptoConfig.getSaltGenerator());
+        saltGeneratorBox.addItemListener(e -> refreshFixedValueFields());
+
+        saltValueLabel = new JLabel("Salt Value:");
+        saltValueField = new JXTextField();
+        saltValueField.setPromptForeground(JBColor.GRAY);
+        saltValueField.setText(jasyptCryptoConfig.getSaltValue());
 
         ivGeneratorBox = new ComboBox<>();
         JasyptIV.IV_OPTIONS.forEach(iv -> ivGeneratorBox.addItem(iv));
         ivGeneratorBox.setSelectedItem(jasyptCryptoConfig.getIvGenerator());
+        ivGeneratorBox.addItemListener(e -> refreshFixedValueFields());
 
-        JPanel panel = FormBuilder.createFormBuilder()
+        ivValueLabel = new JLabel("IV Value:");
+        ivValueField = new JXTextField();
+        ivValueField.setPromptForeground(JBColor.GRAY);
+        ivValueField.setText(jasyptCryptoConfig.getIvValue());
+
+        jasyptPanel = FormBuilder.createFormBuilder()
                 .setVerticalGap(10)
                 .addLabeledComponent(new JLabel("Password (a;b):"), passwordPanel, 1, false)
                 .addLabeledComponent(new JLabel("Algorithm:"), algorithmBox, 2, false)
@@ -221,10 +238,43 @@ public class ZToolsConfigSettings implements Configurable {
                 .addLabeledComponent(new JLabel("Output Type:"), outputTypeBox, 4, false)
                 .addLabeledComponent(new JLabel("Enc Wrapper:"), encWrapperField, 5, false)
                 .addLabeledComponent(new JLabel("Salt Generator:"), saltGeneratorBox, 6, false)
-                .addLabeledComponent(new JLabel("IV Generator:"), ivGeneratorBox, 7, false)
+                .addLabeledComponent(saltValueLabel, saltValueField, 7, false)
+                .addLabeledComponent(new JLabel("IV Generator:"), ivGeneratorBox, 8, false)
+                .addLabeledComponent(ivValueLabel, ivValueField, 9, false)
                 .getPanel();
-        panel.setBorder(JBUI.Borders.empty(10));
-        return panel;
+        jasyptPanel.setBorder(JBUI.Borders.empty(10));
+        refreshFixedValueFields();
+        return jasyptPanel;
+    }
+
+    /**
+     * 仅在 Salt / IV 选择 Fixed 类型时显示对应值输入框。
+     */
+    private void refreshFixedValueFields() {
+        JasyptSalt salt = JasyptSalt.codeOf(String.valueOf(saltGeneratorBox.getSelectedItem()));
+        boolean showSalt = salt.requiresValue();
+        saltValueLabel.setVisible(showSalt);
+        saltValueField.setVisible(showSalt);
+        if (salt == JasyptSalt.BYTE_ARRAY_FIXED) {
+            saltValueField.setPrompt("Hex bytes, e.g. 00112233...");
+        } else {
+            saltValueField.setPrompt("Fixed salt string");
+        }
+
+        JasyptIV iv = JasyptIV.codeOf(String.valueOf(ivGeneratorBox.getSelectedItem()));
+        boolean showIv = iv.requiresValue();
+        ivValueLabel.setVisible(showIv);
+        ivValueField.setVisible(showIv);
+        if (iv == JasyptIV.BYTE_ARRAY_FIXED) {
+            ivValueField.setPrompt("Hex bytes, e.g. 00112233...");
+        } else {
+            ivValueField.setPrompt("Fixed IV string");
+        }
+
+        if (jasyptPanel != null) {
+            jasyptPanel.revalidate();
+            jasyptPanel.repaint();
+        }
     }
 
     /**
@@ -353,7 +403,9 @@ public class ZToolsConfigSettings implements Configurable {
                 || !jasyptCryptoConfig.getOutputType().equals(outputTypeBox.getSelectedItem())
                 || !jasyptCryptoConfig.getEncWrapper().equals(encWrapperField.getText())
                 || !jasyptCryptoConfig.getSaltGenerator().equals(saltGeneratorBox.getSelectedItem())
+                || !jasyptCryptoConfig.getSaltValue().equals(saltValueField.getText())
                 || !jasyptCryptoConfig.getIvGenerator().equals(ivGeneratorBox.getSelectedItem())
+                || !jasyptCryptoConfig.getIvValue().equals(ivValueField.getText())
                 || !equalsField(yapiServerUrlField, yApiConfig.getServerUrl())
                 || !equalsField(yapiTokenField, yApiConfig.getToken());
     }
@@ -374,7 +426,9 @@ public class ZToolsConfigSettings implements Configurable {
         jasyptCryptoConfig.setOutputType(String.valueOf(outputTypeBox.getSelectedItem()));
         jasyptCryptoConfig.setEncWrapper(encWrapperField.getText());
         jasyptCryptoConfig.setSaltGenerator(String.valueOf(saltGeneratorBox.getSelectedItem()));
+        jasyptCryptoConfig.setSaltValue(saltValueField.getText());
         jasyptCryptoConfig.setIvGenerator(String.valueOf(ivGeneratorBox.getSelectedItem()));
+        jasyptCryptoConfig.setIvValue(ivValueField.getText());
 
         yApiConfig.setServerUrl(yapiServerUrlField.getText().trim());
         yApiConfig.setToken(yapiTokenField.getText().trim());
@@ -397,7 +451,10 @@ public class ZToolsConfigSettings implements Configurable {
         outputTypeBox.setSelectedItem(jasyptCryptoConfig.getOutputType());
         encWrapperField.setText(jasyptCryptoConfig.getEncWrapper());
         saltGeneratorBox.setSelectedItem(jasyptCryptoConfig.getSaltGenerator());
+        saltValueField.setText(jasyptCryptoConfig.getSaltValue());
         ivGeneratorBox.setSelectedItem(jasyptCryptoConfig.getIvGenerator());
+        ivValueField.setText(jasyptCryptoConfig.getIvValue());
+        refreshFixedValueFields();
 
         yapiServerUrlField.setText(yApiConfig.getServerUrl());
         yapiTokenField.setText(yApiConfig.getToken());

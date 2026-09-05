@@ -42,6 +42,12 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
     /** IV Generator 类名简写，见 {@link JasyptIV} */
     private String ivGenerator = JasyptIV.IV_OPTIONS.get(0);
 
+    /** 固定盐值，仅 {@link JasyptSalt#requiresValue()} 为 true 时使用 */
+    private String saltValue = EMPTY;
+
+    /** 固定 IV 值，仅 {@link JasyptIV#requiresValue()} 为 true 时使用 */
+    private String ivValue = EMPTY;
+
     /**
      * 密文包裹格式，{@code %s} 为密文占位。
      * 默认 {@code ENC(%s)}，与 Spring {@code ENC(...)} 一致。
@@ -164,6 +170,42 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
      */
     public void setIvGenerator(String ivGenerator) {
         this.ivGenerator = ivGenerator;
+    }
+
+    /**
+     * 获取固定盐值。
+     *
+     * @return 用户填写的盐；未填为空串
+     */
+    public String getSaltValue() {
+        return saltValue == null ? EMPTY : saltValue;
+    }
+
+    /**
+     * 设置固定盐值。
+     *
+     * @param saltValue {@link JasyptSalt#BYTE_ARRAY_FIXED} 为 hex 或文本；{@link JasyptSalt#STRING_FIXED} 为字符串原文
+     */
+    public void setSaltValue(String saltValue) {
+        this.saltValue = saltValue;
+    }
+
+    /**
+     * 获取固定 IV 值。
+     *
+     * @return 用户填写的 IV；未填为空串
+     */
+    public String getIvValue() {
+        return ivValue == null ? EMPTY : ivValue;
+    }
+
+    /**
+     * 设置固定 IV 值。
+     *
+     * @param ivValue {@link JasyptIV#BYTE_ARRAY_FIXED} 为 hex 或文本；{@link JasyptIV#STRING_FIXED} 为字符串原文
+     */
+    public void setIvValue(String ivValue) {
+        this.ivValue = ivValue;
     }
 
     /**
