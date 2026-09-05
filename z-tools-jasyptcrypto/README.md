@@ -19,7 +19,7 @@
 
 **Settings → z-tools → Jasypt Crypto**
 
-至少填一个 **Password**。多个密码用 `;` 分隔：加密时弹窗选一个；解密时按顺序尝试直到成功
+至少填一个 **Password**。密码、固定盐、固定 IV 都可以写多个，用 `;` 分隔：加密时弹窗选择本次用的那一组；解密时按组合尝试直到成功
 
 其它项需与运行时 Jasypt（如 Spring `jasypt.encryptor.*`）保持一致：
 
@@ -29,12 +29,35 @@
 | Iterations | 密钥派生迭代次数 | `1000` |
 | Output Type | `base64` / `hexadecimal` | `base64` |
 | Enc Wrapper | 密文包裹，`%s` 为密文 | `ENC(%s)` |
-| Salt Generator | `ZeroSaltGenerator` 密文可复现；`RandomSaltGenerator` 每次不同 | Zero |
-| IV Generator | `PBEWITHMD5ANDDES` 用 `NoIvGenerator`；需要 IV 的算法用 `RandomIvGenerator` | NoIv |
+| Salt Generator | 见下方盐 / IV | `ZeroSaltGenerator` |
+| Salt Value | 仅 Fixed 盐时出现；多个用 `;` | 空 |
+| IV Generator | 见下方盐 / IV | `NoIvGenerator` |
+| IV Value | 仅 Fixed IV 时出现；多个用 `;` | 空 |
 
-算法列表在后台加载，打开设置页时不应卡住界面。配置写在项目 `.idea/zTools.xml`
+配置写在项目 `.idea/zTools.xml`
 
-未配密码时操作会提示：`Password is required. Please configure it in Settings > z-tools.`
+未配密码时操作会提示：`Password is required. Please configure it in Settings > z-tools.`  
+选了 Fixed 盐 / IV 但没填对应值时，加密会提示需要在设置里填写
+
+## 盐 / IV 生成器
+
+| Salt Generator | 说明 |
+| --- | --- |
+| `ZeroSaltGenerator` | 固定零盐，同一明文多次加密结果相同 |
+| `RandomSaltGenerator` | 随机盐，盐写在密文里，每次密文不同 |
+| `ByteArrayFixedSaltGenerator` | 固定字节盐，需填 **Salt Value**（优先按 hex，否则 UTF-8） |
+| `StringFixedSaltGenerator` | 固定字符串盐，需填 **Salt Value** |
+
+| IV Generator | 说明 |
+| --- | --- |
+| `NoIvGenerator` | 不生成 IV，给 `PBEWITHMD5ANDDES` 等不含 IV 的算法 |
+| `RandomIvGenerator` | 随机 IV，IV 写在密文里 |
+| `ByteArrayFixedIvGenerator` | 固定字节 IV，需填 **IV Value**（优先按 hex，否则 UTF-8） |
+| `StringFixedIvGenerator` | 固定字符串 IV，需填 **IV Value** |
+
+选中 Fixed 类型后，设置页才会显示对应的值输入框。ByteArray 可写十六进制（可带 `0x`、空格），对不上 hex 规则时按 UTF-8。长度必须满足当前算法（例如 DES 盐约 8 字节；AES 类算法盐和 IV 通常各 16 字节）
+
+`Zero` / `Random` / `NoIv` 不使用值输入框，也不参与多值枚举
 
 ## 示例
 
@@ -60,16 +83,27 @@ spring:
 
 整份配置要一次性解开时，打开该文件（不必选中），**Decrypt File**：所有能解开的 `ENC(...)` 变成明文，解不开的保持原样
 
-## 多密码
+## 多环境密码 / 盐 / IV
 
-设置：`devSecret;prodSecret`
+生成、测试、开发若各自使用不同的 **Fixed** 密码、盐、IV，可写在同一份设置里：
 
-- 加密：弹出选择框，选本次使用的密码。
-- 解密 / Decrypt File：先试 `devSecret`，失败再试 `prodSecret`
+```
+Password:    genPwd;testPwd;devPwd
+Salt Value:  genSalt12;testSalt1;devSalt12
+IV Value:    genIvValue16chars;testIvValue16cha;devIvValue16chars
+```
+
+（上表为形态示意，实际盐 / IV 长度须满足算法）
+
+- **加密**：密码、盐、IV 里只要有一项多于一个，就弹出选择框，只显示需要选的下拉，选中的三项一起用来加密
+- **解密 / Decrypt File**：按「密码 × 盐 × IV」组合依次尝试，解出一组就停。同一文件里混有不同环境的 `ENC(...)` 也能分别解开
+- 配错或全部失败：提示 `Decryption failure.`，不会返回乱码明文
+
+只有一项是多值时（例如密码仍是一个、盐有三个），弹窗只出现对应下拉
 
 ## 注意事项
 
 1. Encrypt / Decrypt / Decrypt To Clipboard 需要先选中文本；Decrypt File 对当前打开的整个文档生效
 2. 算法、盐、IV、迭代次数、输出编码必须与解密端一致，否则会 `Decryption failure.`
-3. `PBEWITHMD5ANDDES` 不要配随机 IV
-4. 不要把真实生产密码写进 README、截图或提交到 Git；`.idea/zTools.xml` 含密码时请自行忽略或勿提交
+3. `PBEWITHMD5ANDDES` 不要配随机 IV，应使用 `NoIvGenerator`
+4. 不要把真实生产密码、盐、IV 写进 README、截图或提交到 Git；`.idea/zTools.xml` 含这些值时请自行忽略或勿提交
