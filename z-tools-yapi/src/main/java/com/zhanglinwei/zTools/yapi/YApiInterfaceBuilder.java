@@ -67,7 +67,7 @@ public final class YApiInterfaceBuilder {
         request.setProject_id(projectId);
         request.setCatid(catId);
         request.setTitle(YApiFields.titleOf(methodDefinition));
-        request.setDesc(StringUtils.wrap(YApiMethodSignature.of(methodDefinition), "<p>", "</p>"));
+        request.setDesc(StringUtils.wrap(YApiMethodSignature.of(methodDefinition), "<pre>", "</pre>"));
         request.setStatus("undone");
         request.setMethod(resolveHttpMethod(methodMapping, requestLine));
         request.setPath(RequestPathUtils.join(
