@@ -5,6 +5,7 @@ import com.zhanglinwei.zTools.configure.enums.JasyptIV;
 import com.zhanglinwei.zTools.configure.enums.JasyptOutputType;
 import com.zhanglinwei.zTools.configure.enums.JasyptSalt;
 import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.jasyptcrypto.utils.JasyptUtils;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 
 /**
@@ -18,12 +19,26 @@ public class JasyptCrypto {
     private final String encSuffix;
 
     /**
-     * 用配置与单个密码初始化 Encryptor（算法、迭代、盐、IV、输出编码）。
+     * 用配置与单个密码初始化 Encryptor；盐 / IV 取配置中第一项（多值场景请用四参数构造）。
      *
      * @param config   项目 Jasypt 配置
      * @param password 本次使用的密码（多密码场景由调用方先选出一个）
      */
     public JasyptCrypto(JasyptCryptoConfig config, String password) {
+        this(config, password,
+                JasyptUtils.firstOrEmpty(JasyptUtils.getSaltValues(config)),
+                JasyptUtils.firstOrEmpty(JasyptUtils.getIvValues(config)));
+    }
+
+    /**
+     * 用配置、单个密码以及本次使用的固定盐 / IV 初始化 Encryptor。
+     *
+     * @param config    项目 Jasypt 配置
+     * @param password  本次使用的密码
+     * @param saltValue 本次使用的固定盐；非 Fixed 生成器可传空
+     * @param ivValue   本次使用的固定 IV；非 Fixed 生成器可传空
+     */
+    public JasyptCrypto(JasyptCryptoConfig config, String password, String saltValue, String ivValue) {
         this.encPrefix = config.getEncPrefix();
         this.encSuffix = config.getEncSuffix();
 
@@ -32,13 +47,13 @@ public class JasyptCrypto {
         this.encryptor.setPassword(password);
         this.encryptor.setKeyObtentionIterations(config.getKeyObtentionIterations());
 
-        // 按配置名解析盐生成器（Zero 可复现，Random 每次密文不同，Fixed 使用配置中的盐值）
+        // 按配置名解析盐生成器（Zero 可复现，Random 每次密文不同，Fixed 使用本次传入的盐值）
         JasyptSalt jasyptSalt = JasyptSalt.codeOf(config.getSaltGenerator());
-        this.encryptor.setSaltGenerator(jasyptSalt.create(config.getSaltValue()));
+        this.encryptor.setSaltGenerator(jasyptSalt.create(saltValue));
 
         // 按配置名解析 IV；PBEWITHMD5ANDDES 等算法应使用 NoIvGenerator
         JasyptIV jasyptIV = JasyptIV.codeOf(config.getIvGenerator());
-        this.encryptor.setIvGenerator(jasyptIV.create(config.getIvValue()));
+        this.encryptor.setIvGenerator(jasyptIV.create(ivValue));
 
         // 密文编码：base64 或 hexadecimal
         JasyptOutputType jasyptOutputType = JasyptOutputType.codeOf(config.getOutputType());

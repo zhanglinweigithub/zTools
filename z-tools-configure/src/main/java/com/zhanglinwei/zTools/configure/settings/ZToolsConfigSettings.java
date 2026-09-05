@@ -142,8 +142,8 @@ public class ZToolsConfigSettings implements Configurable {
 
         docTypeBox = new ComboBox<String>();
         DocumentType[] docs = DocumentType.values();
-        for (int i = 0; i < docs.length; i++) {
-            docTypeBox.addItem(docs[i].getType());
+        for (DocumentType doc : docs) {
+            docTypeBox.addItem(doc.getType());
         }
         docTypeBox.setSelectedItem(documentConfig.getDocType());
 
@@ -210,7 +210,7 @@ public class ZToolsConfigSettings implements Configurable {
 
         encWrapperField = new JTextField(jasyptCryptoConfig.getEncWrapper(), 15);
 
-        saltGeneratorBox = new ComboBox<>();
+        saltGeneratorBox = new ComboBox<>(400);
         JasyptSalt.SALT_OPTIONS.forEach(salt -> saltGeneratorBox.addItem(salt));
         saltGeneratorBox.setSelectedItem(jasyptCryptoConfig.getSaltGenerator());
         saltGeneratorBox.addItemListener(e -> refreshFixedValueFields());
@@ -220,7 +220,7 @@ public class ZToolsConfigSettings implements Configurable {
         saltValueField.setPromptForeground(JBColor.GRAY);
         saltValueField.setText(jasyptCryptoConfig.getSaltValue());
 
-        ivGeneratorBox = new ComboBox<>();
+        ivGeneratorBox = new ComboBox<>(400);
         JasyptIV.IV_OPTIONS.forEach(iv -> ivGeneratorBox.addItem(iv));
         ivGeneratorBox.setSelectedItem(jasyptCryptoConfig.getIvGenerator());
         ivGeneratorBox.addItemListener(e -> refreshFixedValueFields());
@@ -256,9 +256,9 @@ public class ZToolsConfigSettings implements Configurable {
         saltValueLabel.setVisible(showSalt);
         saltValueField.setVisible(showSalt);
         if (salt == JasyptSalt.BYTE_ARRAY_FIXED) {
-            saltValueField.setPrompt("Hex bytes, e.g. 00112233...");
+            saltValueField.setPrompt("Hex bytes, e.g. 00112233... ; multiple separated by ;");
         } else {
-            saltValueField.setPrompt("Fixed salt string");
+            saltValueField.setPrompt("Fixed salt string, multiple separated by ;");
         }
 
         JasyptIV iv = JasyptIV.codeOf(String.valueOf(ivGeneratorBox.getSelectedItem()));
@@ -266,9 +266,9 @@ public class ZToolsConfigSettings implements Configurable {
         ivValueLabel.setVisible(showIv);
         ivValueField.setVisible(showIv);
         if (iv == JasyptIV.BYTE_ARRAY_FIXED) {
-            ivValueField.setPrompt("Hex bytes, e.g. 00112233...");
+            ivValueField.setPrompt("Hex bytes, e.g. 00112233... ; multiple separated by ;");
         } else {
-            ivValueField.setPrompt("Fixed IV string");
+            ivValueField.setPrompt("Fixed IV string, multiple separated by ;");
         }
 
         if (jasyptPanel != null) {

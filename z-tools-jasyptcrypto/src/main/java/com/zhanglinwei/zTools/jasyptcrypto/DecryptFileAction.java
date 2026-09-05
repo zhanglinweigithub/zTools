@@ -8,7 +8,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig;
-import com.zhanglinwei.zTools.jasyptcrypto.facade.JasyptCrypto;
 import com.zhanglinwei.zTools.jasyptcrypto.utils.JasyptUtils;
 import com.zhanglinwei.zTools.common.util.NotificationUtil;
 import com.zhanglinwei.zTools.common.util.StringUtils;
@@ -71,7 +70,7 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
     }
 
     /**
-     * 从左到右扫描 {@code prefix...suffix}，对每段密文按配置密码依次尝试解密。
+     * 从左到右扫描 {@code prefix...suffix}，对每段密文按密码 × 盐 × IV 组合尝试解密。
      *
      * @param project 当前项目
      * @param content 文件全文
@@ -80,7 +79,6 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
      */
     public static String decryptAll(Project project, String content) throws Exception {
         JasyptCryptoConfig config = JasyptCryptoConfig.getInstance(project);
-        String[] passwords = JasyptUtils.getPasswords(project);
         String prefix = config.getEncPrefix();
         String suffix = config.getEncSuffix();
 
@@ -103,23 +101,12 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
                 break;
             }
 
-            // 提取密文，依次用每个密码尝试解密
             String ciphertext = content.substring(encStart + prefix.length(), encEnd);
-            String plaintext = null;
-            for (String pwd : passwords) {
-                try {
-                    JasyptCrypto crypto = new JasyptCrypto(config, pwd);
-                    plaintext = crypto.decrypt(ciphertext);
-                    break;
-                } catch (Exception ignored) {
-                    // 当前密码解密失败，尝试下一个
-                }
-            }
+            String plaintext = JasyptUtils.tryDecrypt(config, ciphertext);
 
             if (plaintext != null) {
                 result.append(plaintext);
             } else {
-                // 所有密码都解密失败，保留原文
                 result.append(prefix).append(ciphertext).append(suffix);
             }
 

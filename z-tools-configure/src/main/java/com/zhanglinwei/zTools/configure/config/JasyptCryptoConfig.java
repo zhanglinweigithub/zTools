@@ -17,8 +17,8 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 /**
  * Jasypt 加解密配置（项目级，写入 {@code zTools.xml}）。
  * <p>
- * 设置页「Jasypt Crypto」Tab 与加解密 Action 共用本类。密码可写多个，以 {@code ;} 分隔；
- * 加密时若有多个密码会弹窗选择，解密时按顺序尝试直到成功。
+ * 设置页「Jasypt Crypto」Tab 与加解密 Action 共用本类。密码、固定盐、固定 IV 都可写多个，以 {@code ;} 分隔；
+ * 加密时若有多项会弹窗选择，解密时按组合尝试直到成功。
  */
 @Service(value = Service.Level.PROJECT)
 @State(name = "JasyptCryptoConfig", storages = {@Storage(ZToolsConstant.STORAGE_FILE)})
@@ -42,10 +42,10 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
     /** IV Generator 类名简写，见 {@link JasyptIV} */
     private String ivGenerator = JasyptIV.IV_OPTIONS.get(0);
 
-    /** 固定盐值，仅 {@link JasyptSalt#requiresValue()} 为 true 时使用 */
+    /** 固定盐值，仅 {@link JasyptSalt#requiresValue()} 为 true 时使用；多个以 {@code ;} 分隔 */
     private String saltValue = EMPTY;
 
-    /** 固定 IV 值，仅 {@link JasyptIV#requiresValue()} 为 true 时使用 */
+    /** 固定 IV 值，仅 {@link JasyptIV#requiresValue()} 为 true 时使用；多个以 {@code ;} 分隔 */
     private String ivValue = EMPTY;
 
     /**
@@ -175,7 +175,7 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
     /**
      * 获取固定盐值。
      *
-     * @return 用户填写的盐；未填为空串
+     * @return 用户填写的盐，多个以 {@code ;} 分隔；未填为空串
      */
     public String getSaltValue() {
         return saltValue == null ? EMPTY : saltValue;
@@ -184,7 +184,7 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
     /**
      * 设置固定盐值。
      *
-     * @param saltValue {@link JasyptSalt#BYTE_ARRAY_FIXED} 为 hex 或文本；{@link JasyptSalt#STRING_FIXED} 为字符串原文
+     * @param saltValue hex 或文本；多个以 {@code ;} 分隔
      */
     public void setSaltValue(String saltValue) {
         this.saltValue = saltValue;
@@ -193,7 +193,7 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
     /**
      * 获取固定 IV 值。
      *
-     * @return 用户填写的 IV；未填为空串
+     * @return 用户填写的 IV，多个以 {@code ;} 分隔；未填为空串
      */
     public String getIvValue() {
         return ivValue == null ? EMPTY : ivValue;
@@ -202,7 +202,7 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
     /**
      * 设置固定 IV 值。
      *
-     * @param ivValue {@link JasyptIV#BYTE_ARRAY_FIXED} 为 hex 或文本；{@link JasyptIV#STRING_FIXED} 为字符串原文
+     * @param ivValue hex 或文本；多个以 {@code ;} 分隔
      */
     public void setIvValue(String ivValue) {
         this.ivValue = ivValue;
