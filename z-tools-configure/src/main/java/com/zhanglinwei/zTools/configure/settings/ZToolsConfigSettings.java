@@ -21,6 +21,7 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.util.io.HttpRequests;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import com.zhanglinwei.zTools.common.util.NotificationUtil;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.configure.config.DocumentConfig;
 import com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig;
@@ -280,6 +281,7 @@ public class ZToolsConfigSettings implements Configurable {
                         }
                         yapiProjectIdField.setText(projectId);
                         yApiConfig.setProjectId(projectId);
+                        NotificationUtil.infoNotify("Resolve successfully!", project);
                     });
                 } catch (Exception ex) {
                     SwingUtilities.invokeLater(() ->

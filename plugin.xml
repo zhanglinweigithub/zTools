@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.4.3</version>
+    <version>1.4.4</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -42,14 +42,13 @@
 
     <change-notes>
         <![CDATA[
-            <em>2026.09.04</em><br>
+            <em>2026.09.05</em><br>
             <ul>
                 <li>feat: upload interfaces to YApi (method or class, Spring Mapping / Feign RequestLine) | 支持将接口上传到 YApi</li>
                 <li>feat: Jasypt PBE encrypt / decrypt in editor (ENC wrapper, multi-password, decrypt file) | 编辑器内 Jasypt 加解密，支持整文件解密与多密码</li>
                 <li>feat: project Settings page (document / Jasypt / YApi), persisted to .idea/zTools.xml | 项目设置页写入 zTools.xml</li>
                 <li>feat: API doc void responses omitted; path/query required defaults; enum and numeric examples; Markdown tables | 接口文档：void 不展示响应、Path/Query 默认必填、枚举与数字示例、Markdown 表格</li>
                 <li>feat: Copy JSON uses first enum constant | Copy JSON 枚举取第一个常量</li>
-                <li>perf: load Jasypt algorithm list in background | 设置页算法列表改为后台加载，避免打开配置时卡顿</li>
             </ul>
             <em>2026.03.16</em><br>
             <ul>

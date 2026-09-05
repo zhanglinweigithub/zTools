@@ -21,12 +21,12 @@ import com.zhanglinwei.zTools.common.util.NotificationUtil;
 import com.zhanglinwei.zTools.common.util.ProjectConfigs;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 import com.zhanglinwei.zTools.configure.config.YApiConfig;
-import com.zhanglinwei.zTools.yapi.utils.YApiFields;
 import com.zhanglinwei.zTools.yapi.client.YApiClient;
 import com.zhanglinwei.zTools.yapi.model.YApiInterfaceAddRequest;
 import com.zhanglinwei.zTools.yapi.model.YApiInterfaceCat;
 import com.zhanglinwei.zTools.yapi.model.YApiInterfaceCatAddRequest;
 import com.zhanglinwei.zTools.yapi.ui.YApiConfigDialog;
+import com.zhanglinwei.zTools.yapi.utils.YApiFields;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -41,16 +41,19 @@ import java.util.List;
 public class UploadToYApiAction extends AnAction {
 
     /**
-     * 仅当光标位于方法或类上时显示。
+     * Java 编辑器里显示菜单。不在 {@code update} 里用 {@code instanceof PsiMethod}：
+     * 右键点在方法名上时 {@code PSI_ELEMENT} 是标识符叶子，高版本 IDEA 会把菜单直接藏掉。
      *
      * @param e 当前 Action 事件
      */
     @Override
     public void update(AnActionEvent e) {
-        Project project = e.getProject();
-        PsiElement psiElement = e.getData(CommonDataKeys.PSI_ELEMENT);
-        boolean enabled = project != null && (psiElement instanceof PsiMethod || psiElement instanceof PsiClass);
-        e.getPresentation().setEnabledAndVisible(enabled);
+//        VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
+//        boolean visible = e.getProject() != null
+//                && e.getData(CommonDataKeys.EDITOR) != null
+//                && file != null
+//                && file.getFileType() == JavaFileType.INSTANCE;
+//        e.getPresentation().setEnabledAndVisible(visible);
     }
 
     /**
