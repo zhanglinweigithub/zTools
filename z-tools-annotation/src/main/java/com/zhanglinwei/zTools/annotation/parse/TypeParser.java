@@ -145,7 +145,8 @@ public final class TypeParser {
                 CommentParser.text(field),
                 children,
                 cycle,
-                enumConstantNames(fieldType)
+                enumConstantNames(fieldType),
+                field
         );
     }
 

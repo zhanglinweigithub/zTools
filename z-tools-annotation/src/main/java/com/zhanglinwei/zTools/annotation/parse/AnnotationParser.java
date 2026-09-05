@@ -86,7 +86,7 @@ public final class AnnotationParser {
      */
     public static AnnotationDefinition of(PsiAnnotation annotation) {
         String qualifiedName = annotation.getQualifiedName();
-        return new AnnotationDefinition(simpleName(annotation, qualifiedName), qualifiedName, attributes(annotation));
+        return new AnnotationDefinition(simpleName(annotation, qualifiedName), qualifiedName, attributes(annotation), annotation);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.intellij.psi.PsiClass;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
 
 import java.util.List;
@@ -21,6 +22,8 @@ public final class ClassDefinition {
     private final CommentDefinition comment;
     /** 本类声明的方法。 */
     private final List<MethodDefinition> methods;
+    /** 原始 {@link PsiClass}；手工构造或无法对应 PSI 时为 {@code null}。 */
+    private final PsiClass delegate;
 
     /**
      * @param name          简单类名
@@ -33,12 +36,28 @@ public final class ClassDefinition {
     public ClassDefinition(String name, String qualifiedName, String packageName,
                            List<AnnotationDefinition> annotations, CommentDefinition comment,
                            List<MethodDefinition> methods) {
+        this(name, qualifiedName, packageName, annotations, comment, methods, null);
+    }
+
+    /**
+     * @param name          简单类名
+     * @param qualifiedName 全限定名
+     * @param packageName   所在包
+     * @param annotations   类注解
+     * @param comment       类 JavaDoc
+     * @param methods       本类声明的方法
+     * @param delegate      原始 PSI 类
+     */
+    public ClassDefinition(String name, String qualifiedName, String packageName,
+                           List<AnnotationDefinition> annotations, CommentDefinition comment,
+                           List<MethodDefinition> methods, PsiClass delegate) {
         this.name = name;
         this.qualifiedName = qualifiedName;
         this.packageName = packageName;
         this.annotations = CollectionUtils.unmodifiableList(annotations);
         this.comment = comment;
         this.methods = CollectionUtils.unmodifiableList(methods);
+        this.delegate = delegate;
     }
 
     /** 简单类名。 */
@@ -69,5 +88,10 @@ public final class ClassDefinition {
     /** 本类声明的方法。 */
     public List<MethodDefinition> methods() {
         return methods;
+    }
+
+    /** 原始 {@link PsiClass}；手工构造或无法对应 PSI 时为 {@code null}。 */
+    public PsiClass delegate() {
+        return delegate;
     }
 }

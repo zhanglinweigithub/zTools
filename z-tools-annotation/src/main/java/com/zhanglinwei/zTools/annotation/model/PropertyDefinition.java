@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.intellij.psi.PsiField;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
 
 import java.util.List;
@@ -26,6 +27,8 @@ public final class PropertyDefinition {
     private final boolean cycle;
     /** 字段类型为枚举时的常量名；非枚举为空列表。 */
     private final List<String> enumConstants;
+    /** 原始 {@link PsiField}；手工构造或无法对应 PSI 时为 {@code null}。 */
+    private final PsiField delegate;
 
     /**
      * 非循环引用的字段。
@@ -72,6 +75,24 @@ public final class PropertyDefinition {
                               List<AnnotationDefinition> annotations, String comment,
                               List<PropertyDefinition> properties, boolean cycle,
                               List<String> enumConstants) {
+        this(name, type, packageName, annotations, comment, properties, cycle, enumConstants, null);
+    }
+
+    /**
+     * @param name          字段名
+     * @param type          展示类型名
+     * @param packageName   类型所在包
+     * @param annotations   字段注解
+     * @param comment       字段 JavaDoc
+     * @param properties    子字段
+     * @param cycle         是否循环引用
+     * @param enumConstants 枚举常量名；非枚举为 {@code null} 或空
+     * @param delegate      原始 PSI 字段
+     */
+    public PropertyDefinition(String name, String type, String packageName,
+                              List<AnnotationDefinition> annotations, String comment,
+                              List<PropertyDefinition> properties, boolean cycle,
+                              List<String> enumConstants, PsiField delegate) {
         this.name = name;
         this.type = type;
         this.packageName = packageName;
@@ -80,6 +101,7 @@ public final class PropertyDefinition {
         this.properties = CollectionUtils.unmodifiableList(properties);
         this.cycle = cycle;
         this.enumConstants = CollectionUtils.unmodifiableList(enumConstants);
+        this.delegate = delegate;
     }
 
     /** 字段名。 */
@@ -120,6 +142,11 @@ public final class PropertyDefinition {
     /** 字段类型为枚举时的常量名，声明顺序；非枚举为空列表。 */
     public List<String> enumConstants() {
         return enumConstants;
+    }
+
+    /** 原始 {@link PsiField}；手工构造或无法对应 PSI 时为 {@code null}。 */
+    public PsiField delegate() {
+        return delegate;
     }
 
 }

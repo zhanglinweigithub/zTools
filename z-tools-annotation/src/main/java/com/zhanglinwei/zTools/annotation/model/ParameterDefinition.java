@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.intellij.psi.PsiParameter;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public final class ParameterDefinition {
     private final String comment;
     /** 对象类型的字段；叶子类型为空列表。 */
     private final List<PropertyDefinition> properties;
+    /** 原始 {@link PsiParameter}；返回值、手工构造或无法对应 PSI 时为 {@code null}。 */
+    private final PsiParameter delegate;
 
     /**
      * @param name        参数名；返回值为 {@code null}
@@ -34,12 +37,28 @@ public final class ParameterDefinition {
     public ParameterDefinition(String name, String type, String packageName,
                                List<AnnotationDefinition> annotations, String comment,
                                List<PropertyDefinition> properties) {
+        this(name, type, packageName, annotations, comment, properties, null);
+    }
+
+    /**
+     * @param name        参数名；返回值为 {@code null}
+     * @param type        展示类型名
+     * @param packageName 类型所在包
+     * @param annotations 注解
+     * @param comment     {@code @param} 或 {@code @return} 注释
+     * @param properties  对象字段
+     * @param delegate    原始 PSI 参数；返回值为 {@code null}
+     */
+    public ParameterDefinition(String name, String type, String packageName,
+                               List<AnnotationDefinition> annotations, String comment,
+                               List<PropertyDefinition> properties, PsiParameter delegate) {
         this.name = name;
         this.type = type;
         this.packageName = packageName;
         this.annotations = CollectionUtils.unmodifiableList(annotations);
         this.comment = comment;
         this.properties = CollectionUtils.unmodifiableList(properties);
+        this.delegate = delegate;
     }
 
     /** 参数名；返回值为 {@code null}。 */
@@ -70,6 +89,11 @@ public final class ParameterDefinition {
     /** 对象类型的字段；叶子类型为空列表。 */
     public List<PropertyDefinition> properties() {
         return properties;
+    }
+
+    /** 原始 {@link PsiParameter}；返回值、手工构造或无法对应 PSI 时为 {@code null}。 */
+    public PsiParameter delegate() {
+        return delegate;
     }
 
 }

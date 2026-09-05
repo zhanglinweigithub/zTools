@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.annotation.model;
 
+import com.intellij.psi.PsiMethod;
 import com.zhanglinwei.zTools.common.util.CollectionUtils;
 
 import java.util.List;
@@ -23,6 +24,8 @@ public final class MethodDefinition {
     private final ParameterDefinition returns;
     /** 方法 JavaDoc；没有则为 {@code null}。 */
     private final CommentDefinition comment;
+    /** 原始 {@link PsiMethod}；手工构造或无法对应 PSI 时为 {@code null}。 */
+    private final PsiMethod delegate;
 
     /**
      * @param name            方法名
@@ -36,6 +39,22 @@ public final class MethodDefinition {
     public MethodDefinition(String name, String packageName, ClassRef containingClass,
                             List<AnnotationDefinition> annotations, List<ParameterDefinition> parameters,
                             ParameterDefinition returns, CommentDefinition comment) {
+        this(name, packageName, containingClass, annotations, parameters, returns, comment, null);
+    }
+
+    /**
+     * @param name            方法名
+     * @param packageName     所在类的包名
+     * @param containingClass 所在类引用
+     * @param annotations     方法注解
+     * @param parameters      方法参数
+     * @param returns         返回值
+     * @param comment         方法 JavaDoc
+     * @param delegate        原始 PSI 方法
+     */
+    public MethodDefinition(String name, String packageName, ClassRef containingClass,
+                            List<AnnotationDefinition> annotations, List<ParameterDefinition> parameters,
+                            ParameterDefinition returns, CommentDefinition comment, PsiMethod delegate) {
         this.name = name;
         this.packageName = packageName;
         this.containingClass = containingClass;
@@ -43,6 +62,7 @@ public final class MethodDefinition {
         this.parameters = CollectionUtils.unmodifiableList(parameters);
         this.returns = returns;
         this.comment = comment;
+        this.delegate = delegate;
     }
 
     /** 方法名。 */
@@ -78,6 +98,11 @@ public final class MethodDefinition {
     /** 方法 JavaDoc；没有则为 {@code null}。 */
     public CommentDefinition comment() {
         return comment;
+    }
+
+    /** 原始 {@link PsiMethod}；手工构造或无法对应 PSI 时为 {@code null}。 */
+    public PsiMethod delegate() {
+        return delegate;
     }
 
 }

@@ -43,7 +43,8 @@ public final class SourceParser {
                 packageName(psiClass),
                 AnnotationParser.of(psiClass),
                 CommentParser.of(psiClass),
-                methods
+                methods,
+                psiClass
         );
     }
 
@@ -72,7 +73,8 @@ public final class SourceParser {
                 AnnotationParser.of(method),
                 parameters,
                 parseReturn(method),
-                CommentParser.of(method)
+                CommentParser.of(method),
+                method
         );
     }
 
@@ -132,7 +134,8 @@ public final class SourceParser {
                 TypeParser.packageName(type),
                 AnnotationParser.of(parameter),
                 StringUtils.isBlank(comment) ? null : comment,
-                TypeParser.properties(type)
+                TypeParser.properties(type),
+                parameter
         );
     }
 
