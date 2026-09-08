@@ -4,6 +4,7 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiMethod;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
+import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.restful.component.IRestfulPresentation;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,8 +17,10 @@ public class IRestful implements NavigationItem {
 
     /** 展示名称，通常等于完整请求路径 */
     private String name;
-    /** 请求路径，如 {@code /api/user/{id}} */
+    /** 请求路径，如 {@code /api/user/{id}}，切换全局前缀后会更新 */
     private String requestPath;
+    /** 方法 Mapping 原始路径，不含全局前缀 */
+    private final String mappingPath;
     /** HTTP 方法 */
     private HttpMethod requestType;
 
@@ -33,6 +36,7 @@ public class IRestful implements NavigationItem {
      */
     public IRestful(PsiMethod psiMethod, String requestPath, HttpMethod requestType) {
         this.psiMethod = psiMethod;
+        this.mappingPath = requestPath;
         this.requestPath = requestPath;
         this.requestType = requestType;
         this.name = requestPath;
@@ -96,6 +100,26 @@ public class IRestful implements NavigationItem {
     }
 
 
+
+    /**
+     * 把全局前缀拼到原始 Mapping 上，更新展示名称与请求路径。
+     *
+     * @param prefix 全局请求前缀，空白则只保留 Mapping
+     */
+    public void applyPrefix(String prefix) {
+        String fullPath = RequestPathUtils.join(prefix, mappingPath);
+        this.name = fullPath;
+        this.requestPath = fullPath;
+    }
+
+    /**
+     * 方法 Mapping 原始路径（不含全局前缀）。
+     *
+     * @return 原始路径
+     */
+    public String getMappingPath() {
+        return mappingPath;
+    }
 
     /** 请求路径。 */
     public String getRequestPath() {

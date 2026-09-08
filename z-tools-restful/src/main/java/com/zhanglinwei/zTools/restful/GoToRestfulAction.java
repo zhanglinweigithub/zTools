@@ -13,18 +13,17 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
-import com.zhanglinwei.zTools.common.util.RequestPathUtils;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameFilter;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameModel;
+import com.zhanglinwei.zTools.restful.component.IRestfulPrefixBar;
 import com.zhanglinwei.zTools.restful.model.IRestful;
 import com.zhanglinwei.zTools.restful.resolver.RestfulResolver;
-import com.zhanglinwei.zTools.common.util.CollectionUtils;
 import com.zhanglinwei.zTools.common.util.ProjectConfigs;
-import com.zhanglinwei.zTools.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,21 +48,27 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
             return;
         }
 
-        String requestPrefix = ProjectConfigs.globalRequestPrefix(project);
+        List<String> prefixes = ProjectConfigs.globalRequestPrefixes(project);
+        AtomicReference<String> selectedPrefix = new AtomicReference<String>(prefixes.get(0));
         Module module = actionEvent.getData(PlatformCoreDataKeys.MODULE);
-        ChooseByNameContributor chooseByNameContributor = createChooseByNameContributor(module, requestPrefix);
+        ChooseByNameContributor chooseByNameContributor = createChooseByNameContributor(module, selectedPrefix);
         IRestfulChooseByNameModel chooseByNameModel = new IRestfulChooseByNameModel(project, chooseByNameContributor);
 
         GotoActionBase.GotoActionCallback<HttpMethod> iRestfulCallback = new GotoActionBase.GotoActionCallback<HttpMethod>() {
             /**
-             * 按 HTTP 方法过滤列表。
+             * 按 HTTP 方法过滤列表，并在搜索框上方放置前缀下拉。
              *
              * @param popup 当前 GoTo 弹窗
              * @return HTTP 方法过滤器
              */
             @Override
             protected ChooseByNameFilter<HttpMethod> createFilter(@NotNull ChooseByNamePopup popup) {
-                return new IRestfulChooseByNameFilter(popup, chooseByNameModel, project);
+                IRestfulChooseByNameFilter filter = new IRestfulChooseByNameFilter(popup, chooseByNameModel, project);
+                IRestfulPrefixBar.install(popup, prefixes, prefix -> {
+                    selectedPrefix.set(prefix);
+                    popup.rebuildList(true);
+                });
+                return filter;
             }
 
             /**
@@ -91,15 +96,17 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
     }
 
     /**
-     * 创建名称贡献者：按工程或模块解析接口，再拼上全局请求前缀。
+     * 创建名称贡献者：按工程或模块解析接口，再拼上当前选中的全局请求前缀。
      *
-     * @param module        当前模块，勾选 “Current Module” 时使用
-     * @param requestPrefix 全局请求前缀，如 {@code /api}
+     * @param module          当前模块，勾选 “Current Module” 时使用
+     * @param selectedPrefix  当前选中的全局请求前缀
      * @return 向 GoTo 窗口提供名称与导航项的贡献者
      */
-    private ChooseByNameContributor createChooseByNameContributor(Module module, String requestPrefix) {
+    private ChooseByNameContributor createChooseByNameContributor(Module module, AtomicReference<String> selectedPrefix) {
         return new ChooseByNameContributor() {
             List<IRestful> restfulList = new ArrayList<>();
+            Boolean lastOnlyThisModule = null;
+            boolean loaded = false;
 
             /**
              * 收集接口路径作为搜索名称。
@@ -110,10 +117,14 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
              */
             @Override
             public String @NotNull [] getNames(Project project, boolean onlyThisModule) {
-                restfulList = collect(onlyThisModule && module != null
-                        ? resolver -> resolver.resolverByModule(module)
-                        : resolver -> resolver.resolverByProject(project));
-                appendGlobalRequestPrefix(restfulList, requestPrefix);
+                if (!loaded || lastOnlyThisModule == null || lastOnlyThisModule != onlyThisModule) {
+                    restfulList = collect(onlyThisModule && module != null
+                            ? resolver -> resolver.resolverByModule(module)
+                            : resolver -> resolver.resolverByProject(project));
+                    lastOnlyThisModule = onlyThisModule;
+                    loaded = true;
+                }
+                applySelectedPrefix();
                 return restfulList.stream().map(IRestful::getName).toArray(String[]::new);
             }
 
@@ -134,23 +145,11 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
             }
 
             /**
-             * 把全局前缀拼到接口路径上。
-             * <p>
-             * 例：{@code /api} + {@code /user/{id}} → {@code /api/user/{id}}
-             *
-             * @param restfulList   已解析的接口列表
-             * @param requestPrefix 全局请求前缀，空白则跳过
+             * 把当前选中的前缀拼到接口路径上。
              */
-            private void appendGlobalRequestPrefix(List<IRestful> restfulList, String requestPrefix) {
-                if (CollectionUtils.isEmpty(restfulList) || StringUtils.isBlank(requestPrefix)) {
-                    return;
-                }
-
-                restfulList.forEach(restful -> {
-                    String fullPath = RequestPathUtils.join(requestPrefix, restful.getName());
-                    restful.setName(fullPath);
-                    restful.setRequestPath(fullPath);
-                });
+            private void applySelectedPrefix() {
+                String requestPrefix = selectedPrefix.get();
+                restfulList.forEach(restful -> restful.applyPrefix(requestPrefix));
             }
         };
     }

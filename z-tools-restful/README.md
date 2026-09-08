@@ -13,11 +13,12 @@
 ## 使用步骤
 
 1. 任意位置按下 `Ctrl + \`
-2. 输入路径片段，如 `user`、`/api/users/{id}`
-3. 可用过滤器按 **HTTP 方法**（GET / POST / …）缩小范围；可勾选仅当前模块
-4. 回车跳转到方法源码
+2. 搜索框上方的 **Prefix** 下拉可选全局请求前缀，默认第一项
+3. 输入路径片段，如 `user`、`/api/users/{id}`
+4. 可用过滤器按 **HTTP 方法**（GET / POST / …）缩小范围；可勾选仅当前模块
+5. 回车跳转到方法源码
 
-列表中的路径会拼上全局请求前缀，因此搜索时请带上 `context-path`（如果项目配了）
+列表中的路径会拼上当前选中的前缀。一个 IDEA 窗口里打开了多个项目、前缀不同时，在下拉里切换即可
 
 ## 识别范围
 
@@ -26,16 +27,18 @@
 
 ## 全局请求前缀
 
-从 `application.yaml` / `.yml` / `.properties` 读取：
+只扫描各模块 **生产 resources**（`src/main/resources`）下的 `*.yaml` / `*.yml` / `*.properties`，不再全工程按文件名索引。每个文件中：
 
-1. `server.servlet.context-path`
-2. 若未配置，再读 `spring.mvc.servlet.path`
+1. 先读 `server.servlet.context-path`（也认 `contextPath`）
+2. 没有再读 `spring.mvc.servlet.path`
 
-例如 context-path 为 `/api`，方法 Mapping 为 `/users/{id}`，搜索列表中显示 `/api/users/{id}`
+多份配置、多个 YAML 文档里的前缀会去重后全部进入下拉，默认选中第一项。都没配时下拉只有 `/`（无额外前缀）
+
+例如某个项目 context-path 为 `/api`，方法 Mapping 为 `/users/{id}`，选中该前缀后列表显示 `/api/users/{id}`
 
 ## 注意事项
 
-1. 配置文件优先 `src/main/resources`；同名文件优先级：`application.yaml` > `application.yml` > `application.properties`
-2. 修改配置后请保存文件；若列表仍是旧前缀，重新构建 / 重启工程后再搜
+1. 只看 `src/main/resources`（以及模块的 Java Resource Root），不读 test 资源，并跳过 `target` / `build` / `.git` 等目录
+2. 修改配置后请保存文件再搜
 3. YAML 请规范缩进，否则可能解析不到前缀
-4. 多模块同时存在 `application.yml` 时，插件取 resources 下找到的第一份，不一定是你当前运行的那个模块
+4. 前缀按扫描顺序去重；需要搜另一个子项目时，在 Prefix 下拉里切换

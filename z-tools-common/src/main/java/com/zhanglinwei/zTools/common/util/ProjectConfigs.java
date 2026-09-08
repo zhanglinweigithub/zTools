@@ -1,19 +1,27 @@
 package com.zhanglinwei.zTools.common.util;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.FilenameIndex;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.zhanglinwei.zTools.common.constant.CharacterPool;
 import com.zhanglinwei.zTools.common.enums.SpringConfigProperties;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.java.JavaResourceRootType;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.COMMA;
@@ -28,8 +36,9 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.RIGHT_SQ_BRACKET
 /**
  * 读项目里的 Spring {@code application.*} 与插件 {@code zTools.*} 配置。
  * <p>
- * 查找顺序：yaml → yml → properties；同名文件优先取 {@code src/main/resources} 下的那份。
- * YAML 嵌套 key 会被拍平为 kebab-case 点分路径，以便和 {@link SpringConfigProperties} 对齐。
+ * 只扫描各模块生产资源目录（{@code src/main/resources}）下的文件，避免对整个工程做文件名索引。
+ * 查找顺序：yaml → yml → properties。YAML 嵌套 key 会被拍平为 kebab-case 点分路径，
+ * 以便和 {@link SpringConfigProperties} 对齐。
  */
 public final class ProjectConfigs {
 
@@ -40,6 +49,26 @@ public final class ProjectConfigs {
     private static final String ZTOOLS_YAML = "zTools.yaml";
     private static final String ZTOOLS_YML = "zTools.yml";
     private static final String ZTOOLS_PROPERTIES = "zTools.properties";
+
+    private static final String SRC_MAIN_RESOURCES = "src/main/resources";
+    private static final int RESOURCE_WALK_MAX_DEPTH = 8;
+    private static final Set<String> SKIP_DIR_NAMES;
+
+    static {
+        Set<String> skip = new HashSet<String>();
+        skip.add(".git");
+        skip.add(".idea");
+        skip.add(".svn");
+        skip.add(".hg");
+        skip.add(".gradle");
+        skip.add("target");
+        skip.add("build");
+        skip.add("out");
+        skip.add("node_modules");
+        skip.add("dist");
+        skip.add("vendor");
+        SKIP_DIR_NAMES = Collections.unmodifiableSet(skip);
+    }
 
     /** 工具类，禁止实例化 */
     private ProjectConfigs() {}
@@ -68,7 +97,7 @@ public final class ProjectConfigs {
 
     /**
      * 全局请求前缀：优先 {@code server.servlet.context-path}，否则 {@code spring.mvc.servlet.path}。
-     * 用于把 Controller Mapping 拼成完整 URL。
+     * 用于把 Controller Mapping 拼成完整 URL。读取 {@code application.yaml/yml/properties} 中的第一份。
      *
      * @param project 当前项目
      * @return 前缀；项目为空或两项都未配置时为空串
@@ -77,11 +106,37 @@ public final class ProjectConfigs {
         if (project == null) {
             return EMPTY;
         }
-        String prefix = spring(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH);
+        String prefix = SpringRequestPrefixParser.normalize(
+                spring(project, SpringConfigProperties.SERVER_SERVLET_CONTEXT_PATH));
         if (StringUtils.isBlank(prefix)) {
-            prefix = spring(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH);
+            prefix = SpringRequestPrefixParser.normalize(
+                    spring(project, SpringConfigProperties.SPRING_MVC_SERVLET_PATH));
         }
         return prefix == null ? EMPTY : prefix;
+    }
+
+    /**
+     * 扫描打开工程内全部生产 {@code resources} 下的 yaml / yml / properties，收集去重后的请求前缀。
+     * <p>
+     * 适合一个 IDEA 窗口里放了多个子项目、各有不同 {@code context-path} 的场景。
+     * 一个都没有时返回只含空串的列表，便于调用方仍能拼路径。
+     *
+     * @param project 当前项目
+     * @return 去重后的前缀，至少一项
+     */
+    public static List<String> globalRequestPrefixes(Project project) {
+        if (project == null) {
+            return Collections.singletonList(EMPTY);
+        }
+        List<String> found = new ArrayList<String>();
+        for (VirtualFile file : resourceConfigFiles(project)) {
+            found.addAll(SpringRequestPrefixParser.allFromContent(file.getName(), read(file)));
+        }
+        List<String> unique = SpringRequestPrefixParser.unique(found);
+        if (unique.isEmpty()) {
+            return Collections.singletonList(EMPTY);
+        }
+        return unique;
     }
 
     /**
@@ -215,34 +270,171 @@ public final class ProjectConfigs {
     }
 
     /**
-     * 按文件名在项目范围内查找。
+     * 在生产 resources 目录中按文件名查找，不再做全工程 FilenameIndex。
      *
      * @param project 当前项目
      * @param name    文件名
      * @return 匹配到的虚拟文件
      */
     private static Collection<VirtualFile> filesByName(Project project, String name) {
-        return new ArrayList<VirtualFile>(
-                FilenameIndex.getVirtualFilesByName(name, false, GlobalSearchScope.projectScope(project))
-        );
+        List<VirtualFile> match = new ArrayList<VirtualFile>();
+        for (VirtualFile dir : productionResourceDirectories(project)) {
+            findNamed(dir, name, match);
+        }
+        return match;
     }
 
     /**
-     * 优先返回 {@code src/main/resources} 下的文件，避免误用 test 资源。
+     * 在目录树中查找指定文件名。
+     *
+     * @param dir  当前目录
+     * @param name 文件名
+     * @param out  结果
+     */
+    private static void findNamed(final VirtualFile dir, final String name, final List<VirtualFile> out) {
+        if (dir == null || !dir.isValid() || !dir.isDirectory()) {
+            return;
+        }
+        VfsUtilCore.visitChildrenRecursively(dir, new VirtualFileVisitor<Void>() {
+            @Override
+            public @NotNull Result visitFileEx(@NotNull VirtualFile file) {
+                if (skipWalkDirectory(file, dir)) {
+                    return SKIP_CHILDREN;
+                }
+                if (!file.isDirectory() && name.equals(file.getName())) {
+                    out.add(file);
+                }
+                return CONTINUE;
+            }
+        });
+    }
+
+    /**
+     * 收集生产 resources 下全部 yaml / yml / properties。
+     *
+     * @param project 当前项目
+     * @return 配置文件列表
+     */
+    private static List<VirtualFile> resourceConfigFiles(Project project) {
+        List<VirtualFile> files = new ArrayList<VirtualFile>();
+        for (VirtualFile dir : productionResourceDirectories(project)) {
+            collectConfigFiles(dir, files);
+        }
+        return files;
+    }
+
+    /**
+     * 收集配置文件。
+     *
+     * @param dir 当前目录
+     * @param out 结果
+     */
+    private static void collectConfigFiles(final VirtualFile dir, final List<VirtualFile> out) {
+        if (dir == null || !dir.isValid() || !dir.isDirectory()) {
+            return;
+        }
+        VfsUtilCore.visitChildrenRecursively(dir, new VirtualFileVisitor<Void>() {
+            @Override
+            public @NotNull Result visitFileEx(@NotNull VirtualFile file) {
+                if (skipWalkDirectory(file, dir)) {
+                    return SKIP_CHILDREN;
+                }
+                if (!file.isDirectory() && SpringRequestPrefixParser.isConfigFile(file.getName())) {
+                    out.add(file);
+                }
+                return CONTINUE;
+            }
+        });
+    }
+
+    /**
+     * 生产资源目录：Java Resource Root，以及内容根下的 {@code src/main/resources}（含未导入的子项目）。
+     *
+     * @param project 当前项目
+     * @return 去重后的资源目录
+     */
+    private static List<VirtualFile> productionResourceDirectories(Project project) {
+        Map<String, VirtualFile> dirs = new LinkedHashMap<String, VirtualFile>();
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+            ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+            for (VirtualFile resourceRoot : rootManager.getSourceRoots(JavaResourceRootType.RESOURCE)) {
+                putDir(dirs, resourceRoot);
+            }
+            for (VirtualFile contentRoot : rootManager.getContentRoots()) {
+                findSrcMainResources(contentRoot, dirs);
+            }
+        }
+        return new ArrayList<VirtualFile>(dirs.values());
+    }
+
+    /**
+     * 有限深度查找 {@code src/main/resources}，跳过构建产物与 VCS 目录。
+     *
+     * @param dir  当前目录
+     * @param dirs 结果
+     */
+    private static void findSrcMainResources(final VirtualFile dir, final Map<String, VirtualFile> dirs) {
+        if (dir == null || !dir.isValid() || !dir.isDirectory()) {
+            return;
+        }
+        VfsUtilCore.visitChildrenRecursively(dir, new VirtualFileVisitor<Void>(VirtualFileVisitor.limit(RESOURCE_WALK_MAX_DEPTH)) {
+            @Override
+            public @NotNull Result visitFileEx(@NotNull VirtualFile file) {
+                if (!file.isDirectory()) {
+                    return CONTINUE;
+                }
+                if (skipWalkDirectory(file, dir)) {
+                    return SKIP_CHILDREN;
+                }
+                String path = file.getPath().replace('\\', '/');
+                if (path.endsWith(SRC_MAIN_RESOURCES)) {
+                    putDir(dirs, file);
+                    return SKIP_CHILDREN;
+                }
+                return CONTINUE;
+            }
+        });
+    }
+
+    /**
+     * 跳过构建产物、VCS 等目录，起点目录本身仍会扫描。
+     *
+     * @param file     当前文件或目录
+     * @param walkRoot 本次遍历的起点
+     * @return 应跳过该目录及其子项则为 {@code true}
+     */
+    private static boolean skipWalkDirectory(VirtualFile file, VirtualFile walkRoot) {
+        return file.isDirectory() && !walkRoot.equals(file) && SKIP_DIR_NAMES.contains(file.getName());
+    }
+
+    /**
+     * 按路径去重放入资源目录表。
+     *
+     * @param dirs 结果
+     * @param dir  目录
+     */
+    private static void putDir(Map<String, VirtualFile> dirs, VirtualFile dir) {
+        if (dir != null && dir.isValid()) {
+            dirs.put(dir.getPath(), dir);
+        }
+    }
+
+    /**
+     * 返回列表中的第一份文件（候选已限制在 resources 内）。
      *
      * @param files 候选文件
-     * @return 首选文件；都没有 resources 路径则为 {@code null}
+     * @return 首选文件
      */
     private static VirtualFile firstInResources(Collection<VirtualFile> files) {
         if (CollectionUtils.isEmpty(files)) {
             return null;
         }
         for (VirtualFile file : files) {
-            if (file.getPath().contains("src/main/resources")) {
+            if (file.getPath().replace('\\', '/').contains(SRC_MAIN_RESOURCES)) {
                 return file;
             }
         }
-        return null;
+        return files.iterator().next();
     }
 
     /**
@@ -252,6 +444,9 @@ public final class ProjectConfigs {
      * @return 文本内容
      */
     private static String read(VirtualFile file) {
+        if (file == null) {
+            return null;
+        }
         try {
             return new String(file.contentsToByteArray());
         } catch (IOException ignored) {
