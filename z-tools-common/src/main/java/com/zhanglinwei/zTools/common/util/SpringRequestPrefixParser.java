@@ -102,6 +102,18 @@ public final class SpringRequestPrefixParser {
     }
 
     /**
+     * 下拉选项：真实前缀在前，根路径 {@code /}（空串）始终在最后。
+     *
+     * @param prefixes 已收集的前缀，可为 {@code null}
+     * @return 至少包含一项空串
+     */
+    public static List<String> ensureRootLast(List<String> prefixes) {
+        List<String> result = new ArrayList<String>(unique(prefixes));
+        result.add(EMPTY);
+        return result;
+    }
+
+    /**
      * 规范化前缀：补 {@code /}、去掉末尾 {@code /}；空或根路径视为未配置。
      *
      * @param raw 原始值

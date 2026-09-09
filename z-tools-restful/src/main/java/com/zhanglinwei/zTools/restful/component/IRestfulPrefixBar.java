@@ -1,32 +1,39 @@
 package com.zhanglinwei.zTools.restful.component;
 
 import com.intellij.ide.util.gotoByName.ChooseByNamePopup;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.configure.config.RestfulConfig;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.AWTEventListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -34,7 +41,7 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
 import static com.zhanglinwei.zTools.common.constant.StringPool.SLASH;
 
 /**
- * 在 Restful 搜索框上方放置全局前缀下拉，切换后回调刷新列表。
+ * 在 Restful 搜索框上方放置前缀下拉，右侧放 HTTP 方法过滤按钮。
  */
 public class IRestfulPrefixBar {
 
@@ -42,47 +49,59 @@ public class IRestfulPrefixBar {
     private static final int EXTRA_WIDTH = 120;
 
     /**
-     * 把前缀下拉加到 GoTo 弹窗搜索框上方，默认选中第一项。
+     * 把前缀行加到搜索框上方，默认选中第一项。
      * <p>
      * {@code createFilter} 时文本框尚未加入父容器，必须等弹窗 {@code initUI} 之后再挂载。
      *
      * @param popup    当前弹窗
-     * @param prefixes 可选前缀，空串表示无前缀
+     * @param prefixes 可选前缀，空串表示根路径 {@code /}
      * @param onSelect 用户切换前缀时的回调
+     * @param model    名称模型，用于 HTTP 方法过滤
+     * @param project  当前工程
      */
-    public static void install(ChooseByNamePopup popup, List<String> prefixes, Consumer<String> onSelect) {
-        if (popup == null || prefixes == null || prefixes.isEmpty() || onSelect == null) {
+    public static void install(ChooseByNamePopup popup, List<String> prefixes, Consumer<String> onSelect,
+                               IRestfulChooseByNameModel model, Project project) {
+        if (popup == null || prefixes == null || prefixes.isEmpty() || onSelect == null || model == null || project == null) {
             return;
         }
-        SwingUtilities.invokeLater(() -> attach(popup, prefixes, onSelect));
+        SwingUtilities.invokeLater(() -> attach(popup, prefixes, onSelect, model, project));
     }
 
     /**
-     * 在搜索框所在面板顶部插入前缀行，并补足弹窗宽高，避免输入框被挤扁。
+     * 在搜索框所在面板顶部插入前缀行，并补足弹窗高度。
      *
      * @param popup    当前弹窗
      * @param prefixes 可选前缀
      * @param onSelect 切换回调
+     * @param model    名称模型
+     * @param project  当前工程
      */
-    private static void attach(ChooseByNamePopup popup, List<String> prefixes, Consumer<String> onSelect) {
+    private static void attach(ChooseByNamePopup popup, List<String> prefixes, Consumer<String> onSelect,
+                               IRestfulChooseByNameModel model, Project project) {
         JTextField textField = popup.getTextField();
+        if (textField == null) {
+            return;
+        }
         Container parent = textField.getParent();
         if (!(parent instanceof JComponent)) {
             return;
         }
+        JComponent panel = (JComponent) parent;
 
         ComboBox<String> box = new ComboBox<String>(prefixes.toArray(new String[0]));
         box.setSelectedIndex(0);
         box.setRenderer(new PrefixRenderer());
 
+        IRestfulMethodFilter methodFilter = new IRestfulMethodFilter(popup, model, RestfulConfig.getInstance(project));
+
         JPanel row = new JPanel(new BorderLayout(8, 0));
-        row.add(new JBLabel("Global request prefix:"), BorderLayout.WEST);
+        row.add(new JBLabel("Prefix:"), BorderLayout.WEST);
         row.add(box, BorderLayout.CENTER);
+        row.add(methodFilter.getButton(), BorderLayout.EAST);
         row.setOpaque(false);
         row.setAlignmentX(textField.getAlignmentX());
         lockRowHeight(row, box, textField);
 
-        JComponent panel = (JComponent) parent;
         panel.add(row, 0);
         enlargePopup(textField, row);
         panel.revalidate();
@@ -91,14 +110,19 @@ public class IRestfulPrefixBar {
         box.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent event) {
-                SwingUtilities.invokeLater(() -> closeIfFocusLeftPopup(popup, textField, panel));
+                SwingUtilities.invokeLater(() -> closeIfFocusLeftPopup(popup, textField, methodFilter));
             }
         });
-        KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        PropertyChangeListener focusOwnerListener = evt ->
-                SwingUtilities.invokeLater(() -> closeIfFocusLeftPopup(popup, textField, panel));
-        focusManager.addPropertyChangeListener("permanentFocusOwner", focusOwnerListener);
-        Disposer.register(popup, () -> focusManager.removePropertyChangeListener("permanentFocusOwner", focusOwnerListener));
+        AWTEventListener clickOutside = event -> {
+            if (event instanceof MouseEvent) {
+                MouseEvent mouse = (MouseEvent) event;
+                if (mouse.getID() == MouseEvent.MOUSE_PRESSED) {
+                    closeIfClickOutside(popup, textField, methodFilter, mouse);
+                }
+            }
+        };
+        Toolkit.getDefaultToolkit().addAWTEventListener(clickOutside, AWTEvent.MOUSE_EVENT_MASK);
+        Disposer.register(popup, () -> Toolkit.getDefaultToolkit().removeAWTEventListener(clickOutside));
         box.addItemListener(event -> {
             if (event.getStateChange() == ItemEvent.SELECTED) {
                 Object selected = box.getSelectedItem();
@@ -109,49 +133,99 @@ public class IRestfulPrefixBar {
     }
 
     /**
-     * 焦点已离开搜索弹窗（及其下拉）时关闭。点 Prefix 下拉本身不会关。
+     * 点在搜索弹窗、结果列表、前缀下拉或方法过滤弹层之外时关闭。
      *
-     * @param popup     GoTo 弹窗
-     * @param textField 搜索输入框
-     * @param panel     搜索框所在面板
+     * @param popup        GoTo 弹窗
+     * @param textField    搜索输入框
+     * @param methodFilter 方法过滤
+     * @param mouse        鼠标按下事件
      */
-    private static void closeIfFocusLeftPopup(ChooseByNamePopup popup, JTextField textField, JComponent panel) {
+    private static void closeIfClickOutside(ChooseByNamePopup popup, JTextField textField,
+                                            IRestfulMethodFilter methodFilter, MouseEvent mouse) {
         if (popup == null || popup.checkDisposed()) {
             return;
         }
-        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (focusOwner == null) {
+        Component target = mouse.getComponent();
+        if (target == null) {
             return;
         }
-        if (shouldKeepOpen(focusOwner, textField, panel)) {
-            return;
-        }
-        Window popupWindow = SwingUtilities.getWindowAncestor(textField);
-        Window focusedWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
-        if (focusedWindow != null && popupWindow != null
-                && (focusedWindow == popupWindow || focusedWindow.getOwner() == popupWindow)) {
+        if (isInsideSearchUi(target, textField, methodFilter)) {
             return;
         }
         popup.close(false);
     }
 
     /**
-     * 焦点仍在搜索框、前缀行或同一弹窗内时保持打开。
+     * 前缀下拉失焦且焦点已离开搜索 UI 时关闭。
      *
-     * @param focus     当前焦点组件
-     * @param textField 搜索输入框
-     * @param panel     搜索框所在面板
-     * @return 应保持打开则为 {@code true}
+     * @param popup        GoTo 弹窗
+     * @param textField    搜索输入框
+     * @param methodFilter 方法过滤
      */
-    private static boolean shouldKeepOpen(Component focus, JTextField textField, JComponent panel) {
-        if (focus == textField || SwingUtilities.isDescendingFrom(focus, panel)) {
+    private static void closeIfFocusLeftPopup(ChooseByNamePopup popup, JTextField textField,
+                                              IRestfulMethodFilter methodFilter) {
+        if (popup == null || popup.checkDisposed()) {
+            return;
+        }
+        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (focusOwner == null || isInsideSearchUi(focusOwner, textField, methodFilter)) {
+            return;
+        }
+        popup.close(false);
+    }
+
+    /**
+     * 点击或焦点是否仍在搜索框、结果列表、前缀下拉或方法过滤弹层内。
+     *
+     * @param target       目标组件
+     * @param textField    搜索输入框
+     * @param methodFilter 方法过滤
+     * @return 仍在搜索 UI 内则为 {@code true}
+     */
+    private static boolean isInsideSearchUi(Component target, JTextField textField, IRestfulMethodFilter methodFilter) {
+        if (textField == null || target == null) {
+            return false;
+        }
+        if (SwingUtilities.isDescendingFrom(target, textField.getParent())) {
             return true;
         }
-        Window focusWindow = SwingUtilities.getWindowAncestor(focus);
-        return focusWindow != null && !(focusWindow instanceof JFrame)
-                && SwingUtilities.getWindowAncestor(textField) != null
-                && (focusWindow == SwingUtilities.getWindowAncestor(textField)
-                || focusWindow.getOwner() == SwingUtilities.getWindowAncestor(textField));
+        Component root = popupContentRoot(textField);
+        if (root != null && SwingUtilities.isDescendingFrom(target, root)) {
+            return true;
+        }
+        JBPopup methodPopup = methodFilter.getMethodPopup();
+        if (methodPopup != null && !methodPopup.isDisposed() && methodPopup.getContent() != null
+                && SwingUtilities.isDescendingFrom(target, methodPopup.getContent())) {
+            return true;
+        }
+        Window popupWindow = SwingUtilities.getWindowAncestor(textField);
+        Window targetWindow = SwingUtilities.getWindowAncestor(target);
+        if (targetWindow != null && popupWindow != null) {
+            if (targetWindow == popupWindow) {
+                Container layered = root == null ? null : root.getParent();
+                return layered instanceof JLayeredPane && SwingUtilities.isDescendingFrom(target, layered);
+            }
+            return targetWindow.getOwner() == popupWindow || !(targetWindow instanceof JFrame);
+        }
+        return false;
+    }
+
+    /**
+     * 搜索弹窗内容根节点（其父级是分层窗格或窗口）。
+     *
+     * @param textField 搜索输入框
+     * @return 内容根
+     */
+    private static Component popupContentRoot(Component textField) {
+        Component current = textField;
+        while (current.getParent() != null) {
+            Container parent = current.getParent();
+            if (parent instanceof Window || parent instanceof JLayeredPane) {
+                return current;
+            }
+            current = parent;
+        }
+        return current;
     }
 
     /**
@@ -179,14 +253,30 @@ public class IRestfulPrefixBar {
      */
     private static void enlargePopup(JTextField textField, JPanel row) {
         Window window = SwingUtilities.getWindowAncestor(textField);
-        if (!(window instanceof JWindow) && !(window instanceof JDialog)) {
+        if (window instanceof JWindow || window instanceof JDialog) {
+            Dimension size = window.getSize();
+            int extraHeight = row.getPreferredSize().height + JBUI.scale(6);
+            window.setSize(size.width + JBUI.scale(EXTRA_WIDTH), size.height + extraHeight);
+            window.validate();
             return;
         }
-        Dimension size = window.getSize();
+        Component root = popupContentRoot(textField);
+        if (root == null) {
+            return;
+        }
         int extraHeight = row.getPreferredSize().height + JBUI.scale(6);
-        int extraWidth = JBUI.scale(EXTRA_WIDTH);
-        window.setSize(size.width + extraWidth, size.height + extraHeight);
-        window.validate();
+        Dimension current = root.getSize();
+        if (current.width <= 0 || current.height <= 0) {
+            current = root.getPreferredSize();
+        }
+        root.setPreferredSize(new Dimension(current.width + JBUI.scale(EXTRA_WIDTH), current.height + extraHeight));
+        root.setSize(root.getPreferredSize());
+        Container parent = root.getParent();
+        if (parent != null) {
+            parent.invalidate();
+            parent.validate();
+            parent.repaint();
+        }
     }
 
     /**
@@ -197,8 +287,10 @@ public class IRestfulPrefixBar {
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             if (component instanceof JLabel) {
+                JLabel label = (JLabel) component;
                 String text = value == null ? SLASH : String.valueOf(value);
-                ((JLabel) component).setText(StringUtils.isBlank(text) ? SLASH : text);
+                label.setText(StringUtils.isBlank(text) ? SLASH : text);
+                label.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
             }
             return component;
         }

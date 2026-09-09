@@ -119,10 +119,10 @@ public final class ProjectConfigs {
      * 扫描打开工程内全部生产 {@code resources} 下的 yaml / yml / properties，收集去重后的请求前缀。
      * <p>
      * 适合一个 IDEA 窗口里放了多个子项目、各有不同 {@code context-path} 的场景。
-     * 一个都没有时返回只含空串的列表，便于调用方仍能拼路径。
+     * 真实前缀在前，根路径（空串，界面显示 {@code /}）始终在最后。
      *
      * @param project 当前项目
-     * @return 去重后的前缀，至少一项
+     * @return 去重后的前缀，至少含根路径一项
      */
     public static List<String> globalRequestPrefixes(Project project) {
         if (project == null) {
@@ -132,11 +132,7 @@ public final class ProjectConfigs {
         for (VirtualFile file : resourceConfigFiles(project)) {
             found.addAll(SpringRequestPrefixParser.allFromContent(file.getName(), read(file)));
         }
-        List<String> unique = SpringRequestPrefixParser.unique(found);
-        if (unique.isEmpty()) {
-            return Collections.singletonList(EMPTY);
-        }
-        return unique;
+        return SpringRequestPrefixParser.ensureRootLast(found);
     }
 
     /**

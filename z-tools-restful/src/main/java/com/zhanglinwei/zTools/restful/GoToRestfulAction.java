@@ -13,7 +13,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.common.enums.HttpMethod;
-import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameFilter;
 import com.zhanglinwei.zTools.restful.component.IRestfulChooseByNameModel;
 import com.zhanglinwei.zTools.restful.component.IRestfulPrefixBar;
 import com.zhanglinwei.zTools.restful.model.IRestful;
@@ -56,19 +55,18 @@ public class GoToRestfulAction extends GotoActionBase implements DumbAware {
 
         GotoActionBase.GotoActionCallback<HttpMethod> iRestfulCallback = new GotoActionBase.GotoActionCallback<HttpMethod>() {
             /**
-             * 按 HTTP 方法过滤列表，并在搜索框上方放置前缀下拉。
+             * 在搜索框上方放置前缀下拉与 HTTP 方法过滤按钮。
              *
              * @param popup 当前 GoTo 弹窗
-             * @return HTTP 方法过滤器
+             * @return 不使用平台沙漏过滤器
              */
             @Override
             protected ChooseByNameFilter<HttpMethod> createFilter(@NotNull ChooseByNamePopup popup) {
-                IRestfulChooseByNameFilter filter = new IRestfulChooseByNameFilter(popup, chooseByNameModel, project);
                 IRestfulPrefixBar.install(popup, prefixes, prefix -> {
                     selectedPrefix.set(prefix);
                     popup.rebuildList(true);
-                });
-                return filter;
+                }, chooseByNameModel, project);
+                return null;
             }
 
             /**
