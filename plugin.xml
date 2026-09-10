@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.4.5</version>
+    <version>1.4.6</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -42,6 +42,10 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.09.10</em><br>
+            <ul>
+                <li>fix: Restful search popup on newer IDEA (filter, prefix dropdown, click-outside close) | 修复高版本 IDEA 中 Restful 搜索弹窗：HTTP 方法过滤、前缀下拉与点外部关闭</li>
+            </ul>
             <em>2026.09.05</em><br>
             <ul>
                 <li>feat: upload interfaces to YApi (method or class, Spring Mapping / Feign RequestLine) | 支持将接口上传到 YApi</li>
