@@ -11,7 +11,7 @@
 | **Encrypt** | 把选中明文加密，按 Enc Wrapper 写回 |
 | **Decrypt** | 把选中密文（可带前缀 / 后缀）解密，写回编辑器 |
 | **Decrypt To Clipboard** | 解密选区，复制到剪贴板，不改文件 |
-| **Decrypt File** | 按 Enc Wrapper 扫描整个文件并还原明文 |
+| **Decrypt File** | 扫描整个文件中的 `prefix...suffix` 并还原明文（Enc Wrapper 必须同时有前缀和后缀） |
 
 ![image-20260904215547806](../img/jasyptcrypto.png)
 
@@ -38,12 +38,12 @@
 
 Enc Wrapper 用 `%s` 标记密文位置，四种写法都会正确加解密：
 
-| Enc Wrapper | 加密结果 | Decrypt / Decrypt File |
-| --- | --- | --- |
-| `ENC(%s)` | `ENC(密文)` | 剥掉前缀和后缀 |
-| `ENC(%s` 或 `ENC%s` | `ENC(密文`（无后缀） | 只剥前缀 |
-| `%s)` | `密文)`（无前缀） | 只剥后缀 |
-| `%s` 或空 | 裸密文 | 选区按裸密文解密；Decrypt File 无法定位片段，文件不变 |
+| Enc Wrapper | 加密结果 | Decrypt | Decrypt File |
+| --- | --- | --- | --- |
+| `ENC(%s)` | `ENC(密文)` | 剥掉前缀和后缀 | 扫描并还原 |
+| `ENC(%s` 或 `ENC%s` | `ENC(密文`（无后缀） | 只剥前缀 | 提示：必须同时有前缀和后缀 |
+| `%s)` | `密文)`（无前缀） | 只剥后缀 | 提示：必须同时有前缀和后缀 |
+| `%s` 或空 | 裸密文 | 按裸密文解密 | 提示：必须同时有前缀和后缀 |
 
 未配密码时操作会提示：`Password is required. Please configure it in Settings > z-tools.`  
 选了 Fixed 盐 / IV 但没填对应值时，加密会提示需要在设置里填写

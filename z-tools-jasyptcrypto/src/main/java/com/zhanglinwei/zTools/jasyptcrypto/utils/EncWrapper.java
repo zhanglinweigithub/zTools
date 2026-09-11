@@ -58,6 +58,15 @@ public final class EncWrapper {
     }
 
     /**
+     * 是否同时配置了前缀和后缀。Decrypt File 需要两边都有才能扫描。
+     *
+     * @return 有前有后则为 {@code true}
+     */
+    public boolean hasPrefixAndSuffix() {
+        return hasPrefix() && hasSuffix();
+    }
+
+    /**
      * 密文前缀。
      *
      * @return 可能为空串

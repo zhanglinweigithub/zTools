@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.zhanglinwei"
-version = "2026.09.10"
+version = "2026.09.11"
 
 // 按 Java 8 语法编译，并生成 Java 8 字节码，以兼容 IDEA 2022.1（自带 JDK 11）
 sourceCompatibility = 1.8
@@ -144,7 +144,7 @@ project(':z-tools-jasyptcrypto') {
     dependencies {
         api project(':z-tools-configure')
         compileOnly files("${rootProject.projectDir}/lib/jasypt-1.9.3.jar")
-        testImplementation files("${rootProject.projectDir}/lib/jasypt-1.9.3.jar")
+//        testImplementation files("${rootProject.projectDir}/lib/jasypt-1.9.3.jar")
     }
 }
 

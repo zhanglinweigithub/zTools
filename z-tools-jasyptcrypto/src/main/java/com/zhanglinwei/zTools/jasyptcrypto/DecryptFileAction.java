@@ -1,6 +1,7 @@
 package com.zhanglinwei.zTools.jasyptcrypto;
 
 
+import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -14,12 +15,14 @@ import com.zhanglinwei.zTools.common.util.NotificationUtil;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 
 /**
- * 批量解密配置文件中所有带包裹的密文。
+ * 批量解密配置文件中所有 {@code prefix...suffix} 密文。
  * <p>
- * 无需手写 main 方法，直接在编辑器中一键解密整个文件。
- * Enc Wrapper 支持有前有后、有前无后、有后无前；两边都没有时无法扫描，文件保持原样。
+ * Enc Wrapper 必须同时有前缀和后缀（如 {@code ENC(%s)}）才可扫描整文件；否则提示并中止。
  */
 public class DecryptFileAction extends AbstractJasyptCrypto {
+
+    private static final String WRAPPER_REQUIRED =
+            "Decrypt File requires Enc Wrapper with both prefix and suffix (e.g. ENC(%s)). Please configure it in Settings > z-tools.";
 
     /**
      * 扫描整个文档，把所有带包裹的密文还原为明文。
@@ -27,10 +30,17 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
      * @param editor       当前编辑器
      * @param project      当前项目
      * @param selectedText 选区（整文件解密时忽略）
-     * @return 解密后的全文；未发现密文或失败则为 {@code null}
+     * @return 解密后的全文；未发现密文、包裹不完整或失败则为 {@code null}
      */
     @Override
     protected String doAction(Editor editor, Project project, String selectedText) {
+        EncWrapper wrapper = EncWrapper.from(JasyptCryptoConfig.getInstance(project));
+        if (!wrapper.hasPrefixAndSuffix()) {
+            HintManager.getInstance().showErrorHint(editor, WRAPPER_REQUIRED);
+            NotificationUtil.warnNotify(WRAPPER_REQUIRED, project);
+            return null;
+        }
+
         Document document = editor.getDocument();
         String content = document.getText();
 
@@ -70,7 +80,7 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
     }
 
     /**
-     * 扫描全文，按当前 Enc Wrapper 的前缀 / 后缀组合还原密文。
+     * 扫描全文，按 {@code prefix...suffix} 成对还原密文。调用前须保证包裹同时有前缀和后缀。
      *
      * @param project 当前项目
      * @param content 文件全文
