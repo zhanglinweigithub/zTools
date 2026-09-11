@@ -12,7 +12,7 @@ import com.zhanglinwei.zTools.jasyptcrypto.ui.EncryptParams;
 import com.zhanglinwei.zTools.jasyptcrypto.utils.JasyptUtils;
 
 /**
- * 加密当前选区：明文 → {@code ENC(<密文>)}，写回编辑器。
+ * 加密当前选区：明文 → 按 Enc Wrapper 加上前缀 / 后缀后写回编辑器。
  * <p>
  * 单组密码 / 盐 / IV 直接加密；任一项有多个则弹窗让用户各选一个。取消弹窗则不改文本。
  */

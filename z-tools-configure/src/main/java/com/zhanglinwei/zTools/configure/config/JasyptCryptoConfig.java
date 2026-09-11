@@ -10,6 +10,7 @@ import com.zhanglinwei.zTools.configure.constants.ZToolsConstant;
 import com.zhanglinwei.zTools.configure.enums.JasyptIV;
 import com.zhanglinwei.zTools.configure.enums.JasyptOutputType;
 import com.zhanglinwei.zTools.configure.enums.JasyptSalt;
+import com.zhanglinwei.zTools.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.EMPTY;
@@ -228,20 +229,28 @@ public final class JasyptCryptoConfig implements PersistentStateComponent<Jasypt
 
     /**
      * 从 encWrapper 中提取前缀，如 {@code ENC(%s)} → {@code ENC(}。
+     * 模板为空或仅为 {@code %s} 时为空串（无前缀）。
      *
      * @return 包裹前缀；没有 {@code %s} 时返回整个模板
      */
     public String getEncPrefix() {
+        if (StringUtils.isEmpty(encWrapper)) {
+            return EMPTY;
+        }
         int idx = encWrapper.indexOf("%s");
         return idx >= 0 ? encWrapper.substring(0, idx) : encWrapper;
     }
 
     /**
      * 从 encWrapper 中提取后缀，如 {@code ENC(%s)} → {@code )}。
+     * 模板为空、仅为 {@code %s}、或没有 {@code %s} 时为空串（无后缀）。
      *
-     * @return 包裹后缀；没有 {@code %s} 时为空串
+     * @return 包裹后缀
      */
     public String getEncSuffix() {
+        if (StringUtils.isEmpty(encWrapper)) {
+            return EMPTY;
+        }
         int idx = encWrapper.indexOf("%s");
         return idx >= 0 ? encWrapper.substring(idx + 2) : EMPTY;
     }

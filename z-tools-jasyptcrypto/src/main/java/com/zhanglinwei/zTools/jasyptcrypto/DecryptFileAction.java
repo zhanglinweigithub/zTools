@@ -8,16 +8,16 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig;
+import com.zhanglinwei.zTools.jasyptcrypto.utils.EncWrapper;
 import com.zhanglinwei.zTools.jasyptcrypto.utils.JasyptUtils;
 import com.zhanglinwei.zTools.common.util.NotificationUtil;
 import com.zhanglinwei.zTools.common.util.StringUtils;
 
 /**
- * 批量解密配置文件中所有 prefix...suffix 密文。
+ * 批量解密配置文件中所有带包裹的密文。
  * <p>
  * 无需手写 main 方法，直接在编辑器中一键解密整个文件。
- * 例如 {@code password: ENC(xK8a...)} 会变成 {@code password: 明文}；
- * 解不开的片段保持 {@code ENC(...)} 原样。
+ * Enc Wrapper 支持有前有后、有前无后、有后无前；两边都没有时无法扫描，文件保持原样。
  */
 public class DecryptFileAction extends AbstractJasyptCrypto {
 
@@ -70,7 +70,7 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
     }
 
     /**
-     * 从左到右扫描 {@code prefix...suffix}，对每段密文按密码 × 盐 × IV 组合尝试解密。
+     * 扫描全文，按当前 Enc Wrapper 的前缀 / 后缀组合还原密文。
      *
      * @param project 当前项目
      * @param content 文件全文
@@ -79,41 +79,8 @@ public class DecryptFileAction extends AbstractJasyptCrypto {
      */
     public static String decryptAll(Project project, String content) throws Exception {
         JasyptCryptoConfig config = JasyptCryptoConfig.getInstance(project);
-        String prefix = config.getEncPrefix();
-        String suffix = config.getEncSuffix();
-
-        StringBuilder result = new StringBuilder();
-        int i = 0;
-
-        while (i < content.length()) {
-            int encStart = content.indexOf(prefix, i);
-            if (encStart == -1) {
-                result.append(content.substring(i));
-                break;
-            }
-
-            // 追加 prefix 之前的原文
-            result.append(content.substring(i, encStart));
-
-            int encEnd = content.indexOf(suffix, encStart + prefix.length());
-            if (encEnd == -1) {
-                result.append(content.substring(encStart));
-                break;
-            }
-
-            String ciphertext = content.substring(encStart + prefix.length(), encEnd);
-            String plaintext = JasyptUtils.tryDecrypt(config, ciphertext);
-
-            if (plaintext != null) {
-                result.append(plaintext);
-            } else {
-                result.append(prefix).append(ciphertext).append(suffix);
-            }
-
-            i = encEnd + suffix.length();
-        }
-
-        return result.toString();
+        EncWrapper wrapper = EncWrapper.from(config);
+        return wrapper.replaceAll(content, ciphertext -> JasyptUtils.tryDecrypt(config, ciphertext));
     }
 
     /**

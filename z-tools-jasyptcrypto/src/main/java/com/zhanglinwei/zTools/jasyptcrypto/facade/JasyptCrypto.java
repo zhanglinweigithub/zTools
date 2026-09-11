@@ -4,7 +4,7 @@ import com.zhanglinwei.zTools.configure.config.JasyptCryptoConfig;
 import com.zhanglinwei.zTools.configure.enums.JasyptIV;
 import com.zhanglinwei.zTools.configure.enums.JasyptOutputType;
 import com.zhanglinwei.zTools.configure.enums.JasyptSalt;
-import com.zhanglinwei.zTools.common.util.StringUtils;
+import com.zhanglinwei.zTools.jasyptcrypto.utils.EncWrapper;
 import com.zhanglinwei.zTools.jasyptcrypto.utils.JasyptUtils;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 
@@ -15,8 +15,7 @@ import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
  */
 public class JasyptCrypto {
     private final StandardPBEStringEncryptor encryptor;
-    private final String encPrefix;
-    private final String encSuffix;
+    private final EncWrapper encWrapper;
 
     /**
      * 用配置与单个密码初始化 Encryptor；盐 / IV 取配置中第一项（多值场景请用四参数构造）。
@@ -39,8 +38,7 @@ public class JasyptCrypto {
      * @param ivValue   本次使用的固定 IV；非 Fixed 生成器可传空
      */
     public JasyptCrypto(JasyptCryptoConfig config, String password, String saltValue, String ivValue) {
-        this.encPrefix = config.getEncPrefix();
-        this.encSuffix = config.getEncSuffix();
+        this.encWrapper = EncWrapper.from(config);
 
         this.encryptor = new StandardPBEStringEncryptor();
         this.encryptor.setAlgorithm(config.getCryptoAlgorithm());
@@ -69,7 +67,7 @@ public class JasyptCrypto {
      *   输出密文：xK8a2b...（base64）或 7a3f9c...（hexadecimal）
      *            这是 PBE 加密后再编码的结果，不是明文的简单 Base64
      * </pre>
-     * 需要 {@code ENC(...)} 包裹请用 {@link #encryptWithWrapper(String)}。
+     * 需要按配置加前缀 / 后缀请用 {@link #encryptWithWrapper(String)}。
      *
      * @param plaintext 明文
      * @return 裸密文
@@ -79,7 +77,7 @@ public class JasyptCrypto {
     }
 
     /**
-     * 解密密文。若带 {@code ENC(...)} 包裹会先剥掉再解密。
+     * 解密密文。若带当前配置的前缀 / 后缀会先剥掉再解密。
      * <p>
      * 示例：
      * <pre>
@@ -91,71 +89,57 @@ public class JasyptCrypto {
      * @return 明文
      */
     public String decrypt(String ciphertext) {
-        // 带 ENC(...) 时先取出中间密文
-        if (isEncrypted(ciphertext)) {
-            ciphertext = extractEncryptedValue(ciphertext);
-        }
-        return encryptor.decrypt(ciphertext);
+        return encryptor.decrypt(encWrapper.unwrap(ciphertext));
     }
 
     /**
-     * 判断文本是否为加密格式：prefix...suffix（默认 {@code ENC(} 与 {@code )}）。
+     * 判断文本是否为当前配置下的加密包裹格式。
+     * <p>
+     * 有前缀则须以该前缀开头，有后缀则须以该后缀结尾；两边都未配置时返回 {@code false}。
      *
      * @param text 待判断文本
-     * @return 同时具备前后缀则为 {@code true}
+     * @return 符合包裹格式则为 {@code true}
      */
     public boolean isEncrypted(String text) {
-        if (StringUtils.isBlank(text)) {
-            return false;
-        }
-        String trimmed = text.trim();
-        return trimmed.startsWith(encPrefix)
-                && trimmed.endsWith(encSuffix);
+        return encWrapper.isWrapped(text);
     }
 
     /**
-     * 提取 prefix...suffix 中的密文部分。
+     * 去掉已配置且实际出现的前缀、后缀。
      *
      * @param text 可能带包裹的文本
-     * @return 中间密文；不是加密格式时原样返回
+     * @return 中间密文
      */
     public String extractEncryptedValue(String text) {
-        if (!isEncrypted(text)) {
-            return text;
-        }
-        String trimmed = text.trim();
-        return trimmed.substring(encPrefix.length(),
-                trimmed.length() - encSuffix.length());
+        return encWrapper.unwrap(text);
     }
 
     /**
-     * 将明文加密并包裹为 prefix+密文+suffix。
-     * <p>
-     * 示例（默认包裹）：{@code hello} → {@code ENC(xK8a2b...)}。
+     * 将明文加密并按配置加上前缀 / 后缀（缺哪边就不加哪边）。
      *
      * @param plaintext 明文
-     * @return 带包裹的密文，可直接写入 {@code application.yml}
+     * @return 可写入配置文件的密文
      */
     public String encryptWithWrapper(String plaintext) {
-        return encPrefix + encrypt(plaintext) + encSuffix;
+        return encWrapper.wrap(encrypt(plaintext));
     }
 
     /**
      * 获取密文包裹前缀。
      *
-     * @return 如 {@code ENC(}
+     * @return 如 {@code ENC(}；未配置则为空串
      */
     public String getPrefix() {
-        return encPrefix;
+        return encWrapper.getPrefix();
     }
 
     /**
      * 获取密文包裹后缀。
      *
-     * @return 如 {@code )}
+     * @return 如 {@code )}；未配置则为空串
      */
     public String getSuffix() {
-        return encSuffix;
+        return encWrapper.getSuffix();
     }
 
     /**
@@ -164,6 +148,6 @@ public class JasyptCrypto {
      * @return 如 {@code ENC(%s)}
      */
     public String getExpression() {
-        return encPrefix + "%s" + encSuffix;
+        return encWrapper.getPrefix() + "%s" + encWrapper.getSuffix();
     }
 }
