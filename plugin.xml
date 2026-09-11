@@ -42,6 +42,10 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.09.11</em><br>
+            <ul>
+                <li>fix bug | 修复了一些已知问题</li>
+            </ul>
             <em>2026.09.10</em><br>
             <ul>
                 <li>fix: Restful search popup on newer IDEA (filter, prefix dropdown, click-outside close) | 修复高版本 IDEA 中 Restful 搜索弹窗：HTTP 方法过滤、前缀下拉与点外部关闭</li>
