@@ -1,5 +1,5 @@
 <html>
 <body>
-根据方法的返回类型和唯一入参，生成 JavaBean 转换方法体：源对象判空、new 目标对象、同名 getter/setter 赋值（引用类型判空，集合/Map 额外判 empty，数组判 length），最后 return。
+根据方法的返回类型和唯一入参，生成 JavaBean 转换方法体：入参判空、new 目标对象、同名 getter/setter 直接赋值，目标多出来的字段用无参 setter 占位。
 </body>
 </html>

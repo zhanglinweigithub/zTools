@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 把匹配到的属性拼成方法体文本。不依赖 PSI，便于对照示例校验格式。
+ * 把匹配到的属性拼成方法体文本。不依赖 PSI。
  * <p>
- * 方法体按判空方式分组：{@code != null}、{@code != null && !isEmpty()}、无需判空、未转换。
+ * 入参整体判空后直接赋值；未匹配的目标 setter 单独成组，生成无参调用占位。
  */
 public final class ConvertMethodBodyGenerator {
 
@@ -36,7 +36,7 @@ public final class ConvertMethodBodyGenerator {
     }
 
     /**
-     * 生成完整代码块（含花括号）。字段按判空方式分组输出。
+     * 生成完整代码块（含花括号）。
      *
      * @param destType 目标简单类名
      * @param destVar  目标变量名
@@ -45,31 +45,17 @@ public final class ConvertMethodBodyGenerator {
      * @return 可交给 {@code PsiElementFactory#createCodeBlockFromText} 的代码块
      */
     public static String generate(String destType, String destVar, String sourceVar, List<ConvertField> fields) {
-        List<ConvertField> nullChecks = new ArrayList<ConvertField>();
-        List<ConvertField> emptyChecks = new ArrayList<ConvertField>();
-        List<ConvertField> primitives = new ArrayList<ConvertField>();
+        List<ConvertField> matched = new ArrayList<ConvertField>();
         List<ConvertField> unmatched = new ArrayList<ConvertField>();
         if (fields != null) {
             for (ConvertField field : fields) {
                 if (field == null || field.getKind() == null) {
                     continue;
                 }
-                switch (field.getKind()) {
-                    case OBJECT:
-                        nullChecks.add(field);
-                        break;
-                    case COLLECTION:
-                    case ARRAY:
-                        emptyChecks.add(field);
-                        break;
-                    case PRIMITIVE:
-                        primitives.add(field);
-                        break;
-                    case UNMATCHED:
-                        unmatched.add(field);
-                        break;
-                    default:
-                        break;
+                if (field.getKind() == ConvertField.Kind.UNMATCHED) {
+                    unmatched.add(field);
+                } else {
+                    matched.add(field);
                 }
             }
         }
@@ -81,9 +67,7 @@ public final class ConvertMethodBodyGenerator {
         body.append("    }\n\n");
         body.append("    ").append(destType).append(' ').append(destVar)
                 .append(" = new ").append(destType).append("();\n");
-        appendGroup(body, "!= null", nullChecks, destVar, sourceVar);
-        appendGroup(body, "!= null && !isEmpty()", emptyChecks, destVar, sourceVar);
-        appendGroup(body, "no null check", primitives, destVar, sourceVar);
+        appendGroup(body, null, matched, destVar, sourceVar);
         appendGroup(body, "unmatched", unmatched, destVar, sourceVar);
         body.append('\n');
         body.append("    return ").append(destVar).append(";\n");
@@ -97,7 +81,9 @@ public final class ConvertMethodBodyGenerator {
             return;
         }
         body.append('\n');
-        body.append("    // ").append(comment).append('\n');
+        if (comment != null) {
+            body.append("    // ").append(comment).append('\n');
+        }
         for (ConvertField field : group) {
             appendField(body, field, destVar, sourceVar);
         }
@@ -109,29 +95,7 @@ public final class ConvertMethodBodyGenerator {
             return;
         }
         String getterCall = sourceVar + '.' + field.getGetterName() + "()";
-        String setterCall = destVar + '.' + field.getSetterName() + '(' + getterCall + ");";
-        switch (field.getKind()) {
-            case PRIMITIVE:
-                body.append("    ").append(setterCall).append('\n');
-                break;
-            case ARRAY:
-                body.append("    if (").append(getterCall).append(" != null && ")
-                        .append(getterCall).append(".length > 0) {\n");
-                body.append("        ").append(setterCall).append('\n');
-                body.append("    }\n");
-                break;
-            case COLLECTION:
-                body.append("    if (").append(getterCall).append(" != null && !")
-                        .append(getterCall).append(".isEmpty()) {\n");
-                body.append("        ").append(setterCall).append('\n');
-                body.append("    }\n");
-                break;
-            case OBJECT:
-            default:
-                body.append("    if (").append(getterCall).append(" != null) {\n");
-                body.append("        ").append(setterCall).append('\n');
-                body.append("    }\n");
-                break;
-        }
+        body.append("    ").append(destVar).append('.').append(field.getSetterName())
+                .append('(').append(getterCall).append(");\n");
     }
 }

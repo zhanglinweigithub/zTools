@@ -1,6 +1,6 @@
 # 填充转换方法体（z-tools-convert）
 
-根据方法的返回类型和唯一入参，自动生成 JavaBean 转换方法体（同名 getter / setter，带判空）
+根据方法的返回类型和唯一入参，自动生成 JavaBean 转换方法体（同名 getter / setter）
 
 只依赖 `z-tools-common`
 
@@ -34,16 +34,8 @@ public UserDO toDO(UserDTO userDTO) {
     }
 
     UserDO userDO = new UserDO();
-
-    // != null
-    if (userDTO.getName() != null) {
-        userDO.setName(userDTO.getName());
-    }
-
-    // != null && !isEmpty()
-    if (userDTO.getChildren() != null && !userDTO.getChildren().isEmpty()) {
-        userDO.setChildren(userDTO.getChildren());
-    }
+    userDO.setName(userDTO.getName());
+    userDO.setChildren(userDTO.getChildren());
 
     // unmatched
     userDO.setRemark();
@@ -57,11 +49,9 @@ public UserDO toDO(UserDTO userDTO) {
 1. 入参为 `null` 则返回 `null`
 2. `new` 目标类型（需无参构造）
 3. 按目标类（含父类）的 setter 找源类同名 getter，类型可赋值才拷贝
-4. 引用类型：getter 非 null 才 set，生成后单独成组
-5. Collection / Map：非 null 且非 empty；数组：非 null 且 `length > 0`，与集合同一组
-6. 基本类型：直接赋值，不判空，单独成组
-7. 目标有、源没有（或类型不兼容）的字段：生成 `userDO.setRemark();` 占位，单独成组
-8. 不递归转换嵌套对象，集合按引用拷贝
+4. 匹配到的字段直接 `setXxx(getXxx())`，不逐字段判空（目标是刚 new 出来的对象）
+5. 目标有、源没有（或类型不兼容）的字段：生成 `userDO.setRemark();` 占位
+6. 不递归转换嵌套对象，集合按引用拷贝
 
 ## 何时不出现
 

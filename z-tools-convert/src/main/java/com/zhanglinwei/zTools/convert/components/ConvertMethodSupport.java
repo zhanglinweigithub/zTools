@@ -129,7 +129,7 @@ public final class ConvertMethodSupport {
                     fields.add(new ConvertField(null, setter.getName(), ConvertField.Kind.UNMATCHED));
                     continue;
                 }
-                fields.add(new ConvertField(getter.getName(), setter.getName(), kindOf(getterType)));
+                fields.add(new ConvertField(getter.getName(), setter.getName(), ConvertField.Kind.MATCHED));
             }
         }
         return fields;
@@ -189,18 +189,5 @@ public final class ConvertMethodSupport {
             return suffix;
         }
         return Character.toLowerCase(suffix.charAt(0)) + suffix.substring(1);
-    }
-
-    private static ConvertField.Kind kindOf(PsiType type) {
-        if (TypeUtils.isPrimitive(type)) {
-            return ConvertField.Kind.PRIMITIVE;
-        }
-        if (type instanceof PsiArrayType) {
-            return ConvertField.Kind.ARRAY;
-        }
-        if (TypeUtils.isCollectionType(type) || TypeUtils.isMapType(type)) {
-            return ConvertField.Kind.COLLECTION;
-        }
-        return ConvertField.Kind.OBJECT;
     }
 }

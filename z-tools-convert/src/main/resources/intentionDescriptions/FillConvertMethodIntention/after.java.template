@@ -4,11 +4,7 @@ public UserDO toDO(UserDTO userDTO) {
     }
 
     UserDO userDO = new UserDO();
-
-    // != null
-    if (userDTO.getName() != null) {
-        userDO.setName(userDTO.getName());
-    }
+    userDO.setName(userDTO.getName());
 
     // unmatched
     userDO.setRemark();
