@@ -1,0 +1,17 @@
+public UserDO toDO(UserDTO userDTO) {
+    if (userDTO == null) {
+        return null;
+    }
+
+    UserDO userDO = new UserDO();
+
+    // != null
+    if (userDTO.getName() != null) {
+        userDO.setName(userDTO.getName());
+    }
+
+    // unmatched
+    userDO.setRemark();
+
+    return userDO;
+}

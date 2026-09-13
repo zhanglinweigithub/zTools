@@ -1,6 +1,6 @@
 # zTools
 
-面向 Java / Spring 的 IntelliJ IDEA 插件：在编辑器里生成接口文档、复制 JSON / cURL、搜索 Restful、上传 YApi、Jasypt 加解密、导出库表文档、生成内部 Builder
+面向 Java / Spring 的 IntelliJ IDEA 插件：在编辑器里生成接口文档、复制 JSON / cURL、搜索 Restful、上传 YApi、Jasypt 加解密、导出库表文档、生成内部 Builder、填充 Bean 转换方法体
 
 有问题或 Bug 请留言，会尽快处理
 
@@ -20,6 +20,7 @@
 | [Jasypt 加解密](z-tools-jasyptcrypto/README.md) | 右键 **Jasypt Crypto** | `ENC(...)` 加解密、整文件解密 |
 | [生成数据库文档](z-tools-dbdoc/README.md) | **Tools → Generate DB Doc** | 读 `zTools.yaml` 连 MySQL |
 | [生成 Builder](z-tools-generatebuilder/README.md) | **Generate → Builder** | 内部 Builder，支持 record 与继承 |
+| [填充转换方法体](z-tools-convert/README.md) | 方法上 **Alt + Enter** | 按入参/返回类型生成带判空的 getter/setter |
 
 ## 如何配置
 

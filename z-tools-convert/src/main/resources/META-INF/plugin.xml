@@ -1,0 +1,5 @@
+<idea-plugin>
+    <id>com.zhanglinwei.zTools.z-tools-convert</id>
+    <name>z-tools-convert</name>
+    <vendor>Zhang Linwei</vendor>
+</idea-plugin>
