@@ -6,13 +6,13 @@
 
 ## 入口
 
-光标放在转换方法上（签名或方法体内）→ **Alt + Enter** → **Fill convert method body**
+光标放在转换方法上（签名或方法体内）→ **Alt + Enter** → **Convert a to b**
 
 ## 使用步骤
 
 1. 写好方法签名，方法体可为空，例如 `UserDO toDO(UserDTO userDTO)`
 2. 源类型、目标类型需有对应 getter / setter（含 Lombok 生成的访问器、父类字段）
-3. 光标放在该方法上，Alt + Enter，选择 `Fill convert method body: UserDTO → UserDO`
+3. 光标放在该方法上，Alt + Enter，选择 `Convert UserDTO to UserDO`
 4. 已有方法体会被替换
 
 ## 示例
