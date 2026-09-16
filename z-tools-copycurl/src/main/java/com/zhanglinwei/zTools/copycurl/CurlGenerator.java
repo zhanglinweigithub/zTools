@@ -260,11 +260,12 @@ public final class CurlGenerator {
             return;
         }
         // JSON body：pretty 后包进 --data，单引号转义以便 shell 可执行
-        String json = JsonUtil.toJsonString(jsonValue(body), true);
-        if (StringUtils.isBlank(json)) {
+        Object json = jsonValue(body);
+        String text = json == null ? "null" : JsonUtil.toJsonString(json, true);
+        if (StringUtils.isBlank(text)) {
             return;
         }
-        lines.add("--data '" + json.replace("'", "'\\''") + "'");
+        lines.add("--data '" + text.replace("'", "'\\''") + "'");
     }
 
     /**
@@ -428,7 +429,9 @@ public final class CurlGenerator {
             return example;
         }
         if (parameter.properties() == null || parameter.properties().isEmpty()) {
-            // 叶子：类型默认值，集合再按嵌套深度包 List
+            if (TypeUtils.isRawOptional(parameter.type())) {
+                return null;
+            }
             Object value = typeExample(parameter.type());
             return wrapCollection(parameter.type(), value);
         }
@@ -462,6 +465,9 @@ public final class CurlGenerator {
             return example;
         }
         if (property.properties() == null || property.properties().isEmpty()) {
+            if (TypeUtils.isRawOptional(property.type())) {
+                return null;
+            }
             return wrapCollection(property.type(), typeExample(property.type()));
         }
         return wrapCollection(property.type(), jsonObject(property.properties()));

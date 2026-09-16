@@ -10,6 +10,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeParameter;
+import com.intellij.psi.PsiWildcardType;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.annotation.model.PropertyDefinition;
 import com.zhanglinwei.zTools.common.constant.CharacterPool;
@@ -28,6 +29,7 @@ import java.util.Set;
  * 从 {@link PsiType} 取出类型名、包、对象字段。不推断 required / example。
  * <p>
  * 类型名与源码展示一致：{@code List<User>} → {@code List<User>}，{@code User[]} → {@code User[]}。
+ * {@code Optional<T>} 剥开后按 T 处理；{@code Map<K,V>} 生成 {@code key} 示例而不是空对象。
  * 展开字段时会先解开集合 / 数组再取元素类型，例如 {@code List<User>} 展开的是 User 的字段。
  */
 public final class TypeParser {
@@ -35,18 +37,25 @@ public final class TypeParser {
     /** 序列化字段，展开对象属性时跳过。 */
     private static final String SERIAL_VERSION_UID = "serialVersionUID";
 
+    /** Map 示例 JSON 的占位 key。 */
+    private static final String MAP_EXAMPLE_KEY = "key";
+
     /** 工具类，禁止实例化。 */
     private TypeParser() {}
 
     /**
-     * 展示类型名，与源码写法一致。
+     * 展示类型名，与源码写法一致；{@code Optional<T>} 剥开后展示 T。
      * {@code List<User>} → {@code List<User>}；{@code User[]} → {@code User[]}；{@code int} → {@code int}。
+     * {@code Optional<User>} → {@code User}；裸 {@code Optional} 仍为 {@code Optional}。
      *
      * @param type PSI 类型，为 {@code null} 时返回 {@code null}
      * @return 展示类型名
      */
     public static String name(PsiType type) {
-        return type == null ? null : type.getPresentableText();
+        if (type == null) {
+            return null;
+        }
+        return peelOptional(type, Collections.<String, PsiType>emptyMap()).getPresentableText();
     }
 
     /**
@@ -60,7 +69,7 @@ public final class TypeParser {
         if (type == null) {
             return null;
         }
-        PsiClass psiClass = PsiUtil.resolveClassInType(unwrap(type));
+        PsiClass psiClass = PsiUtil.resolveClassInType(unwrap(peelOptional(type, Collections.<String, PsiType>emptyMap())));
         if (psiClass == null) {
             return null;
         }
@@ -68,10 +77,12 @@ public final class TypeParser {
     }
 
     /**
-     * 对象类型的字段列表。叶子类型（基本类型、常见 JDK 类型、枚举、Map、HTTP/Servlet/IO、Reactor、流等）返回空列表。
+     * 对象类型的字段列表。叶子类型（基本类型、常见 JDK 类型、枚举、HTTP/Servlet/IO、Reactor、流等）返回空列表。
      * 展开时跳过 {@code static} 字段；入参与返回值共用此方法。
      * {@code List<User>}、{@code User[]} 会解开后展开 User 的字段。
-     * {@code PageResult<FormPageInfo>} 会把字段 {@code List<T> data} 的 {@code T} 替换成 {@code FormPageInfo} 再展开。
+     * {@code Optional<User>} 剥开泛型后按 User 展开；裸 {@code Optional} 不展开。
+     * {@code Map<String, User>} 生成一条 {@code key → User} 的示例，不展开 Map 自身字段。
+     * {@code Map<String, Map<String, User>>} 对值类型里的 Map 继续递归，得到多层 {@code key}。
      *
      * @param type PSI 类型
      * @return 字段定义；{@code type} 为 {@code null} 或叶子类型时为空列表
@@ -93,13 +104,27 @@ public final class TypeParser {
      * @return 字段定义；叶子类型或循环引用时为空列表
      */
     private static List<PropertyDefinition> properties(PsiType type, Set<String> visiting, Map<String, PsiType> generics) {
-        if (type == null || isLeaf(type)) {
+        if (type == null) {
             return Collections.emptyList();
         }
-        // 先按外层泛型替换类型变量（含 List<T> 这类嵌套），再解开集合 / 数组拿到元素类型
-        PsiType resolved = resolveGeneric(type, generics);
-        PsiType real = resolveGeneric(unwrap(resolved), generics);
-        if (isLeaf(real)) {
+        PsiType resolved = peelOptional(resolveGeneric(type, generics), generics);
+        if (resolved == null) {
+            return Collections.emptyList();
+        }
+        if (TypeUtils.isMapType(resolved)) {
+            return mapExampleProperties(resolved, visiting, generics);
+        }
+        if (isLeaf(resolved)) {
+            return Collections.emptyList();
+        }
+        PsiType real = peelOptional(resolveGeneric(unwrap(resolved), generics), generics);
+        if (real == null) {
+            return Collections.emptyList();
+        }
+        if (TypeUtils.isMapType(real)) {
+            return mapExampleProperties(real, visiting, generics);
+        }
+        if (isLeaf(real) || TypeUtils.isOptionalType(real)) {
             return Collections.emptyList();
         }
         PsiClass psiClass = PsiUtil.resolveClassInType(real);
@@ -107,7 +132,6 @@ public final class TypeParser {
             return Collections.emptyList();
         }
         String qualifiedName = psiClass.getQualifiedName();
-        // visiting 记录当前解析链，防止 A.b → A 这类循环无限展开
         if (qualifiedName != null && !visiting.add(qualifiedName)) {
             return Collections.emptyList();
         }
@@ -134,11 +158,15 @@ public final class TypeParser {
      * @return 属性定义
      */
     private static PropertyDefinition fromField(PsiField field, Set<String> visiting, Map<String, PsiType> generics) {
-        PsiType fieldType = resolveGeneric(field.getType(), generics);
+        PsiType fieldType = peelOptional(resolveGeneric(field.getType(), generics), generics);
         boolean cycle = cyclic(fieldType, visiting);
+        // Map 只取 V 做示例，不要把 Map 自己的 K/V 写进泛型表，避免盖住外层类的同名类型变量
+        Map<String, PsiType> childGenerics = TypeUtils.isMapType(fieldType)
+                ? generics
+                : mergeGenerics(fieldType, generics);
         List<PropertyDefinition> children = cycle
                 ? Collections.emptyList()
-                : properties(fieldType, visiting, mergeGenerics(fieldType, generics));
+                : properties(fieldType, visiting, childGenerics);
         return new PropertyDefinition(
                 field.getName(),
                 name(fieldType),
@@ -160,7 +188,7 @@ public final class TypeParser {
      * @return 常量名；非枚举为空列表
      */
     public static List<String> enumConstantNames(PsiType type) {
-        PsiClass psiClass = PsiUtil.resolveClassInType(unwrap(type));
+        PsiClass psiClass = PsiUtil.resolveClassInType(unwrap(peelOptional(type, Collections.<String, PsiType>emptyMap())));
         if (psiClass == null || !psiClass.isEnum()) {
             return Collections.emptyList();
         }
@@ -196,14 +224,13 @@ public final class TypeParser {
      * 是否为不再展开字段的叶子类型。
      *
      * @param type PSI 类型
-     * @return 基本类型、常见 JDK 类型、枚举、Map、上传 / HTTP / Servlet / IO 等为 {@code true}
+     * @return 基本类型、常见 JDK 类型、枚举、上传 / HTTP / Servlet / IO 等为 {@code true}
      */
     private static boolean isLeaf(PsiType type) {
         PsiType real = unwrap(type);
         return TypeUtils.isPrimitive(real)
                 || TypeUtils.isNormalType(real)
                 || TypeUtils.isEnum(real)
-                || TypeUtils.isMapType(real)
                 || TypeUtils.isMultipartType(real)
                 || TypeUtils.isHttpType(real)
                 || TypeUtils.isServletType(real)
@@ -211,6 +238,98 @@ public final class TypeParser {
                 || TypeUtils.isReactorType(real)
                 || TypeUtils.isStreamType(real)
                 || TypeUtils.isVoidType(real);
+    }
+
+    /**
+     * 连续剥开 {@code Optional<T>}。没有泛型实参（裸 {@code Optional} / {@code Optional<?>}）时停止，留给调用方当叶子。
+     */
+    private static PsiType peelOptional(PsiType type, Map<String, PsiType> generics) {
+        PsiType current = type;
+        while (TypeUtils.isOptionalType(current)) {
+            PsiType inner = optionalArg(current);
+            if (inner == null) {
+                break;
+            }
+            PsiType resolved = resolveGeneric(inner, generics);
+            if (resolved == current) {
+                break;
+            }
+            current = resolved;
+        }
+        return current;
+    }
+
+    /**
+     * {@code Optional<User>} 的 {@code User}；裸 Optional 或无上界通配符则为 {@code null}。
+     */
+    private static PsiType optionalArg(PsiType type) {
+        if (!(type instanceof PsiClassType)) {
+            return null;
+        }
+        PsiType[] parameters = ((PsiClassType) type).getParameters();
+        if (parameters.length == 0) {
+            return null;
+        }
+        return boundOf(parameters[0]);
+    }
+
+    /**
+     * {@code Map<K, V>} 生成一条示例 entry：JSON 键固定为 {@code key}，值按 V 展开。
+     * V 仍是 Map 时继续递归，因此 {@code Map<String, Map<String, User>>} 会得到两层 {@code key}。
+     * 没有 V（裸 Map）返回空列表，调用方会序列化成 {@code {}}。
+     */
+    private static List<PropertyDefinition> mapExampleProperties(PsiType mapType, Set<String> visiting,
+                                                                Map<String, PsiType> generics) {
+        PsiType valueType = mapValueType(mapType);
+        if (valueType == null) {
+            return Collections.emptyList();
+        }
+        valueType = peelOptional(resolveGeneric(valueType, generics), generics);
+        boolean cycle = cyclic(valueType, visiting);
+        Map<String, PsiType> valueGenerics = TypeUtils.isMapType(valueType)
+                ? generics
+                : mergeGenerics(valueType, generics);
+        List<PropertyDefinition> valueProperties = cycle
+                ? Collections.emptyList()
+                : properties(valueType, visiting, valueGenerics);
+        PropertyDefinition example = new PropertyDefinition(
+                MAP_EXAMPLE_KEY,
+                name(valueType),
+                packageName(valueType),
+                Collections.emptyList(),
+                null,
+                valueProperties,
+                cycle,
+                enumConstantNames(valueType),
+                null
+        );
+        return Collections.singletonList(example);
+    }
+
+    /**
+     * Map 的值类型 V；参数不足 2 个视为裸 Map。
+     */
+    private static PsiType mapValueType(PsiType type) {
+        if (!(type instanceof PsiClassType)) {
+            return null;
+        }
+        PsiType[] parameters = ((PsiClassType) type).getParameters();
+        if (parameters.length < 2) {
+            return null;
+        }
+        return boundOf(parameters[1]);
+    }
+
+    /**
+     * 通配符取上界 / 下界；无界 {@code ?} 视为无法展开。
+     */
+    private static PsiType boundOf(PsiType type) {
+        if (!(type instanceof PsiWildcardType)) {
+            return type;
+        }
+        PsiWildcardType wildcard = (PsiWildcardType) type;
+        PsiType bound = wildcard.getBound();
+        return bound == null ? null : bound;
     }
 
     /**

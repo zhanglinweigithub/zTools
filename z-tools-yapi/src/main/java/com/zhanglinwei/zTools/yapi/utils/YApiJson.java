@@ -59,7 +59,11 @@ public final class YApiJson {
             return "{}" + SPACE_SLASH_SLASH_SPACE + placeholder;
         }
         // 先生成 pretty JSON，再按字段顺序把说明贴到对应行
-        String pretty = JsonUtil.toJsonString(jsonValue(parameter), true);
+        Object json = jsonValue(parameter);
+        if (json == null) {
+            return "null";
+        }
+        String pretty = JsonUtil.toJsonString(json, true);
         if (StringUtils.isBlank(pretty)) {
             return pretty;
         }
@@ -104,8 +108,9 @@ public final class YApiJson {
         }
         Object value;
         if (CollectionUtils.isEmpty(parameter.properties())) {
-            // 无字段：Map 给空对象，其余用类型默认示例（Long→0, String→""）
-            if (TypeUtils.isMap(parameter.type())) {
+            if (TypeUtils.isRawOptional(parameter.type())) {
+                value = null;
+            } else if (TypeUtils.isMap(parameter.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
                 value = YApiFields.example(parameter);
@@ -127,7 +132,9 @@ public final class YApiJson {
         if (property.cycle()) {
             value = new LinkedHashMap<String, Object>();
         } else if (CollectionUtils.isEmpty(property.properties())) {
-            if (TypeUtils.isMap(property.type())) {
+            if (TypeUtils.isRawOptional(property.type())) {
+                value = null;
+            } else if (TypeUtils.isMap(property.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
                 value = YApiFields.example(property);

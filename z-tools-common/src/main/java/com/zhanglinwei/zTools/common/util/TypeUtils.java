@@ -45,7 +45,13 @@ public final class TypeUtils {
     /** 视为 Map 家族的简单类名 */
     private static final Set<String> MAP_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
             "Map", "HashMap", "LinkedHashMap", "ConcurrentHashMap", "ConcurrentMap",
-            "Hashtable", "SortedMap", "TreeMap"
+            "Hashtable", "SortedMap", "TreeMap", "NavigableMap", "ConcurrentSkipListMap",
+            "EnumMap", "IdentityHashMap", "WeakHashMap", "Properties"
+    )));
+
+    /** {@code java.util.Optional}，JSON 里剥开泛型，不当对象展开 */
+    private static final Set<String> OPTIONAL_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "Optional"
     )));
 
     /** Reactor / Reactive Streams 包装类型，文档里不当业务 JSON 展开 */
@@ -241,6 +247,32 @@ public final class TypeUtils {
     }
 
     /**
+     * 是否 {@code Optional}（含 {@code Optional<User>}）。
+     *
+     * <pre>
+     *   isOptional("Optional&lt;User&gt;") → true
+     *   isOptional("java.util.Optional") → true
+     *   isOptional("List&lt;User&gt;") → false
+     * </pre>
+     *
+     * @param type presentable 类型文本
+     * @return 是 Optional 则为 {@code true}
+     */
+    public static boolean isOptional(String type) {
+        return type != null && OPTIONAL_NAMES.contains(outerType(type));
+    }
+
+    /**
+     * PSI 类型是否为 {@code Optional}。
+     *
+     * @param psiType PSI 类型
+     * @return 是 Optional 则为 {@code true}
+     */
+    public static boolean isOptionalType(PsiType psiType) {
+        return psiType != null && isOptional(psiType.getPresentableText());
+    }
+
+    /**
      * 是否 {@code void} / {@code Void}（不含 {@code Mono<Void>} 等包装）。
      *
      * <pre>
@@ -422,6 +454,43 @@ public final class TypeUtils {
     }
 
     /**
+     * 连续剥掉 {@code Optional<...>}，直到不是 Optional 或没有泛型实参（裸 {@code Optional}）。
+     *
+     * <pre>
+     *   stripOptional("Optional&lt;User&gt;") → "User"
+     *   stripOptional("Optional&lt;List&lt;User&gt;&gt;") → "List&lt;User&gt;"
+     *   stripOptional("Optional&lt;? extends User&gt;") → "User"
+     *   stripOptional("Optional") → "Optional"
+     *   stripOptional("Optional&lt;?&gt;") → "Optional&lt;?&gt;"
+     *   stripOptional("User") → "User"
+     * </pre>
+     *
+     * @param type presentable 类型文本
+     * @return 剥掉 Optional 后的类型；{@code null} 仍为 {@code null}
+     */
+    public static String stripOptional(String type) {
+        if (type == null) {
+            return null;
+        }
+        String text = type.trim();
+        while (isOptional(text)) {
+            String bound = wildcardBound(innerGeneric(text));
+            if (bound == null) {
+                break;
+            }
+            text = bound;
+        }
+        return text;
+    }
+
+    /**
+     * 剥开 Optional 之后仍是 Optional：裸 {@code Optional} 或 {@code Optional&lt;?&gt;}。
+     */
+    public static boolean isRawOptional(String type) {
+        return isOptional(stripOptional(type));
+    }
+
+    /**
      * 集合/数组嵌套深度。数组后缀 {@code []} 与集合泛型交替剥离，直到碰到非集合或 Map。
      * 内层泛型含逗号（如 Map 的两个类型参数）时停止，避免把 Map 误当成嵌套集合。
      *
@@ -432,6 +501,7 @@ public final class TypeUtils {
      *   nestDepth("User[]") → 1
      *   nestDepth("int[][]") → 2
      *   nestDepth("User") → 0
+     *   nestDepth("Optional&lt;List&lt;User&gt;&gt;") → 1
      * </pre>
      *
      * @param type presentable 类型文本
@@ -442,7 +512,7 @@ public final class TypeUtils {
             return 0;
         }
         int depth = 0;
-        String text = type.trim();
+        String text = stripOptional(type.trim());
         while (true) {
             if (text.endsWith(StringPool.EMPTY_ARRAY)) {
                 depth++;
@@ -484,7 +554,7 @@ public final class TypeUtils {
         if (type == null) {
             return EMPTY;
         }
-        String text = type.trim();
+        String text = stripOptional(type.trim());
         while (true) {
             if (text.endsWith(StringPool.EMPTY_ARRAY)) {
                 text = text.substring(0, text.length() - 2).trim();
@@ -555,5 +625,23 @@ public final class TypeUtils {
             return null;
         }
         return type.substring(start + 1, type.length() - 1).trim();
+    }
+
+    /**
+     * 通配符取上界 / 下界；无界 {@code ?} 或空实参无法展开。
+     */
+    private static String wildcardBound(String inner) {
+        if (inner == null || inner.isEmpty() || "?".equals(inner)) {
+            return null;
+        }
+        if (inner.startsWith("? extends ")) {
+            String bound = inner.substring("? extends ".length()).trim();
+            return bound.isEmpty() ? null : bound;
+        }
+        if (inner.startsWith("? super ")) {
+            String bound = inner.substring("? super ".length()).trim();
+            return bound.isEmpty() ? null : bound;
+        }
+        return inner;
     }
 }

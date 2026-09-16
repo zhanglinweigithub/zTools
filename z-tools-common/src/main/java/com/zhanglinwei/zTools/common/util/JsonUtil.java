@@ -25,11 +25,13 @@ public final class JsonUtil {
     /** 带缩进的 Gson，排除 static 字段 */
     private static final Gson PRETTY_GSON = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.STATIC)
+            .serializeNulls()
             .setPrettyPrinting()
             .create();
     /** 无缩进的 Gson，排除 static 字段 */
     private static final Gson FLATTEN_GSON = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.STATIC)
+            .serializeNulls()
             .create();
 
     /**

@@ -56,6 +56,9 @@ public final class CopyJsonGenerator {
         // 展开对象字段；普通类型没有字段
         List<PropertyDefinition> properties = TypeParser.properties(type);
         if (CollectionUtils.isEmpty(properties)) {
+            if (TypeUtils.isRawOptional(type.getPresentableText())) {
+                return "null";
+            }
             if (TypeUtils.isNormalType(type)) {
                 return JsonUtil.toJsonString(NormalType.get(type.getPresentableText()), true);
             }
@@ -97,7 +100,11 @@ public final class CopyJsonGenerator {
             // 循环引用：值用 {}，注释侧会标「同外层」
             value = new LinkedHashMap<String, Object>();
         } else if (CollectionUtils.isEmpty(property.properties())) {
-            value = leafValue(property);
+            if (TypeUtils.isRawOptional(property.type())) {
+                value = null;
+            } else {
+                value = leafValue(property);
+            }
         } else {
             value = jsonObject(property.properties());
         }
