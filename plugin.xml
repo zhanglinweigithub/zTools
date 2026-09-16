@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.4.9</version>
+    <version>1.5.0</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -43,6 +43,12 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.09.16</em><br>
+            <ul>
+                <li>feat: Optional unwraps to its type argument in example JSON (raw Optional / Optional&lt;?&gt; → null) | Optional 按泛型生成示例 JSON，裸 Optional 为 null</li>
+                <li>feat: Map family with &lt;K,V&gt; emits a "key" example instead of {} (nested Map and Optional&lt;Map&gt; supported) | Map 家族按值类型生成 "key" 示例，不再是空对象；支持嵌套 Map 与 Optional&lt;Map&gt;</li>
+                <li>fix: nested type variables (e.g. PageResult&lt;T&gt; / List&lt;T&gt;) expand in Copy JSON, Api Doc, cURL, YApi | 修复嵌套泛型未替换导致 JSON 为 [""] 等问题</li>
+            </ul>
             <em>2026.09.13</em><br>
             <ul>
                 <li>feat: Alt+Enter fill JavaBean convert method body from param to return type | 转换方法 Alt+Enter 按入参/返回类型填充 getter/setter 方法体</li>
