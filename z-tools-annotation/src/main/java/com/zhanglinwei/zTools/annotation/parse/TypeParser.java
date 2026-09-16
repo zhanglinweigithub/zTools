@@ -1,5 +1,6 @@
 package com.zhanglinwei.zTools.annotation.parse;
 
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
@@ -70,6 +71,7 @@ public final class TypeParser {
      * 对象类型的字段列表。叶子类型（基本类型、常见 JDK 类型、枚举、Map、HTTP/Servlet/IO、Reactor、流等）返回空列表。
      * 展开时跳过 {@code static} 字段；入参与返回值共用此方法。
      * {@code List<User>}、{@code User[]} 会解开后展开 User 的字段。
+     * {@code PageResult<FormPageInfo>} 会把字段 {@code List<T> data} 的 {@code T} 替换成 {@code FormPageInfo} 再展开。
      *
      * @param type PSI 类型
      * @return 字段定义；{@code type} 为 {@code null} 或叶子类型时为空列表
@@ -94,9 +96,9 @@ public final class TypeParser {
         if (type == null || isLeaf(type)) {
             return Collections.emptyList();
         }
-        // 先按外层泛型替换类型变量，再解开 List / 数组拿到元素类型
+        // 先按外层泛型替换类型变量（含 List<T> 这类嵌套），再解开集合 / 数组拿到元素类型
         PsiType resolved = resolveGeneric(type, generics);
-        PsiType real = unwrap(resolved);
+        PsiType real = resolveGeneric(unwrap(resolved), generics);
         if (isLeaf(real)) {
             return Collections.emptyList();
         }
@@ -265,7 +267,8 @@ public final class TypeParser {
     }
 
     /**
-     * 若 {@code type} 是已绑定的类型变量（如 {@code T}），替换为实际类型。
+     * 若 {@code type} 含已绑定的类型变量，替换为实际类型。
+     * {@code T} → {@code FormPageInfo}；{@code List<T>} → {@code List<FormPageInfo>}。
      *
      * @param type     待替换类型
      * @param generics 类型变量 → 实际类型
@@ -276,7 +279,39 @@ public final class TypeParser {
             return type;
         }
         PsiType mapped = generics.get(type.getPresentableText());
-        return mapped == null ? type : mapped;
+        if (mapped != null) {
+            return mapped;
+        }
+        if (type instanceof PsiArrayType) {
+            PsiType component = ((PsiArrayType) type).getComponentType();
+            PsiType resolved = resolveGeneric(component, generics);
+            return resolved == component ? type : resolved.createArrayType();
+        }
+        if (!(type instanceof PsiClassType)) {
+            return type;
+        }
+        PsiClassType classType = (PsiClassType) type;
+        PsiClass psiClass = classType.resolve();
+        if (psiClass instanceof PsiTypeParameter) {
+            mapped = generics.get(psiClass.getName());
+            return mapped == null ? type : mapped;
+        }
+        PsiType[] actuals = classType.getParameters();
+        if (psiClass == null || actuals.length == 0) {
+            return type;
+        }
+        boolean changed = false;
+        PsiType[] substituted = new PsiType[actuals.length];
+        for (int i = 0; i < actuals.length; i++) {
+            substituted[i] = resolveGeneric(actuals[i], generics);
+            if (substituted[i] != actuals[i]) {
+                changed = true;
+            }
+        }
+        if (!changed) {
+            return type;
+        }
+        return JavaPsiFacade.getElementFactory(psiClass.getProject()).createType(psiClass, substituted);
     }
 
     /**
