@@ -91,7 +91,7 @@ public interface StringPool {
 
     // HTML 实体与脚本片段
     String HTML_NBSP = "&nbsp;";
-    String HTML_AMP = "&amp";
+    String HTML_AMP = "&amp;";
     String HTML_QUOTE = "&quot;";
     String HTML_LT = "&lt;";
     String HTML_GT = "&gt;";

@@ -43,6 +43,10 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.09.24</em><br>
+            <ul>
+                <li>fix: YApi desc HTML-escapes generic signatures (Mono&lt;RestResult&lt;Object&gt;&gt; no longer renders as public Mono&gt;) | 修复 YApi 接口描述里泛型被 HTML 吃掉</li>
+            </ul>
             <em>2026.09.16</em><br>
             <ul>
                 <li>feat: Optional unwraps to its type argument in example JSON (raw Optional / Optional&lt;?&gt; → null) | Optional 按泛型生成示例 JSON，裸 Optional 为 null</li>

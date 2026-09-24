@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.zhanglinwei.zTools.common.constant.StringPool.AMPERSAND;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_AMP;
 import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_GT;
 import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_LT;
 import static com.zhanglinwei.zTools.common.constant.StringPool.LEFT_CHEV;
@@ -22,8 +23,6 @@ import static com.zhanglinwei.zTools.common.constant.StringPool.RIGHT_CHEV;
 public final class DatabaseDocumentGenerator {
 
     private static final String TEMPLATE_DIR = "/template/db";
-    /** StringPool.HTML_AMP 没有分号，这里必须写完整实体，否则 XML 仍不合法。 */
-    private static final String AMP_ENTITY = "&amp;";
 
     /**
      * 工具类，禁止实例化。
@@ -116,7 +115,7 @@ public final class DatabaseDocumentGenerator {
      */
     private static String escape(String value) {
         return value == null ? null : value
-                .replace(AMPERSAND, AMP_ENTITY)
+                .replace(AMPERSAND, HTML_AMP)
                 .replace(LEFT_CHEV, HTML_LT)
                 .replace(RIGHT_CHEV, HTML_GT);
     }

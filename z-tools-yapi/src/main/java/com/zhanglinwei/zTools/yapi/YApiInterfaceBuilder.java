@@ -67,7 +67,8 @@ public final class YApiInterfaceBuilder {
         request.setProject_id(projectId);
         request.setCatid(catId);
         request.setTitle(YApiFields.titleOf(methodDefinition));
-        request.setDesc(StringUtils.wrap(YApiMethodSignature.of(methodDefinition), "<pre>", "</pre>"));
+        // YApi 的 desc 按 HTML 渲染：泛型尖括号不转义时，Mono<RestResult<Object>> 会被吃成 public Mono>
+        request.setDesc(StringUtils.wrap(StringUtils.escapeHtml(YApiMethodSignature.of(methodDefinition)), "<pre>", "</pre>"));
         request.setStatus("undone");
         request.setMethod(resolveHttpMethod(methodMapping, requestLine));
         request.setPath(RequestPathUtils.join(

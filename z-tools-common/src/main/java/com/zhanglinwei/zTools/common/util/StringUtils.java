@@ -1,5 +1,12 @@
 package com.zhanglinwei.zTools.common.util;
 
+import static com.zhanglinwei.zTools.common.constant.StringPool.AMPERSAND;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_AMP;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_GT;
+import static com.zhanglinwei.zTools.common.constant.StringPool.HTML_LT;
+import static com.zhanglinwei.zTools.common.constant.StringPool.LEFT_CHEV;
+import static com.zhanglinwei.zTools.common.constant.StringPool.RIGHT_CHEV;
+
 /**
  * 字符串判空、截取与有限次替换。空白判定与 Apache Commons 类似：{@code null}、空串、全空白都算 blank。
  *
@@ -89,6 +96,26 @@ public final class StringUtils {
         }
 
         return str;
+    }
+
+    /**
+     * 转成 HTML 文本：{@code &}、{@code <}、{@code >} 换成实体。必须先转 {@code &}。
+     *
+     * <pre>
+     *   escapeHtml("Mono&lt;RestResult&lt;Object&gt;&gt;") → "Mono&amp;lt;RestResult&amp;lt;Object&amp;gt;&amp;gt;"
+     *   escapeHtml(null) → null
+     * </pre>
+     *
+     * @param str 原文
+     * @return 转义后的文本；{@code null} 仍为 {@code null}
+     */
+    public static String escapeHtml(String str) {
+        if (str == null) {
+            return null;
+        }
+        return str.replace(AMPERSAND, HTML_AMP)
+                .replace(LEFT_CHEV, HTML_LT)
+                .replace(RIGHT_CHEV, HTML_GT);
     }
 
     /**
