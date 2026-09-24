@@ -207,7 +207,9 @@ public class ApiInfo {
                         ApiFields.description(property),
                         ApiFields.example(property)
                 ));
-                rowList.addAll(createTableRow(prefix + cfgPrefix, property.properties()));
+                if (!ApiFields.isMap(property.type())) {
+                    rowList.addAll(createTableRow(prefix + cfgPrefix, property.properties()));
+                }
             }
             return rowList;
         }
@@ -227,6 +229,12 @@ public class ApiInfo {
                 rowList.add(new TableRowInfo("KEY", "VALUE", false, "这是一个 Map 参数", ""));
             } else if (!CollectionUtils.isEmpty(body.properties())) {
                 rowList.addAll(createTableRow(EMPTY, body.properties()));
+            } else if (TypeUtils.isRawOptional(body.type())) {
+                rowList.add(new TableRowInfo(DASH, body.type(), false, EMPTY, "null"));
+            } else if (TypeUtils.isSseEmitter(body.type())
+                    || TypeUtils.isRawFlux(body.type())
+                    || TypeUtils.isRawMono(body.type())) {
+                rowList.add(new TableRowInfo(DASH, body.type(), false, TypeUtils.STREAMING_COMMENT, EMPTY));
             } else if (ApiFields.isNormal(body.type()) || body.name() != null) {
                 rowList.add(new TableRowInfo(
                         bodyName(body),

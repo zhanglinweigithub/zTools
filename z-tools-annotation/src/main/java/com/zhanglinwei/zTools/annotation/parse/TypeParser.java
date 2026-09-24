@@ -29,7 +29,8 @@ import java.util.Set;
  * 从 {@link PsiType} 取出类型名、包、对象字段。不推断 required / example。
  * <p>
  * 类型名与源码展示一致：{@code List<User>} → {@code List<User>}，{@code User[]} → {@code User[]}。
- * {@code Optional<T>} 剥开后按 T 处理；{@code Map<K,V>} 生成 {@code key} 示例而不是空对象。
+     * {@code Optional<T>} 剥开后按 T 处理；{@code Mono<T>} 按 T 当对象展开；{@code Flux<T>} 按数组展开。
+     * {@code Map<K,V>} 生成 {@code key} 示例而不是空对象。
  * 展开字段时会先解开集合 / 数组再取元素类型，例如 {@code List<User>} 展开的是 User 的字段。
  */
 public final class TypeParser {
@@ -81,6 +82,7 @@ public final class TypeParser {
      * 展开时跳过 {@code static} 字段；入参与返回值共用此方法。
      * {@code List<User>}、{@code User[]} 会解开后展开 User 的字段。
      * {@code Optional<User>} 剥开泛型后按 User 展开；裸 {@code Optional} 不展开。
+     * {@code Mono<User>} 按 User 展开；{@code Flux<User>} 解开后按 User 展开（JSON 侧再包数组）。
      * {@code Map<String, User>} 生成一条 {@code key → User} 的示例，不展开 Map 自身字段。
      * {@code Map<String, Map<String, User>>} 对值类型里的 Map 继续递归，得到多层 {@code key}。
      *
@@ -107,7 +109,7 @@ public final class TypeParser {
         if (type == null) {
             return Collections.emptyList();
         }
-        PsiType resolved = peelOptional(resolveGeneric(type, generics), generics);
+        PsiType resolved = peelMono(peelOptional(resolveGeneric(type, generics), generics), generics);
         if (resolved == null) {
             return Collections.emptyList();
         }
@@ -117,7 +119,7 @@ public final class TypeParser {
         if (isLeaf(resolved)) {
             return Collections.emptyList();
         }
-        PsiType real = peelOptional(resolveGeneric(unwrap(resolved), generics), generics);
+        PsiType real = peelMono(peelOptional(resolveGeneric(unwrap(resolved), generics), generics), generics);
         if (real == null) {
             return Collections.emptyList();
         }
@@ -224,7 +226,7 @@ public final class TypeParser {
      * 是否为不再展开字段的叶子类型。
      *
      * @param type PSI 类型
-     * @return 基本类型、常见 JDK 类型、枚举、上传 / HTTP / Servlet / IO 等为 {@code true}
+     * @return 基本类型、常见 JDK 类型、枚举、上传 / HTTP / Servlet / IO、裸 Mono/Flux 等为 {@code true}
      */
     private static boolean isLeaf(PsiType type) {
         PsiType real = unwrap(type);
@@ -235,18 +237,35 @@ public final class TypeParser {
                 || TypeUtils.isHttpType(real)
                 || TypeUtils.isServletType(real)
                 || TypeUtils.isIOType(real)
-                || TypeUtils.isReactorType(real)
                 || TypeUtils.isStreamType(real)
-                || TypeUtils.isVoidType(real);
+                || TypeUtils.isVoidType(real)
+                || TypeUtils.isMonoType(real)
+                || TypeUtils.isFluxType(real);
     }
 
     /**
      * 连续剥开 {@code Optional<T>}。没有泛型实参（裸 {@code Optional} / {@code Optional<?>}）时停止，留给调用方当叶子。
      */
     private static PsiType peelOptional(PsiType type, Map<String, PsiType> generics) {
+        return peelSingleArgWrapper(type, generics, true, false);
+    }
+
+    /**
+     * 连续剥开 {@code Mono<T>}。裸 Mono 停止。
+     */
+    private static PsiType peelMono(PsiType type, Map<String, PsiType> generics) {
+        return peelSingleArgWrapper(type, generics, false, true);
+    }
+
+    private static PsiType peelSingleArgWrapper(PsiType type, Map<String, PsiType> generics,
+                                                boolean optional, boolean mono) {
         PsiType current = type;
-        while (TypeUtils.isOptionalType(current)) {
-            PsiType inner = optionalArg(current);
+        while ((optional && TypeUtils.isOptionalType(current)) || (mono && TypeUtils.isMonoType(current))) {
+            PsiType inner = TypeUtils.firstTypeArgument(current);
+            if (inner == null) {
+                break;
+            }
+            inner = boundOf(inner);
             if (inner == null) {
                 break;
             }
@@ -260,20 +279,6 @@ public final class TypeParser {
     }
 
     /**
-     * {@code Optional<User>} 的 {@code User}；裸 Optional 或无上界通配符则为 {@code null}。
-     */
-    private static PsiType optionalArg(PsiType type) {
-        if (!(type instanceof PsiClassType)) {
-            return null;
-        }
-        PsiType[] parameters = ((PsiClassType) type).getParameters();
-        if (parameters.length == 0) {
-            return null;
-        }
-        return boundOf(parameters[0]);
-    }
-
-    /**
      * {@code Map<K, V>} 生成一条示例 entry：JSON 键固定为 {@code key}，值按 V 展开。
      * V 仍是 Map 时继续递归，因此 {@code Map<String, Map<String, User>>} 会得到两层 {@code key}。
      * 没有 V（裸 Map）返回空列表，调用方会序列化成 {@code {}}。
@@ -284,7 +289,7 @@ public final class TypeParser {
         if (valueType == null) {
             return Collections.emptyList();
         }
-        valueType = peelOptional(resolveGeneric(valueType, generics), generics);
+        valueType = peelMono(peelOptional(resolveGeneric(valueType, generics), generics), generics);
         boolean cycle = cyclic(valueType, visiting);
         Map<String, PsiType> valueGenerics = TypeUtils.isMapType(valueType)
                 ? generics

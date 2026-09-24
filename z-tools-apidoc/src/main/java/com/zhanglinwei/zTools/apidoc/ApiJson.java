@@ -56,10 +56,10 @@ public final class ApiJson {
         }
         // 按同样的前序遍历收集行注释，再对齐到带冒号的 JSON 行
         List<String> comments = comments(parameter);
-        if (comments.isEmpty()) {
-            return pretty;
+        if (!comments.isEmpty()) {
+            pretty = JsonUtil.mergePrettyWithComments(pretty, comments);
         }
-        return JsonUtil.mergePrettyWithComments(pretty, comments);
+        return JsonUtil.commentFirstLine(pretty, TypeUtils.streamingComment(parameter.type()));
     }
 
     /**
@@ -85,7 +85,10 @@ public final class ApiJson {
         Object value;
         if (parameter.properties() == null || parameter.properties().isEmpty()) {
             // 叶子：Map 给 {}，其余用注解 example / 类型默认值
-            if (TypeUtils.isMap(parameter.type())) {
+            if (TypeUtils.isMap(parameter.type())
+                    || TypeUtils.isRawMono(parameter.type())
+                    || TypeUtils.isRawFlux(parameter.type())
+                    || TypeUtils.isSseEmitter(parameter.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
                 value = ApiFields.example(parameter);
@@ -108,7 +111,10 @@ public final class ApiJson {
             // 循环引用：值用 {}，注释侧会标「同外层」
             value = new LinkedHashMap<String, Object>();
         } else if (property.properties() == null || property.properties().isEmpty()) {
-            if (TypeUtils.isMap(property.type())) {
+            if (TypeUtils.isMap(property.type())
+                    || TypeUtils.isRawMono(property.type())
+                    || TypeUtils.isRawFlux(property.type())
+                    || TypeUtils.isSseEmitter(property.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
                 value = ApiFields.example(property);
@@ -179,6 +185,10 @@ public final class ApiJson {
         }
         if (property.cycle()) {
             parts.add("同外层");
+        }
+        String streaming = TypeUtils.streamingComment(property.type());
+        if (streaming != null) {
+            parts.add(streaming);
         }
         return parts.isEmpty() ? EMPTY : String.join(COMMA_SPACE, parts);
     }

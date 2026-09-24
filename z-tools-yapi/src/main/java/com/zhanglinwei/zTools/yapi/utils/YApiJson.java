@@ -68,14 +68,14 @@ public final class YApiJson {
             return pretty;
         }
         List<String> comments = comments(parameter);
-        if (comments.isEmpty()) {
-            return pretty;
+        if (!comments.isEmpty()) {
+            pretty = JsonUtil.mergePrettyWithComments(pretty, comments);
         }
-        return JsonUtil.mergePrettyWithComments(pretty, comments);
+        return JsonUtil.commentFirstLine(pretty, TypeUtils.streamingComment(parameter.type()));
     }
 
     /**
-     * void / Reactor / 流无法展开成业务 JSON 时，给出空对象上的说明。
+     * void / 字节流无法展开成业务 JSON 时，给出空对象上的说明。Mono/Flux/SseEmitter 走正常展开。
      *
      * @param parameter 请求体或返回值
      * @return 注释文案；普通业务类型则为 {@code null}
@@ -85,10 +85,7 @@ public final class YApiJson {
         if (TypeUtils.isVoid(type)) {
             return "无返回值";
         }
-        if (TypeUtils.isReactor(type)) {
-            return "Reactor 类型 " + type + "，非 JSON 业务体";
-        }
-        if (TypeUtils.isStream(parameter.packageName(), type)) {
+        if (TypeUtils.isStream(parameter.packageName(), type) && !TypeUtils.isSseEmitter(type)) {
             return "流类型 " + TypeUtils.outerType(type) + "，无法以 JSON 展示";
         }
         return null;
@@ -110,7 +107,10 @@ public final class YApiJson {
         if (CollectionUtils.isEmpty(parameter.properties())) {
             if (TypeUtils.isRawOptional(parameter.type())) {
                 value = null;
-            } else if (TypeUtils.isMap(parameter.type())) {
+            } else if (TypeUtils.isMap(parameter.type())
+                    || TypeUtils.isRawMono(parameter.type())
+                    || TypeUtils.isRawFlux(parameter.type())
+                    || TypeUtils.isSseEmitter(parameter.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
                 value = YApiFields.example(parameter);
@@ -134,7 +134,10 @@ public final class YApiJson {
         } else if (CollectionUtils.isEmpty(property.properties())) {
             if (TypeUtils.isRawOptional(property.type())) {
                 value = null;
-            } else if (TypeUtils.isMap(property.type())) {
+            } else if (TypeUtils.isMap(property.type())
+                    || TypeUtils.isRawMono(property.type())
+                    || TypeUtils.isRawFlux(property.type())
+                    || TypeUtils.isSseEmitter(property.type())) {
                 value = new LinkedHashMap<String, Object>();
             } else {
                 value = YApiFields.example(property);
@@ -205,6 +208,10 @@ public final class YApiJson {
         }
         if (property.cycle()) {
             parts.add("同外层");
+        }
+        String streaming = TypeUtils.streamingComment(property.type());
+        if (streaming != null) {
+            parts.add(streaming);
         }
         return parts.isEmpty() ? EMPTY : String.join(COMMA_SPACE, parts);
     }

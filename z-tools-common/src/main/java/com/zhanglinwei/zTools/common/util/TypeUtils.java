@@ -2,8 +2,10 @@ package com.zhanglinwei.zTools.common.util;
 
 import com.intellij.psi.PsiArrayType;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiWildcardType;
 import com.intellij.psi.util.PsiUtil;
 import com.zhanglinwei.zTools.common.constant.CharacterPool;
 import com.zhanglinwei.zTools.common.constant.NormalType;
@@ -54,15 +56,33 @@ public final class TypeUtils {
             "Optional"
     )));
 
-    /** Reactor / Reactive Streams 包装类型，文档里不当业务 JSON 展开 */
+    /** Reactor / Reactive Streams 包装类型 */
     private static final Set<String> REACTOR_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
             "Mono", "Flux", "ParallelFlux", "GroupedFlux", "ConnectableFlux", "Publisher"
     )));
 
-    /** 非 java.io 包、但仍按流处理的简单类名 */
-    private static final Set<String> STREAM_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
-            "SseEmitter", "ResponseBodyEmitter", "ServletInputStream", "ServletOutputStream"
+    /** 0..1 的 Reactor 类型，JSON 按对象展开 */
+    private static final Set<String> MONO_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "Mono"
     )));
+
+    /** 0..n 的 Reactor 类型，JSON 按数组展开 */
+    private static final Set<String> FLUX_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "Flux", "ParallelFlux", "GroupedFlux", "ConnectableFlux", "Publisher"
+    )));
+
+    /** SSE 推送，没有事件体泛型，JSON 按 [{}] 占位 */
+    private static final Set<String> SSE_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "SseEmitter", "ResponseBodyEmitter"
+    )));
+
+    /** 非 java.io 包、但仍按字节流处理的简单类名 */
+    private static final Set<String> STREAM_NAMES = Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "ServletInputStream", "ServletOutputStream"
+    )));
+
+    /** JSON 行注释：Reactor / SSE 流式返回 */
+    public static final String STREAMING_COMMENT = "流式对象";
 
     /** 工具类，禁止实例化 */
     private TypeUtils() {
@@ -107,6 +127,23 @@ public final class TypeUtils {
     public static NestedInfo deepExtractIterableType(PsiType psiType) {
         PsiType realType = psiType;
         Integer depth = 0;
+
+        while (isMonoType(realType)) {
+            PsiType inner = firstTypeArgument(realType);
+            if (inner == null) {
+                break;
+            }
+            realType = inner;
+        }
+
+        while (isFluxType(realType)) {
+            depth++;
+            PsiType inner = firstTypeArgument(realType);
+            if (inner == null) {
+                break;
+            }
+            realType = inner;
+        }
 
         while (isCollectionType(realType)) {
             depth++;
@@ -326,6 +363,100 @@ public final class TypeUtils {
     }
 
     /**
+     * 是否 {@code Mono}（0..1，JSON 当对象）。
+     */
+    public static boolean isMono(String type) {
+        return type != null && MONO_NAMES.contains(outerType(type));
+    }
+
+    /** PSI 是否 {@code Mono}。 */
+    public static boolean isMonoType(PsiType psiType) {
+        return psiType != null && isMono(psiType.getPresentableText());
+    }
+
+    /**
+     * 是否 {@code Flux} / {@code Publisher} 等（0..n，JSON 当数组）。
+     */
+    public static boolean isFlux(String type) {
+        return type != null && FLUX_NAMES.contains(outerType(type));
+    }
+
+    /** PSI 是否 Flux 家族。 */
+    public static boolean isFluxType(PsiType psiType) {
+        return psiType != null && isFlux(psiType.getPresentableText());
+    }
+
+    /**
+     * 是否 {@code SseEmitter} / {@code ResponseBodyEmitter}。
+     */
+    public static boolean isSseEmitter(String type) {
+        return type != null && SSE_NAMES.contains(outerType(type));
+    }
+
+    /**
+     * 裸 {@code Mono} / {@code Mono&lt;?&gt;}，没有可展开的业务泛型。
+     */
+    public static boolean isRawMono(String type) {
+        return isMono(stripMono(type));
+    }
+
+    /**
+     * 裸 {@code Flux} / {@code Flux&lt;?&gt;}。
+     */
+    public static boolean isRawFlux(String type) {
+        if (!isFlux(type)) {
+            return false;
+        }
+        return wildcardBound(innerGeneric(type)) == null;
+    }
+
+    /**
+     * 连续剥掉 {@code Mono&lt;...&gt;}。裸 Mono 停止。
+     */
+    public static String stripMono(String type) {
+        if (type == null) {
+            return null;
+        }
+        String text = type.trim();
+        while (isMono(text)) {
+            String bound = wildcardBound(innerGeneric(text));
+            if (bound == null) {
+                break;
+            }
+            text = bound;
+        }
+        return text;
+    }
+
+    /**
+     * Reactor / SSE 返回值在 JSON 上的行注释；普通类型为 {@code null}。
+     */
+    public static String streamingComment(String type) {
+        if (isMono(type) || isFlux(type) || isSseEmitter(type)) {
+            return STREAMING_COMMENT;
+        }
+        return null;
+    }
+
+    /**
+     * 取类类型的第一个泛型实参，通配符取上/下界。
+     */
+    public static PsiType firstTypeArgument(PsiType type) {
+        if (!(type instanceof PsiClassType)) {
+            return null;
+        }
+        PsiType[] parameters = ((PsiClassType) type).getParameters();
+        if (parameters.length == 0) {
+            return null;
+        }
+        PsiType first = parameters[0];
+        if (!(first instanceof PsiWildcardType)) {
+            return first;
+        }
+        return ((PsiWildcardType) first).getBound();
+    }
+
+    /**
      * 是否字节/字符流、NIO Channel 或 SSE 推送类型。{@code java.io.File} 不算流。
      * 业务包下仅简单名以 Stream/Reader/Writer 结尾的不判定，避免 {@code UserReader} 误伤。
      *
@@ -345,7 +476,7 @@ public final class TypeUtils {
             return false;
         }
         String simple = outerType(type);
-        if (STREAM_NAMES.contains(simple)) {
+        if (SSE_NAMES.contains(simple) || STREAM_NAMES.contains(simple)) {
             return true;
         }
         if (!isStreamSimpleName(simple)) {
@@ -512,14 +643,18 @@ public final class TypeUtils {
             return 0;
         }
         int depth = 0;
-        String text = stripOptional(type.trim());
+        String text = stripMono(stripOptional(type.trim()));
+        if (isSseEmitter(text)) {
+            return 1;
+        }
         while (true) {
             if (text.endsWith(StringPool.EMPTY_ARRAY)) {
                 depth++;
                 text = text.substring(0, text.length() - 2).trim();
                 continue;
             }
-            if (!isCollectionFamily(outerType(text))) {
+            boolean flux = isFlux(text);
+            if (!flux && !isCollectionFamily(outerType(text))) {
                 break;
             }
             depth++;
@@ -528,7 +663,11 @@ public final class TypeUtils {
             if (inner == null || inner.contains(COMMA)) {
                 break;
             }
-            text = inner;
+            String bound = wildcardBound(inner);
+            if (bound == null) {
+                break;
+            }
+            text = bound;
         }
         return depth;
     }
@@ -554,15 +693,21 @@ public final class TypeUtils {
         if (type == null) {
             return EMPTY;
         }
-        String text = stripOptional(type.trim());
+        String text = stripMono(stripOptional(type.trim()));
         while (true) {
             if (text.endsWith(StringPool.EMPTY_ARRAY)) {
                 text = text.substring(0, text.length() - 2).trim();
                 continue;
             }
             String inner = innerGeneric(text);
-            if (inner != null && !inner.contains(COMMA) && isCollectionFamily(outerType(text))) {
-                text = inner;
+            boolean peelable = inner != null && !inner.contains(COMMA)
+                    && (isCollectionFamily(outerType(text)) || isFlux(text));
+            if (peelable) {
+                String bound = wildcardBound(inner);
+                if (bound == null) {
+                    break;
+                }
+                text = bound;
                 continue;
             }
             break;

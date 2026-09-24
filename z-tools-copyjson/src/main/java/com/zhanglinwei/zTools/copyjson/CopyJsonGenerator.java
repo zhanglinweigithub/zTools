@@ -71,7 +71,10 @@ public final class CopyJsonGenerator {
         // 先序列化对象，再把前序注释对齐到带冒号的行
         String pretty = JsonUtil.toJsonString(jsonObject(properties), true);
         List<String> comments = comments(properties);
-        return comments.isEmpty() ? pretty : JsonUtil.mergePrettyWithComments(pretty, comments);
+        if (!comments.isEmpty()) {
+            pretty = JsonUtil.mergePrettyWithComments(pretty, comments);
+        }
+        return JsonUtil.commentFirstLine(pretty, TypeUtils.streamingComment(type.getPresentableText()));
     }
 
     /**
@@ -173,6 +176,10 @@ public final class CopyJsonGenerator {
         }
         if (property.cycle()) {
             parts.add("同外层");
+        }
+        String streaming = TypeUtils.streamingComment(property.type());
+        if (streaming != null) {
+            parts.add(streaming);
         }
         return parts.isEmpty() ? EMPTY : String.join(COMMA_SPACE, parts);
     }

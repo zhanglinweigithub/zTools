@@ -98,4 +98,26 @@ public final class JsonUtil {
         }
         return builder.toString();
     }
+
+    /**
+     * 在 pretty JSON 第一行末尾追加 {@code // 注释}，用于根类型说明（如流式对象）。
+     *
+     * <pre>
+     *   commentFirstLine("{\n  \"a\": 1\n}", "流式对象") → "{ // 流式对象\n  \"a\": 1\n}"
+     * </pre>
+     *
+     * @param prettyJson 已 pretty 的 JSON
+     * @param comment    行注释；空白则原样返回
+     * @return 追加注释后的文本
+     */
+    public static String commentFirstLine(String prettyJson, String comment) {
+        if (prettyJson == null || StringUtils.isBlank(comment)) {
+            return prettyJson;
+        }
+        int newline = prettyJson.indexOf(NEWLINE);
+        if (newline < 0) {
+            return prettyJson + SPACE_SLASH_SLASH_SPACE + comment;
+        }
+        return prettyJson.substring(0, newline) + SPACE_SLASH_SLASH_SPACE + comment + prettyJson.substring(newline);
+    }
 }

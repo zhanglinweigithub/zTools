@@ -433,6 +433,11 @@ public final class CurlGenerator {
                 return null;
             }
             Object value = typeExample(parameter.type());
+            if (TypeUtils.isRawMono(parameter.type())
+                    || TypeUtils.isRawFlux(parameter.type())
+                    || TypeUtils.isSseEmitter(parameter.type())) {
+                value = new LinkedHashMap<String, Object>();
+            }
             return wrapCollection(parameter.type(), value);
         }
         Map<String, Object> object = jsonObject(parameter.properties());

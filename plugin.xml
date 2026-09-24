@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -43,8 +43,9 @@
 
     <change-notes>
         <![CDATA[
-            <em>2026.09.24</em><br>
+            <em>2026.09.25</em><br>
             <ul>
+                <li>feat: Mono expands as object, Flux as array, JSON comment 流式对象; SseEmitter example [{}] | Mono 按对象、Flux 按数组展开并标注流式对象；SseEmitter 示例为 [{}]</li>
                 <li>fix: YApi desc HTML-escapes generic signatures (Mono&lt;RestResult&lt;Object&gt;&gt; no longer renders as public Mono&gt;) | 修复 YApi 接口描述里泛型被 HTML 吃掉</li>
             </ul>
             <em>2026.09.16</em><br>
