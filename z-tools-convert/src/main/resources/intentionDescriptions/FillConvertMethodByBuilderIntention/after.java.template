@@ -1,0 +1,11 @@
+public UserDO toDO(UserDTO userDTO) {
+    if (userDTO == null) {
+        return null;
+    }
+
+    return UserDO.builder()
+            .name(userDTO.getName())
+            // unmatched
+            .remark()
+            .build();
+}

@@ -19,12 +19,26 @@ public final class ConvertMethodFiller {
     private ConvertMethodFiller() {}
 
     /**
-     * 替换方法体。调用方须已在写操作中。
+     * 用 setter 风格替换方法体。调用方须已在写操作中。
      *
      * @param project 当前项目
      * @param method  目标方法，须带方法体
      */
     public static void fill(Project project, PsiMethod method) {
+        fill(project, method, false);
+    }
+
+    /**
+     * 用 {@code Dest.builder()...build()} 替换方法体。调用方须已在写操作中。
+     *
+     * @param project 当前项目
+     * @param method  目标方法，须带方法体
+     */
+    public static void fillBuilder(Project project, PsiMethod method) {
+        fill(project, method, true);
+    }
+
+    private static void fill(Project project, PsiMethod method, boolean builder) {
         if (method == null || method.getBody() == null) {
             return;
         }
@@ -35,9 +49,14 @@ public final class ConvertMethodFiller {
         }
 
         String targetType = target.getName();
-        String targetVar = ConvertMethodBodyGenerator.targetVarName(targetType, sourceVar);
         List<ConvertField> fields = ConvertMethodSupport.matchingFields(method);
-        String blockText = ConvertMethodBodyGenerator.generate(targetType, targetVar, sourceVar, fields);
+        String blockText = builder
+                ? ConvertMethodBodyGenerator.generateBuilder(targetType, sourceVar, fields)
+                : ConvertMethodBodyGenerator.generate(
+                        targetType,
+                        ConvertMethodBodyGenerator.targetVarName(targetType, sourceVar),
+                        sourceVar,
+                        fields);
 
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
         PsiCodeBlock newBody = factory.createCodeBlockFromText(blockText, method);

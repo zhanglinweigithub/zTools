@@ -2,7 +2,7 @@
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.zhanglinwei.zTools</id>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 
 
     <!-- Public plugin name should be written in Title Case.
@@ -35,7 +35,7 @@
                 <li><b>Jasypt Crypto</b> — Encrypt / decrypt ENC(...) in the editor; decrypt a whole file. 编辑器内 Jasypt 加解密，支持整文件解密。</li>
                 <li><b>Database documentation</b> — MySQL table docs (Html / MarkDown / Word) from zTools.yaml. 从 zTools.yaml 读数据源生成库表文档。</li>
                 <li><b>Inner Builder</b> — Generate Builder (lite or generic, record, inheritance). 生成内部 Builder 类。</li>
-                <li><b>Fill convert body</b> — Alt+Enter on a DTO/DO convert method to fill getters/setters. 在转换方法上 Alt+Enter 填充 getter/setter 方法体。</li>
+                <li><b>Fill convert body</b> — Alt+Enter on a DTO/DO convert method to fill getters/setters or builder(). 在转换方法上 Alt+Enter 填充 getter/setter 或 Builder 方法体。</li>
             </ul>
             <p>Configure under <b>Settings → z-tools</b> (project-level, stored in .idea/zTools.xml).</p>
         ]]>
@@ -43,6 +43,10 @@
 
     <change-notes>
         <![CDATA[
+            <em>2026.09.27</em><br>
+            <ul>
+                <li>feat: fill convert method body with Target.builder()...build() (Alt+Enter) | 转换方法可用 Builder 链式填充方法体</li>
+            </ul>
             <em>2026.09.25</em><br>
             <ul>
                 <li>feat: Mono expands as object, Flux as array, JSON comment 流式对象; SseEmitter example [{}] | Mono 按对象、Flux 按数组展开并标注流式对象；SseEmitter 示例为 [{}]</li>
@@ -166,6 +170,11 @@
             <className>com.zhanglinwei.zTools.convert.FillConvertMethodIntention</className>
             <category>zTools</category>
             <descriptionDirectoryName>FillConvertMethodIntention</descriptionDirectoryName>
+        </intentionAction>
+        <intentionAction>
+            <className>com.zhanglinwei.zTools.convert.FillConvertMethodByBuilderIntention</className>
+            <category>zTools</category>
+            <descriptionDirectoryName>FillConvertMethodByBuilderIntention</descriptionDirectoryName>
         </intentionAction>
 
         <!--

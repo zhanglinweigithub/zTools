@@ -20,7 +20,7 @@
 | [Jasypt 加解密](z-tools-jasyptcrypto/README.md) | 右键 **Jasypt Crypto** | `ENC(...)` 加解密、整文件解密 |
 | [生成数据库文档](z-tools-dbdoc/README.md) | **Tools → Generate DB Doc** | 读 `zTools.yaml` 连 MySQL |
 | [生成 Builder](z-tools-generatebuilder/README.md) | **Generate → Builder** | 内部 Builder，支持 record 与继承 |
-| [填充转换方法体](z-tools-convert/README.md) | 方法上 **Alt + Enter** | 按入参/返回类型生成 getter/setter |
+| [填充转换方法体](z-tools-convert/README.md) | 方法上 **Alt + Enter** | 按入参/返回类型生成 setter 或 `builder()` 链式赋值 |
 
 ## 如何配置
 
